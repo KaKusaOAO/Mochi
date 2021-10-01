@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaLib", "KaLib\KaLib.csproj", "{F5078A4E-D24C-4A8D-B915-C4F88CF53546}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaLib.IO.Hid", "KaLib.IO.Hid\KaLib.IO.Hid.csproj", "{69EFF1C8-4918-430E-B69C-BC609082B25A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaLib.Procon", "KaLib.Procon\KaLib.Procon.csproj", "{341AB51F-A53A-4993-8121-0C69DDAA94B2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaLib.Procon.Test", "KaLib.Procon.Test\KaLib.Procon.Test.csproj", "{003AE923-E344-4AB0-B948-6A1A2E329496}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F5078A4E-D24C-4A8D-B915-C4F88CF53546}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5078A4E-D24C-4A8D-B915-C4F88CF53546}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5078A4E-D24C-4A8D-B915-C4F88CF53546}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5078A4E-D24C-4A8D-B915-C4F88CF53546}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69EFF1C8-4918-430E-B69C-BC609082B25A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69EFF1C8-4918-430E-B69C-BC609082B25A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69EFF1C8-4918-430E-B69C-BC609082B25A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69EFF1C8-4918-430E-B69C-BC609082B25A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{341AB51F-A53A-4993-8121-0C69DDAA94B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{341AB51F-A53A-4993-8121-0C69DDAA94B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{341AB51F-A53A-4993-8121-0C69DDAA94B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{341AB51F-A53A-4993-8121-0C69DDAA94B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{003AE923-E344-4AB0-B948-6A1A2E329496}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{003AE923-E344-4AB0-B948-6A1A2E329496}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{003AE923-E344-4AB0-B948-6A1A2E329496}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{003AE923-E344-4AB0-B948-6A1A2E329496}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
