@@ -35,11 +35,11 @@ namespace KaLib.IO.Hid
         }
 
         /* write record */
-        public void Write(byte[] data)
+        public int Write(byte[] data)
         {
             unsafe
             {
-                HidApi.Write(handle, data, data.Length);
+                return HidApi.Write(handle, data, data.Length);
             }
         }
 

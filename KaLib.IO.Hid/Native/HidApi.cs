@@ -12,9 +12,12 @@ namespace KaLib.IO.Hid.Native
     {
         static HidApi()
         {
-            var path = Path.GetDirectoryName(typeof(HidApi).Assembly.Location);
-            path = Path.Combine(path, IntPtr.Size == 8 ? "x64" : "x86");
-            if(!SetDllDirectory(path)) throw new Win32Exception();
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                var path = Path.GetDirectoryName(typeof(HidApi).Assembly.Location);
+                path = Path.Combine(path, IntPtr.Size == 8 ? "x64" : "x86");
+                if (!SetDllDirectory(path)) throw new Win32Exception();
+            }
         }
         
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]

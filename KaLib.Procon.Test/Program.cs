@@ -12,11 +12,14 @@ namespace KaLib.Procon.Test
             if (controller.Device == null) return;
             
             Console.WriteLine("Now we have a Procon!");
+            await Task.Delay(100);
             while (true)
             {
-                // controller.PollInput();
-                // controller.UpdateStatus();
-                await Task.Yield();
+                controller.PollInput();
+                controller.UpdateStatus();
+                Console.Write($"LeftStick.X = {controller.States.LeftStick.X}     ");
+                Console.CursorLeft = 0;
+                await Task.Delay(15);
             }
         }
     }

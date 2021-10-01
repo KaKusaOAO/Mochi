@@ -66,7 +66,11 @@ namespace KaLib.Procon
         private byte[] ExchangeData(byte[] data)
         {
             if (Device == null) return null;
-            Device.Write(data);
+            int ret = Device.Write(data);
+            if (ret < 0)
+            {
+                return null;
+            }
 
             var result = new byte[0x400];
             Array.Fill(result, (byte)0);
@@ -144,9 +148,10 @@ namespace KaLib.Procon
             
             Device = device;
             ExchangeData(ControllerCommand.Handshake);
+            ExchangeData(ControllerCommand.GetMAC);
             ExchangeData(ControllerCommand.SwitchBaudRate);
             ExchangeData(ControllerCommand.Handshake);
-            ExchangeData(ControllerCommand.HidOnlyMode);
+            // ExchangeData(ControllerCommand.HidOnlyMode);
             
             SendSubCommand(0x1, ControllerCommand.Rumble, ControllerCommand.Enable);
             SendSubCommand(0x1, ControllerCommand.ImuData, ControllerCommand.Enable);
@@ -163,7 +168,7 @@ namespace KaLib.Procon
                 throw new IOException("Error sending getInput command.");
             }
 
-            if (data[0] != 0x30)
+            if (data[0] == 0x30)
             {
                 var ptr = Marshal.AllocHGlobal(data.Length);
                 Marshal.Copy(data, 0, ptr, data.Length);
