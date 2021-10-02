@@ -16,10 +16,9 @@ namespace KaLib.Procon.Test
             while (true)
             {
                 controller.PollInput();
-                controller.UpdateStatus();
-                Console.Write($"LeftStick.X = {controller.States.LeftStick.X}     ");
+                // controller.UpdateStatus();
                 Console.CursorLeft = 0;
-                await Task.Delay(15);
+                await Task.Yield();
             }
         }
     }

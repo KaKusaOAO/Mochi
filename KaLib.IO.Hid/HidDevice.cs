@@ -39,16 +39,51 @@ namespace KaLib.IO.Hid
         {
             unsafe
             {
-                return HidApi.Write(handle, data, data.Length);
+                int len = HidApi.Write(handle, data, data.Length);
+                return len;
+                
+                Console.Write("Write: ");
+                for (int i = 0; i < len; i++)
+                {
+                    Console.Write($"{data[i]:x2} ");
+                }
+                Console.WriteLine();
+                return len;
             }
         }
 
         /* read record */
-        public void Read(byte[] data)
+        public int Read(byte[] data)
         {
             unsafe
             {
-                HidApi.Read(handle, data, data.Length);
+                int len = HidApi.Read(handle, data, data.Length);
+                return len;
+                
+                Console.Write("Read: ");
+                for (int i = 0; i < len; i++)
+                {
+                    Console.Write($"{data[i]:x2} ");
+                }
+                Console.WriteLine();
+                return len;
+            }
+        }
+        
+        public int ReadTimeout(byte[] data, int millis)
+        {
+            unsafe
+            {
+                int len = HidApi.ReadTimeout(handle, data, data.Length, millis);
+                return len;
+                
+                Console.Write("ReadTimeout: ");
+                for (int i = 0; i < len; i++)
+                {
+                    Console.Write($"{data[i]:x2} ");
+                }
+                Console.WriteLine();
+                return len;
             }
         }
     }

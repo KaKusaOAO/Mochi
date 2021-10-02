@@ -13,7 +13,9 @@ namespace KaLib.Procon
         public static readonly byte[] SwitchBaudRate = { 0x80, 0x03 };
         public static readonly byte[] HidOnlyMode = { 0x80, 0x04 };
         public static readonly byte[] Enable = { 0x01 };
-        public static readonly byte[] Led = { 0x01 };
+        
+        public static readonly byte[] LedCalibration  = { 0xff };
+        public static readonly byte[] LedCalibrated = { 0x01 };
 
         public static readonly byte GetInput = 0x1f;
         public static readonly byte[] Empty = Array.Empty<byte>();
@@ -63,9 +65,10 @@ namespace KaLib.Procon
             return null;
         }
 
-        private byte[] ExchangeData(byte[] data)
+        private byte[] ExchangeData(byte[] data, bool timed = false)
         {
             if (Device == null) return null;
+            
             int ret = Device.Write(data);
             if (ret < 0)
             {
@@ -74,7 +77,16 @@ namespace KaLib.Procon
 
             var result = new byte[0x400];
             Array.Fill(result, (byte)0);
-            Device.Read(result);
+
+            if (!timed)
+            {
+                Device.Read(result);
+            }
+            else
+            {
+                Device.ReadTimeout(result, 100);
+            }
+
             return result;
         }
 
@@ -147,35 +159,40 @@ namespace KaLib.Procon
             }
             
             Device = device;
-            ExchangeData(ControllerCommand.Handshake);
-            ExchangeData(ControllerCommand.GetMAC);
+            Console.WriteLine("Sending SwitchBaudrate...");
             ExchangeData(ControllerCommand.SwitchBaudRate);
+            Console.WriteLine("Sending handshake...");
             ExchangeData(ControllerCommand.Handshake);
-            // ExchangeData(ControllerCommand.HidOnlyMode);
+            Console.WriteLine("Sending HidOnlyMode...");
+            ExchangeData(ControllerCommand.HidOnlyMode, true);
             
+            Console.WriteLine("Sending Rumble...");
             SendSubCommand(0x1, ControllerCommand.Rumble, ControllerCommand.Enable);
+            Console.WriteLine("Sending ImuData...");
             SendSubCommand(0x1, ControllerCommand.ImuData, ControllerCommand.Enable);
-            SendSubCommand(0x1, ControllerCommand.LedCommand, ControllerCommand.Led);
+            Console.WriteLine("Sending LedCommand...");
+            SendSubCommand(0x1, ControllerCommand.LedCommand, ControllerCommand.LedCalibrated);
         }
 
         public void PollInput()
         {
             if (Device == null) return;
-
+            
             var data = SendCommand(ControllerCommand.GetInput, ControllerCommand.Empty);
             if (data == null)
             {
                 throw new IOException("Error sending getInput command.");
             }
 
-            if (data[0] == 0x30)
+            if (data[0] == 0x00 || data[0] == 0x30)
             {
-                var ptr = Marshal.AllocHGlobal(data.Length);
-                Marshal.Copy(data, 0, ptr, data.Length);
-                var packet = Marshal.PtrToStructure<InputPacket>(ptr);
-                States = new ButtonState(packet);
-                Marshal.FreeHGlobal(ptr);
+                // useless data
+                return;
             }
+
+            SendSubCommand(0x1, ControllerCommand.LedCommand, ControllerCommand.LedCalibrated);
+            
+            Console.WriteLine("input get");
         }
 
         private DateTime _lastStatus = DateTime.Now;
