@@ -3,6 +3,8 @@
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <RepositoryUrl>https://github.com/ItsArcal139/KaLib</RepositoryUrl>
+        <RepositoryType>github</RepositoryType>
     </PropertyGroup>
 
 </Project>
