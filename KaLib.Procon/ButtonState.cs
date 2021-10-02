@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 
 namespace KaLib.Procon
@@ -86,5 +87,8 @@ namespace KaLib.Procon
         }
 
         private static float StickByteToDouble(byte b) => b / 255f * 2 - 1;
+
+        public IEnumerable<Button> GetPressedButtons()
+            => Buttons.FindAll(x => x.pressed).Select(x => x.button);
     }
 }

@@ -2,10 +2,12 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\KaLib.IO.Hid\KaLib.IO.Hid.csproj" />
+      <ProjectReference Include="..\KaLib\KaLib.csproj" />
     </ItemGroup>
 
 </Project>

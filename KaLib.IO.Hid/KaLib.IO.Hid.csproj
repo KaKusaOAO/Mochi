@@ -4,6 +4,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <AssemblyName>KaLib.IO.Hid</AssemblyName>
         <RootNamespace>KaLib.IO.Hid</RootNamespace>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

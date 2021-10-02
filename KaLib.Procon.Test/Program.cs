@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using KaLib.Utils;
 
 namespace KaLib.Procon.Test
 {
@@ -11,7 +12,12 @@ namespace KaLib.Procon.Test
             controller.OpenFirstProcon();
             if (controller.Device == null) return;
             
-            Console.WriteLine("Now we have a Procon!");
+            Logger.Info("Now we have a Procon!");
+            controller.ButtonPressed += b =>
+            {
+                Logger.Info($"{b} pressed!");
+            };
+            
             await Task.Delay(100);
             while (true)
             {
