@@ -27,4 +27,4 @@ jobs:
     - name: NuGet 1
       run: dotnet nuget add source --username ItsArcal139 --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/ItsArcal139/index.json"
     - name: NuGet 2
-      run: dotnet nuget push "*/bin/Debug/*.nupkg"  --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"
+      run: dotnet nuget push "*/bin/Debug/*.nupkg"  --api-key ${{ secrets.GITHUB_TOKEN }} --source "github" --skip-duplicate
