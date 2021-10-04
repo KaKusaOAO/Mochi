@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace KaLib.Utils
@@ -7,6 +8,12 @@ namespace KaLib.Utils
     public class TaskQueue
     {
         private ConcurrentQueue<Func<Task>> Queue { get; } = new();
+
+        private SemaphoreSlim _loopLock = new SemaphoreSlim(1, 1);
+
+        public int Count => Queue.Count;
+        
+        public bool IsActive { get; private set; }
 
         public void Enqueue(Func<Task> task)
         {
@@ -16,7 +23,7 @@ namespace KaLib.Utils
                 return;
             }
 
-            bool doStart = Queue.Count == 0;
+            var doStart = Queue.IsEmpty;
             Queue.Enqueue(task);
             if (doStart)
             {
@@ -29,14 +36,15 @@ namespace KaLib.Utils
         
         private async Task InternalLoop()
         {
-            while (Queue.Count > 0)
+            await _loopLock.WaitAsync();
+            IsActive = true;
+            while (!Queue.IsEmpty)
             {
-                if (!Queue.TryDequeue(out var task))
-                {
-                    continue;
-                }
+                if (!Queue.TryDequeue(out var task)) continue;
                 await task().ConfigureAwait(false);
             }
+            IsActive = false;
+            _loopLock.Release();
         }
     }
 }

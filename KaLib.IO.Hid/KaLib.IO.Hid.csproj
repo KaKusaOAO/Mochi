@@ -8,6 +8,8 @@
         <RepositoryUrl>https://github.com/ItsArcal139/KaLib</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
         <PackageVersion>1.0.1</PackageVersion>
+        <PackageProjectUrl></PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/ItsArcal139/KaLib/blob/master/LICENSE</PackageLicenseUrl>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

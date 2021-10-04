@@ -8,10 +8,7 @@ using KaLib.Texts;
 
 namespace KaLib.Utils
 {
-    public enum LogLevel
-    {
-        Verbose, Log, Info, Warn, Error, Fatal
-    }
+    public delegate Task AsyncLogDelegate(LogLevel level, Text text, TextColor color, string name);
 
     public static class Logger
     {
@@ -19,6 +16,7 @@ namespace KaLib.Utils
         private const int STD_OUTPUT_HANDLE = -11;
         private const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
         private const uint DISABLE_NEWLINE_AUTO_RETURN = 0x0008;
+        public static event AsyncLogDelegate Logged;
 
         [DllImport("kernel32.dll")]
         private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
@@ -97,6 +95,8 @@ namespace KaLib.Utils
         {
             TaskQueue.Enqueue(async () =>
             {
+                Logged?.Invoke(level, t, color, name).ConfigureAwait(false);
+                
                 if (Level > level) return;
                 await _logLock.WaitAsync();
 
@@ -179,6 +179,24 @@ namespace KaLib.Utils
         {
             name ??= GetCallSourceName();
             Error(LiteralText.Of(msg), name);
+        }
+        
+        public static async Task WaitForActiveLogAsync()
+        {
+            while (!TaskQueue.IsActive)
+            {
+                await Task.Yield();
+            }
+        }
+
+        public static async Task FlushAsync()
+        {
+            await Task.Delay(10);
+            while (TaskQueue.Count > 0)
+            {
+                await Task.Yield();
+            }
+            await Task.Delay(10);
         }
     }
 }
