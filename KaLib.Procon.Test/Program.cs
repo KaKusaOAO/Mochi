@@ -23,11 +23,13 @@ namespace KaLib.Procon.Test
             };
             
             await Task.Delay(100);
+            
+            // TODO: Should do this internally
             while (true)
             {
                 controller.PollInput();
-                // controller.UpdateStatus();
-                Console.CursorLeft = 0;
+                controller.UpdateStatus();
+                // Console.CursorLeft = 0;
                 await Task.Yield();
             }
         }

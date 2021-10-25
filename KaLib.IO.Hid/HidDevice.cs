@@ -53,5 +53,13 @@ namespace KaLib.IO.Hid
                 return HidApi.ReadTimeout(handle, data, data.Length, millis);
             }
         }
+
+        public string GetLastError()
+        {
+            unsafe
+            {
+                return HidApi.Error(handle);
+            }
+        }
     }
 }

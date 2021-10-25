@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -31,12 +32,19 @@ namespace KaLib.Procon
         public const byte LedCommand = 0x30;
     }
 
+    internal struct Vector3s
+    {
+        public short X;
+        public short Y;
+        public short Z;
+    }
+
     internal struct InputPacket
     {
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
         public byte[] Header;
 
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
         public byte[] Unknown;
 
         public byte RightButtons;
@@ -45,6 +53,12 @@ namespace KaLib.Procon
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
         public byte[] Sticks;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 9)]
+        public byte[] Reserved;
+
+        public Vector3s Gyroscope;
+        public Vector3s Accelerometer;
     }
 
     public class Controller
@@ -112,22 +126,13 @@ namespace KaLib.Procon
             int ret = Device.Write(data);
             if (ret < 0)
             {
-                return null;
+                throw new Exception(Device.GetLastError());
             }
 
             var result = new byte[0x400];
-            Array.Fill(result, (byte) 0);
+            Array.Clear(result, 0, result.Length);
 
-            int length;
-            if (!timed)
-            {
-                length = Device.Read(result);
-            }
-            else
-            {
-                length = Device.ReadTimeout(result, 15);
-            }
-
+            int length = !timed ? Device.Read(result) : Device.ReadTimeout(result, 15);
             if (length < 0)
             {
                 Logger.Warn("Failed to exchange data from device!");
@@ -143,7 +148,7 @@ namespace KaLib.Procon
         private byte[] SendCommand(byte command, byte[] data)
         {
             var buf = new byte[data.Length + 0x9];
-            Array.Fill(buf, (byte) 0);
+            Array.Clear(buf, 0, buf.Length);
             buf[0] = 0x80;
             buf[1] = 0x92;
             buf[3] = 0x31;
@@ -176,27 +181,94 @@ namespace KaLib.Procon
 
             return SendCommand(command, buf);
         }
+        
+        private struct Rumble {
+            public Queue<float[]> queue;
 
-        private byte[] SendRumble(byte largeMotor, byte smallMotor)
+            public void set_vals(float low_freq, float high_freq, float amplitude) {
+                float[] rumbleQueue = new float[] { low_freq, high_freq, amplitude };
+                // Keep a queue of 15 items, discard oldest item if queue is full.
+                if (queue.Count > 15) {
+                    queue.Dequeue();
+                }
+                queue.Enqueue(rumbleQueue);
+            }
+            public Rumble(float[] rumble_info) {
+                queue = new Queue<float[]>();
+                queue.Enqueue(rumble_info);
+            }
+            private float clamp(float x, float min, float max) {
+                if (x < min) return min;
+                if (x > max) return max;
+                return x;
+            }
+
+            private byte EncodeAmp(float amp) {
+                byte en_amp;
+
+                if (amp == 0)
+                    en_amp = 0;
+                else if (amp < 0.117)
+                    en_amp = (byte)(((Math.Log(amp * 1000, 2) * 32) - 0x60) / (5 - Math.Pow(amp, 2)) - 1);
+                else if (amp < 0.23)
+                    en_amp = (byte)(((Math.Log(amp * 1000, 2) * 32) - 0x60) - 0x5c);
+                else
+                    en_amp = (byte)((((Math.Log(amp * 1000, 2) * 32) - 0x60) * 2) - 0xf6);
+
+                return en_amp;
+            }
+
+            public byte[] GetData() {
+                byte[] rumble_data = new byte[8];
+                float[] queued_data = queue.Dequeue();
+
+                if (queued_data[2] == 0.0f) {
+                    rumble_data[0] = 0x0;
+                    rumble_data[1] = 0x1;
+                    rumble_data[2] = 0x40;
+                    rumble_data[3] = 0x40;
+                } else {
+                    queued_data[0] = clamp(queued_data[0], 40.875885f, 626.286133f);
+                    queued_data[1] = clamp(queued_data[1], 81.75177f, 1252.572266f);
+
+                    queued_data[2] = clamp(queued_data[2], 0.0f, 1.0f);
+
+                    UInt16 hf = (UInt16)((Math.Round(32f * Math.Log(queued_data[1] * 0.1f, 2)) - 0x60) * 4);
+                    byte lf = (byte)(Math.Round(32f * Math.Log(queued_data[0] * 0.1f, 2)) - 0x40);
+                    byte hf_amp = EncodeAmp(queued_data[2]);
+
+                    UInt16 lf_amp = (UInt16)(Math.Round((double)hf_amp) * .5);
+                    byte parity = (byte)(lf_amp % 2);
+                    if (parity > 0) {
+                        --lf_amp;
+                    }
+
+                    lf_amp = (UInt16)(lf_amp >> 1);
+                    lf_amp += 0x40;
+                    if (parity > 0) lf_amp |= 0x8000;
+
+                    hf_amp = (byte)(hf_amp - (hf_amp % 2)); // make even at all times to prevent weird hum
+                    rumble_data[0] = (byte)(hf & 0xff);
+                    rumble_data[1] = (byte)(((hf >> 8) & 0xff) + hf_amp);
+                    rumble_data[2] = (byte)(((lf_amp >> 8) & 0xff) + lf);
+                    rumble_data[3] = (byte)(lf_amp & 0xff);
+                }
+
+                for (int i = 0; i < 4; ++i) {
+                    rumble_data[4 + i] = rumble_data[i];
+                }
+
+                return rumble_data;
+            }
+        }
+
+        private byte[] SendRumble(float lowFreq, float highFreq, float amptitude)
         {
-            var buf = new byte[]
-            {
-                (byte) (_rumbleCounter++ & 0xf),
-                0x80, 0, 0x40, 0x40,
-                0x80, 0, 0x40, 0x40
-            };
-
-            if (largeMotor != 0)
-            {
-                buf[1] = buf[5] = 8;
-                buf[2] = buf[6] = largeMotor;
-            }
-            else if (smallMotor != 0)
-            {
-                buf[1] = buf[5] = 0x10;
-                buf[2] = buf[6] = smallMotor;
-            }
-
+            var rumble = new Rumble(new[] { lowFreq, highFreq, amptitude });
+            var data = rumble.GetData();
+            var buf = new byte[11];
+            Array.Clear(buf, 0, 11);
+            Array.Copy(data, 0, buf, 1, 8);
             return SendCommand(0x10, buf);
         }
 
@@ -214,8 +286,8 @@ namespace KaLib.Procon
             ExchangeData(ControllerCommand.SwitchBaudRate);
             Logger.Info("Handshaking...");
             ExchangeData(ControllerCommand.Handshake);
-            Logger.Info("Set to HID-only mode...");
-            ExchangeData(ControllerCommand.HidOnlyMode, true);
+            // Logger.Info("Set to HID-only mode...");
+            // ExchangeData(ControllerCommand.HidOnlyMode, true);
 
             Logger.Info("Detecting bad data stream...");
             for (int i = 0; i < TestBadDataCycles; i++)
@@ -233,7 +305,7 @@ namespace KaLib.Procon
         {
             if (Device == null) return true;
             var data = SendCommand(ControllerCommand.GetInput, ControllerCommand.Empty);
-
+            if (data == null) return false;
             if (IsGarbageData(data)) return false;
             return IsBadData(data);
         }
@@ -249,13 +321,12 @@ namespace KaLib.Procon
             var data = SendCommand(ControllerCommand.GetInput, ControllerCommand.Empty);
             if (data == null || data.Length == 0) return;
 
-            if (data[0] == 0x00)
+            if (IsGarbageData(data))
             {
                 // useless data
                 return;
             }
             
-            // Try to parse from the 0x30 one for now
             IntPtr ptr = Marshal.AllocHGlobal(data.Length);
             Marshal.Copy(data, 0, ptr, data.Length);
             var packet = Marshal.PtrToStructure<InputPacket>(ptr);
@@ -286,10 +357,9 @@ namespace KaLib.Procon
         public void UpdateStatus()
         {
             if (DateTime.Now - _lastStatus < TimeSpan.FromMilliseconds(100)) return;
-            var left = (byte) Math.Round(Math.Max(States.LeftStick.Y, 0) * 255);
-            var right = (byte) Math.Round(Math.Max(States.RightStick.Y, 0) * 255);
-            SendRumble(left, 0);
-            SendRumble(0, right);
+            var left = (float)Math.Max(States.LeftStick.Y, 0) * 1252;
+            var right = (float)Math.Max(States.RightStick.Y, 0) * 1252;
+            SendRumble(left, right, Math.Max(left, right) / 1252);
             _lastStatus = DateTime.Now;
         }
     }

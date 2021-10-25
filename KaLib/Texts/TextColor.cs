@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using KaLib.Data;
 
 namespace KaLib.Texts
@@ -70,17 +71,14 @@ namespace KaLib.Texts
                 int rgb;
                 try
                 {
-                    rgb = int.Parse(name[1..], NumberStyles.HexNumber);
+                    rgb = int.Parse(name.Substring(1), NumberStyles.HexNumber);
                 } catch(FormatException)
                 {
                     throw new ArgumentException("Illegal hex string " + name);
                 }
 
                 string magic = ColorChar + "x";
-                foreach(char c in name[1..])
-                {
-                    magic += ColorChar + "" + c;
-                }
+                magic = name.Substring(1).Aggregate(magic, (current, c) => current + (ColorChar + "" + c));
 
                 return new TextColor(name, magic, rgb);
             }

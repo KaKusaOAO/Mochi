@@ -1,13 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <RepositoryUrl>https://github.com/ItsArcal139/KaLib</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
         <PackageVersion>1.0.1</PackageVersion>
         <PackageProjectUrl></PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/ItsArcal139/KaLib/blob/master/LICENSE</PackageLicenseUrl>
+        <TargetFrameworks>net472;net6.0;netstandard2.0</TargetFrameworks>
+        <LangVersion>9</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>

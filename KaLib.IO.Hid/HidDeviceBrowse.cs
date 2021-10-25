@@ -16,7 +16,7 @@ namespace KaLib.IO.Hid
                 { 
                     var entry = new HidDeviceInfo(*item);
                     result.Add(entry);
-                    item = item->next;
+                    item = item->Next;
                 }
                 
                 HidApi.FreeEnumeration(root);

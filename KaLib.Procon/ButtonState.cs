@@ -1,10 +1,32 @@
-﻿using System.Collections.Generic;
+﻿#if !(NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER || NET46_OR_GREATER)
+#define VECTOR2_NOT_SUPPORTED
+#endif
+
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
+#if !VECTOR2_NOT_SUPPORTED
 using System.Numerics;
+#endif
+
 
 namespace KaLib.Procon
 {
+    #if VECTOR2_NOT_SUPPORTED
+    public struct Vector2
+    {
+        public double X { get; set; }
+        public double Y { get; set; }
+
+        public Vector2(double x, double y)
+        {
+            X = x;
+            Y = y;
+        }
+    }
+    #endif
+    
     public struct ButtonState
     {
         public Vector2 LeftStick { get; }

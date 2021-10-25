@@ -12,12 +12,10 @@ namespace KaLib.IO.Hid.Native
     {
         static HidApi()
         {
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-            {
-                var path = Path.GetDirectoryName(typeof(HidApi).Assembly.Location);
-                path = Path.Combine(path, IntPtr.Size == 8 ? "x64" : "x86");
-                if (!SetDllDirectory(path)) throw new Win32Exception();
-            }
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT) return;
+            var path = Path.GetDirectoryName(typeof(HidApi).Assembly.Location) ?? "";
+            path = Path.Combine(path, IntPtr.Size == 8 ? "x64" : "x86");
+            if (!SetDllDirectory(path)) throw new Win32Exception();
         }
         
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -83,30 +81,30 @@ namespace KaLib.IO.Hid.Native
     [StructLayout(LayoutKind.Sequential)]
     internal struct NativeHidDevice
     {
-        public IntPtr device_handle;
-        public bool blocking;
-        public ushort output_record_length;
-        public int input_record_length;
-        public IntPtr last_error_str;
-        public int last_error_num;
-        public bool read_pending;
-        public IntPtr read_buf;
-        public NativeOverlapped ol;
+        public IntPtr DeviceHandle;
+        public bool IsBlocking;
+        public ushort OutputRecordLength;
+        public int InputRecordLength;
+        public IntPtr LastErrorStr;
+        public int LastErrorNum;
+        public bool ReadPending;
+        public IntPtr ReadBuf;
+        public NativeOverlapped Overlapped;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct NativeHidDeviceInfo
     {
-        public char* path;
-        public ushort vendor_id;
-        public ushort product_id;
-        public char* serial_number;
-        public ushort release_number;
-        public char* manufacturer_string;
-        public char* product_string;
-        public ushort usage_page;
-        public ushort usage;
-        public int interface_number;
-        public NativeHidDeviceInfo* next;
+        public char* Path;
+        public ushort VendorId;
+        public ushort ProductId;
+        public char* SerialNumber;
+        public ushort ReleaseNumber;
+        public char* ManufacturerString;
+        public char* ProductString;
+        public ushort UsagePage;
+        public ushort Usage;
+        public int InterfaceNumber;
+        public NativeHidDeviceInfo* Next;
     }
 }

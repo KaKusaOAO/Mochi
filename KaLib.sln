@@ -8,6 +8,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaLib.Procon", "KaLib.Proco
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaLib.Procon.Test", "KaLib.Procon.Test\KaLib.Procon.Test.csproj", "{003AE923-E344-4AB0-B948-6A1A2E329496}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaLib.Osu", "KaLib.Osu\KaLib.Osu.csproj", "{34EA16BF-A5D0-4E84-97C7-86535150E061}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaLib.Osu.Test", "KaLib.Osu.Test\KaLib.Osu.Test.csproj", "{25B87BF2-18C4-45D1-A9DA-FC2A9704A189}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +34,13 @@ Global
 		{003AE923-E344-4AB0-B948-6A1A2E329496}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{003AE923-E344-4AB0-B948-6A1A2E329496}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{003AE923-E344-4AB0-B948-6A1A2E329496}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34EA16BF-A5D0-4E84-97C7-86535150E061}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34EA16BF-A5D0-4E84-97C7-86535150E061}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34EA16BF-A5D0-4E84-97C7-86535150E061}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34EA16BF-A5D0-4E84-97C7-86535150E061}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25B87BF2-18C4-45D1-A9DA-FC2A9704A189}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25B87BF2-18C4-45D1-A9DA-FC2A9704A189}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25B87BF2-18C4-45D1-A9DA-FC2A9704A189}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25B87BF2-18C4-45D1-A9DA-FC2A9704A189}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace KaLib.Utils.Extensions
@@ -25,7 +27,7 @@ namespace KaLib.Utils.Extensions
             {
                 result += separator + i;
             }
-            return result.Length == 0 ? "" : result[separator.Length..];
+            return result.Length == 0 ? "" : result.Substring(separator.Length);
         }
 
         public static T Find<T>(this IEnumerable<T> input, Func<T, bool> finder)
@@ -38,6 +40,9 @@ namespace KaLib.Utils.Extensions
 
             return default;
         }
+
+        public static T WhereOfType<TSource, T>(this IEnumerable<TSource> input, T typeObj = default) where T : TSource
+            => (T)input.Find(x => x is T);
 
         public static string Hexdump(this byte[] data)
         {

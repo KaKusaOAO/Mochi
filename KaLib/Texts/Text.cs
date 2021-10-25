@@ -194,12 +194,18 @@ namespace KaLib.Texts
                 var c = m.Groups[1].Value;
                 if (c.Length == 0)
                 {
-                    c = (counter++) + "";
+                    c = counter++ + "";
                 }
                 offset += c.Length + 2 - m.Value.Length;
-                fmt = fmt[..(m.Index + offset)] + "{" + c + "}" + fmt[(m.Index + offset + m.Value.Length)..];
+                // fmt = fmt[..(m.Index + offset)] + "{" + c + "}" + fmt[(m.Index + offset + m.Value.Length)..];
+                // Need to use legacy syntax to support older versions of .NET
+                fmt = fmt.Substring(0, m.Index + offset) + $"{{{c}}}" +
+                      fmt.Substring(m.Index + offset + m.Value.Length);
             }
-            return string.Format(fmt, obj);
+
+            var o = obj.ToList();
+            for(var i=0; i<counter; i++) o.Add("");
+            return string.Format(fmt, o.ToArray());
         }
 
         internal override string ToAscii()
@@ -295,8 +301,8 @@ namespace KaLib.Texts
 
         public static AsciiColor FromTextColor(TextColor color)
         {
-            TextColor closest = color.ToNearestPredefinedColor();
-            char code = closest.ToString()[1..][0];
+            var closest = color.ToNearestPredefinedColor();
+            var code = closest.ToString().Substring(1)[0];
             return Of(code);
         }
 

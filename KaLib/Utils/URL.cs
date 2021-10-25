@@ -20,17 +20,17 @@ namespace KaLib.Utils
             {
                 throw new ArgumentException("URL must contain protocol (...://)");
             }
-            Protocol = url[..colonIndex].ToLower();
-            PathName = url[(colonIndex + 3)..];
+            Protocol = url.Substring(0, colonIndex).ToLower();
+            PathName = url.Substring(colonIndex + 3);
             Host = PathName.Split('/')[0];
             
             int queryIndex = url.IndexOf('?');
             if (queryIndex != -1)
             {
-                string[] queries = url[(queryIndex + 1)..].Split('&');
+                string[] queries = url.Substring(queryIndex + 1).Split('&');
                 foreach (var query in queries)
                 {
-                    string[] items = query.Split('=', 2);
+                    string[] items = query.Split(new[] { '=' }, 2);
                     string key = items[0];
                     string val = items.Length > 1 ? items[1] : null;
                     SearchParams.Add(key, val);

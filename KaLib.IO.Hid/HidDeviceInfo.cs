@@ -25,12 +25,16 @@ namespace KaLib.IO.Hid
         {
             unsafe
             {
-                var path = Marshal.PtrToStringUTF8((IntPtr)handle.path);
-                var manufacturer = new string(handle.manufacturer_string);
-                var product = new string(handle.product_string);
-                var vendorId = handle.vendor_id;
-                var productId = handle.product_id;
-                var serial = new string(handle.serial_number);
+                #if NET6_0_OR_GREATER
+                var path = Marshal.PtrToStringUTF8((IntPtr)handle.Path);
+                #else
+                var path = Marshal.PtrToStringAuto((IntPtr)handle.Path);
+                #endif
+                var manufacturer = new string(handle.ManufacturerString);
+                var product = new string(handle.ProductString);
+                var vendorId = handle.VendorId;
+                var productId = handle.ProductId;
+                var serial = new string(handle.SerialNumber);
 
                 Handle = handle;
                 Product = product;
