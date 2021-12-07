@@ -1,7 +1,7 @@
 ﻿using System;
 using KaLib.Utils;
 
-namespace KaLib.Osu.Beatmaps
+namespace KaLib.Osu.Beatmaps.Sections
 {
     public class GeneralSection : Section
     {

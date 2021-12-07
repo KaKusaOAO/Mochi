@@ -34,6 +34,12 @@ namespace KaLib.Procon
 
         public List<(Button button, bool pressed)> Buttons { get; }
         internal InputPacket Source { get; }
+        
+        #if NET6_0_OR_GREATER
+        public Vector3 Gyroscope { get; }
+        
+        public Vector3 Accelerometer { get; }
+        #endif
 
         private static readonly Button[] ButtonLeftBitmap = {
             Button.DPadDown,
@@ -101,6 +107,11 @@ namespace KaLib.Procon
             var ry = StickByteToDouble(packet.Sticks[5]);
             LeftStick = new Vector2(lx, ly);
             RightStick = new Vector2(rx, ry);
+
+            #if NET6_0_OR_GREATER
+            Gyroscope = new Vector3(packet.Gyroscope.X, packet.Gyroscope.Y, packet.Gyroscope.Z);
+            Accelerometer = new Vector3(packet.Accelerometer.X, packet.Accelerometer.Y, packet.Accelerometer.Z);
+            #endif
 
             Buttons = new();
             Buttons.AddRange(PullButtonsFromByte(packet.LeftButtons, ButtonSource.Left));

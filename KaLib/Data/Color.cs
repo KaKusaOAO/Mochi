@@ -34,6 +34,7 @@ namespace KaLib.Data
             B = (byte)(hex & 0xff);
         }
 
+        // ReSharper disable once InconsistentNaming
         public int RGB
         {
             get
@@ -51,27 +52,27 @@ namespace KaLib.Data
         {
             var (r, g, b) = Normalized;
 
-            double max = MathHelper.Max(r, g, b);
-            double min = MathHelper.Min(r, g, b);
-            double delta = max - min;
+            var max = MathHelper.Max(r, g, b);
+            var min = MathHelper.Min(r, g, b);
+            var delta = max - min;
 
             double hue, saturation, value;
-            double d60 = MathHelper.DegToRad * 60;
+            var d60 = MathHelper.DegToRad * 60;
 
             // Calculate the hue
             if (delta == 0)
             {
                 hue = 0;
             }
-            else if (max == r)
+            else if (Math.Abs(max - r) < double.Epsilon * 2)
             {
                 hue = d60 * ((g - b) / delta % 6);
             }
-            else if (max == g)
+            else if (Math.Abs(max - g) < double.Epsilon * 2)
             {
                 hue = d60 * ((b - r) / delta + 2);
             }
-            else if (max == b)
+            else if (Math.Abs(max - b) < double.Epsilon * 2)
             {
                 hue = d60 * ((r - g) / delta + 4);
             }

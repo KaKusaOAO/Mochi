@@ -286,8 +286,8 @@ namespace KaLib.Procon
             ExchangeData(ControllerCommand.SwitchBaudRate);
             Logger.Info("Handshaking...");
             ExchangeData(ControllerCommand.Handshake);
-            // Logger.Info("Set to HID-only mode...");
-            // ExchangeData(ControllerCommand.HidOnlyMode, true);
+            Logger.Info("Set to HID-only mode...");
+            ExchangeData(ControllerCommand.HidOnlyMode, true);
 
             Logger.Info("Detecting bad data stream...");
             for (int i = 0; i < TestBadDataCycles; i++)
@@ -297,8 +297,17 @@ namespace KaLib.Procon
                 Device.Close();
                 Thread.Sleep(1000);
                 OpenFirstProcon();
-                break;
+                return;
             }
+
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    PollInput();
+                    await Task.Yield();
+                }
+            });
         }
 
         private bool TryReadBadData()
@@ -352,15 +361,7 @@ namespace KaLib.Procon
         public event ButtonDelegate ButtonPressed;
         public event ButtonDelegate ButtonReleased;
 
-        private DateTime _lastStatus = DateTime.Now;
-
-        public void UpdateStatus()
-        {
-            if (DateTime.Now - _lastStatus < TimeSpan.FromMilliseconds(100)) return;
-            var left = (float)Math.Max(States.LeftStick.Y, 0) * 1252;
-            var right = (float)Math.Max(States.RightStick.Y, 0) * 1252;
-            SendRumble(left, right, Math.Max(left, right) / 1252);
-            _lastStatus = DateTime.Now;
-        }
+        public void SetVibration(float lowFreq, float highFreq, float amptitude)
+            => SendRumble(lowFreq, highFreq, amptitude);
     }
 }

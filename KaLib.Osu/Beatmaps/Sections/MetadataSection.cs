@@ -2,7 +2,7 @@
 using System.Linq;
 using KaLib.Utils;
 
-namespace KaLib.Osu.Beatmaps
+namespace KaLib.Osu.Beatmaps.Sections
 {
     public class MetadataSection : Section
     {
@@ -21,6 +21,10 @@ namespace KaLib.Osu.Beatmaps
         public string Artist { get; set; }
         public string ArtistUnicode { get; set; }
         public string Creator { get; set; }
+        
+        /// <summary>
+        /// The difficulty name for the beatmap.
+        /// </summary>
         public string Version { get; set; }
         public string Source { get; set; }
         public List<string> Tags { get; } = new();

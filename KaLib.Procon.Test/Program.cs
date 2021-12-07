@@ -20,16 +20,21 @@ namespace KaLib.Procon.Test
             controller.ButtonPressed += b =>
             {
                 Logger.Info($"{b} pressed!");
+
+                if (b == Button.B)
+                {
+                    Logger.Info($"Gyroscope: {controller.States.Gyroscope}");
+                    Logger.Info($"Accelerometer: {controller.States.Accelerometer}");
+                }
             };
             
             await Task.Delay(100);
             
-            // TODO: Should do this internally
             while (true)
             {
-                controller.PollInput();
-                controller.UpdateStatus();
-                // Console.CursorLeft = 0;
+                var left = (float)Math.Max(controller.States.LeftStick.Y, 0) * 250;
+                var right = (float)Math.Max(controller.States.RightStick.Y, 0) * 250;
+                controller.SetVibration(left, right, Math.Max(left, right) / 250);
                 await Task.Yield();
             }
         }
