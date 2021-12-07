@@ -8,7 +8,7 @@ using KaLib.Texts;
 
 namespace KaLib.Utils
 {
-    public delegate Task AsyncLogDelegate(LogLevel level, Text text, TextColor color, string name);
+    public delegate Task AsyncLogDelegate(LogLevel level, Text text, TextColor color, Text name);
 
     public static class Logger
     {
@@ -51,13 +51,20 @@ namespace KaLib.Utils
             MethodBase method = stack.GetFrame(2)?.GetMethod();
             if (method == null)
             {
-                name = "Sayu";
+                name = "?";
             }
             else
             {
                 name = GetRootType(method.DeclaringType).FullName;
             }
             return name;
+        }
+
+        private static Type GetCallSourceType()
+        {
+            StackTrace stack = new StackTrace();
+            MethodBase method = stack.GetFrame(2)?.GetMethod();
+            return GetRootType(method.DeclaringType);
         }
 
         private static Type GetRootType(Type t)
@@ -91,17 +98,19 @@ namespace KaLib.Utils
             }
         }
         
-        private static void Log(LogLevel level, Text t, TextColor color, string name = DefaultName)
+        private static void Log(LogLevel level, Text t, TextColor color, Text name)
         {
             TaskQueue.Enqueue(async () =>
             {
-                Logged?.Invoke(level, t, color, name).ConfigureAwait(false);
+                var _name = name.CloneAsBase();
+                Logged?.Invoke(level, t, color, _name).ConfigureAwait(false);
                 
                 if (Level > level) return;
                 await _logLock.WaitAsync();
 
                 var f = PrefixFormat;
-                var tag = LiteralText.Of($"[{name}]").SetColor(color);
+                _name.Color = color;
+                var tag = TranslateText.Of("[%s]").AddWith(_name).SetColor(color);
                 var now = DateTime.Now.ToString();
                 Console.WriteLine(f.AddWith(tag, t, LiteralText.Of(now)).ToAscii());
                 
@@ -111,74 +120,77 @@ namespace KaLib.Utils
 
         public static void Log(Text t, string name = DefaultName)
         {
-            name ??= GetCallSourceName();
-            Log(LogLevel.Log, t, TextColor.DarkGray, name);
+            var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
+            Log(LogLevel.Log, t, TextColor.DarkGray, tag);
         }
 
         public static void Log(string msg, string name = DefaultName)
         {
-            name ??= GetCallSourceName();
+            var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
             foreach (string line in msg.Split('\n'))
             {
-                Log(LiteralText.Of(line), name);
+                Log(LogLevel.Log, LiteralText.Of(line), TextColor.DarkGray, tag);
             }
         }
 
         public static void Verbose(Text t, string name = DefaultName)
         {
-            name ??= GetCallSourceName();
-            Log(LogLevel.Verbose, t, TextColor.DarkGray, name);
+            var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
+            Log(LogLevel.Verbose, t, TextColor.DarkGray, tag);
         }
 
         public static void Verbose(string msg, string name = DefaultName)
         {
-            name ??= GetCallSourceName();
+            var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
             foreach (string line in msg.Split('\n'))
             {
-                Verbose(LiteralText.Of(line), name);
+                Log(LogLevel.Verbose, LiteralText.Of(line), TextColor.DarkGray, tag);
             }
         }
 
         public static void Info(Text t, string name = DefaultName)
         {
-            name ??= GetCallSourceName();
-            Log(LogLevel.Info, t, TextColor.Green, name);
+            var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
+            Log(LogLevel.Info, t, TextColor.Green, tag);
         }
 
         public static void Info(string msg, string name = DefaultName)
         {
-            name ??= GetCallSourceName();
+            var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
             foreach (string line in msg.Split('\n'))
             {
-                Info(LiteralText.Of(line), name);
+                Log(LogLevel.Info, LiteralText.Of(line), TextColor.Green, tag);
             }
         }
 
         public static void Warn(Text t, string name = DefaultName)
         {
-            name ??= GetCallSourceName();
-            Log(LogLevel.Warn, t, TextColor.Gold, name);
+            var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
+            Log(LogLevel.Warn, t, TextColor.Gold, tag);
         }
 
         public static void Warn(string msg, string name = DefaultName)
         {
-            name ??= GetCallSourceName();
+            var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
             foreach (string line in msg.Split('\n'))
             {
-                Warn(LiteralText.Of(line), name);
+                Log(LogLevel.Warn, LiteralText.Of(line), TextColor.Gold, tag);
             }
         }
 
         public static void Error(Text t, string name = DefaultName)
         {
-            name ??= GetCallSourceName();
-            Log(LogLevel.Error, t, TextColor.Red, name);
+            var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
+            Log(LogLevel.Error, t, TextColor.Red, tag);
         }
 
         public static void Error(string msg, string name = DefaultName)
         {
-            name ??= GetCallSourceName();
-            Error(LiteralText.Of(msg), name);
+            var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
+            foreach (string line in msg.Split('\n'))
+            {
+                Log(LogLevel.Error, LiteralText.Of(line), TextColor.Red, tag);
+            }
         }
         
         public static async Task WaitForActiveLogAsync()

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Globalization;
 using System.Reflection;
-using System.Text.RegularExpressions;
-using KaLib.Utils.Extensions;
 
 namespace KaLib.Texts
 {
@@ -49,17 +47,97 @@ namespace KaLib.Texts
             return extra;
         }
 
-        public static Text RepresentType(Type t)
+        public static Text RepresentType(Type t, TextColor color = null)
+            => TranslateText.Of($"%s.{t.Name}")
+                .SetColor(color ?? TextColor.Gold)
+                .AddWith(
+                    LiteralText.Of(t.Namespace)
+                        .SetColor(TextColor.DarkGray)
+                );
+            
+        private static Text RepresentInt(int val, TextColor color = null)
+            => LiteralText.Of(val.ToString())
+                .SetColor(color ?? TextColor.Gold);
+
+        private static Text RepresentGoldWithRedSuffix(string s, string suffix, TextColor color = null)
+            => TranslateText.Of($"{s}%s")
+                .SetColor(color ?? TextColor.Gold)
+                .AddWith(LiteralText.Of(suffix).SetColor(TextColor.Red));
+
+        private static Text RepresentLong(long val, TextColor color = null)
+            => RepresentGoldWithRedSuffix(val.ToString(), "L", color);
+
+        private static Text RepresentFloat(float val, TextColor color = null)
+            => RepresentGoldWithRedSuffix(val.ToString(CultureInfo.InvariantCulture), "f", color);
+
+        private static Text RepresentDouble(double val, TextColor color = null)
+            => RepresentGoldWithRedSuffix(val.ToString(CultureInfo.InvariantCulture), "d", color);
+
+        private static Text RepresentDecimal(decimal val, TextColor color = null)
+            => RepresentGoldWithRedSuffix(val.ToString(CultureInfo.InvariantCulture), "m", color);
+
+        private static Text RepresentByte(byte val, TextColor color = null)
+            => RepresentGoldWithRedSuffix(val.ToString(), "b", color);
+
+        private static Text RepresentString(string val, TextColor color = null)
+            => TranslateText.Of(@"""%s""")
+                .SetColor(color ?? TextColor.Green)
+                .AddWith(LiteralText.Of(val));
+
+        private static Text RepresentShort(short val, TextColor color = null)
+            => RepresentGoldWithRedSuffix(val.ToString(), "s", color);
+        
+        private static Text RepresentBool(bool val, TextColor color = null)
+            => LiteralText.Of(val.ToString())
+                .SetColor(color ?? (val ? TextColor.Green : TextColor.Red));
+        
+        public static Text Represent(object obj, TextColor color = null)
         {
-            return LiteralText.Of(t.Namespace + ".").SetColor(TextColor.DarkGray)
-                    .AddExtra(LiteralText.Of(t.Name).SetColor(TextColor.Gold));
+            switch (obj)
+            {
+                case null:
+                    return LiteralText.Of("null").SetColor(TextColor.Red);
+                case int i:
+                    return RepresentInt(i, color);
+                case long l:
+                    return RepresentLong(l, color);
+                case float f:
+                    return RepresentFloat(f, color);
+                case double d:
+                    return RepresentDouble(d, color);
+                case decimal d:
+                    return RepresentDecimal(d, color);
+                case byte b:
+                    return RepresentByte(b, color);
+                case bool b:
+                    return RepresentBool(b, color);
+                case string s:
+                    return RepresentString(s, color);
+                case short s:
+                    return RepresentShort(s, color);
+                case Type t:
+                    return RepresentType(t, color);
+            }
+            return TranslateText.Of("(%s)")
+                .SetColor(color)
+                .AddWith(RepresentType(obj.GetType()));
         }
+
+        public abstract Text CloneAsBase();
     }
 
     public abstract class Text<S> : Text, IText<S> where S : Text<S>
     {
         protected abstract S ResolveThis();
+
         public abstract S Clone();
+
+        public override Text CloneAsBase()
+        {
+            var clone = Clone();
+            clone.Color = Color;
+            return clone;
+        }
 
         public S AddExtra(params IText[] texts)
         {
@@ -92,234 +170,6 @@ namespace KaLib.Texts
             Underline = flags.HasFlag(TextFormatFlag.Underline);
             Reset = flags.HasFlag(TextFormatFlag.Reset);
             return t;
-        }
-    }
-
-    public class LiteralText : Text<LiteralText>
-    {
-        public string Text { get; set; }
-
-        protected override LiteralText ResolveThis() => this;
-
-        public static LiteralText Of(string text)
-        {
-            LiteralText result = new LiteralText();
-            result.Text = text;
-            return result;
-        }
-
-        public override LiteralText Clone()
-        {
-            LiteralText result = Of(Text);
-            result.AddExtra(result.Extra.ToArray());
-            return result;
-        }
-
-        internal override string ToAscii()
-        {
-            string extra = base.ToAscii();
-            string color = (Color ?? ParentColor).ToAsciiCode();
-            return color + Text + extra;
-        }
-
-        public override string ToPlainText()
-        {
-            string extra = base.ToAscii();
-
-            string result = "";
-            for (int i = 0; i < Text.Length; i++)
-            {
-                string b = Text;
-                if (b[i] == TextColor.ColorChar && TextColor.McCodes().ToList().IndexOf(b[i + 1]) > -1)
-                {
-                    i += 2;
-                }
-                else
-                {
-                    result += b[i];
-                }
-            }
-
-            return result + extra;
-        }
-    }
-
-    public class TranslateText : Text<TranslateText>
-    {
-        public string Translate { get; set; }
-        public ICollection<Text> With { get; set; } = new List<Text>();
-
-        public TranslateText(string translate, params Text[] texts)
-        {
-            Translate = translate;
-            foreach (Text t in texts)
-            {
-                With.Add(t);
-            }
-        }
-
-        public TranslateText AddWith(params Text[] texts)
-        {
-            foreach (Text text in texts)
-            {
-                With.Add(text);
-            }
-            return this;
-        }
-
-        public static TranslateText Of(string format, params Text[] texts)
-        {
-            return new TranslateText(format, texts);
-        }
-
-        protected override TranslateText ResolveThis()
-        {
-            return this;
-        }
-
-        public override TranslateText Clone()
-        {
-            TranslateText result = Of(Translate, With.ToArray());
-            result.AddExtra(result.Extra.ToArray());
-            return result;
-        }
-
-        private string Format(string fmt, params object[] obj)
-        {
-            var offset = -1;
-            var counter = 0;
-            var matches = new Regex("%(?:(?:(\\d*?)\\$)?)s").Matches(fmt);
-            foreach (Match m in matches)
-            {
-                var c = m.Groups[1].Value;
-                if (c.Length == 0)
-                {
-                    c = counter++ + "";
-                }
-                offset += c.Length + 2 - m.Value.Length;
-                // fmt = fmt[..(m.Index + offset)] + "{" + c + "}" + fmt[(m.Index + offset + m.Value.Length)..];
-                // Need to use legacy syntax to support older versions of .NET
-                fmt = fmt.Substring(0, m.Index + offset) + $"{{{c}}}" +
-                      fmt.Substring(m.Index + offset + m.Value.Length);
-            }
-
-            var o = obj.ToList();
-            for(var i=0; i<counter; i++) o.Add("");
-            return string.Format(fmt, o.ToArray());
-        }
-
-        internal override string ToAscii()
-        {
-            string extra = base.ToAscii();
-            string color = (Color ?? ParentColor).ToAsciiCode();
-            string[] withAscii = With.Map(text =>
-            {
-                return text.ToAscii() + color;
-            }).ToArray();
-            return color + Format(Translate, withAscii) + extra;
-        }
-
-        public override string ToPlainText()
-        {
-            string extra = base.ToAscii();
-
-            string result = "";
-            for (int i = 0; i < Translate.Length; i++)
-            {
-                string b = Translate;
-                if (b[i] == TextColor.ColorChar && TextColor.McCodes().ToList().IndexOf(b[i + 1]) > -1)
-                {
-                    i += 2;
-                }
-                else
-                {
-                    result += b[i];
-                }
-            }
-
-            string[] withAscii = With.Map(text =>
-            {
-                return text.ToPlainText();
-            }).ToArray();
-
-            return Format(result, withAscii) + extra;
-        }
-    }
-
-    internal static class TextColorAsciiExtension
-    {
-        internal static string ToAsciiCode(this TextColor color) => AsciiColor.FromTextColor(color).ToAsciiCode();
-    }
-
-    internal sealed class AsciiColor
-    {
-        public char ColorCode { get; set; }
-        public int Color { get; set; }
-        public bool Bright { get; set; }
-
-        private static Dictionary<char, AsciiColor> byCode = new Dictionary<char, AsciiColor>();
-
-        public static readonly AsciiColor Black = new AsciiColor('0', 30);
-        public static readonly AsciiColor DarkBlue = new AsciiColor('1', 30, true);
-        public static readonly AsciiColor DarkGreen = new AsciiColor('2', 30, true);
-        public static readonly AsciiColor DarkAqua = new AsciiColor('3', 30, true);
-        public static readonly AsciiColor DarkRed = new AsciiColor('4', 30, true);
-        public static readonly AsciiColor DarkPurple = new AsciiColor('5', 30, true);
-        public static readonly AsciiColor Gold = new AsciiColor('6', 33);
-        public static readonly AsciiColor Gray = new AsciiColor('7', 37);
-        public static readonly AsciiColor DarkGray = new AsciiColor('8', 30, true);
-        public static readonly AsciiColor Blue = new AsciiColor('9', 30, true);
-        public static readonly AsciiColor Green = new AsciiColor('a', 32, true);
-        public static readonly AsciiColor Aqua = new AsciiColor('b', 34, true);
-        public static readonly AsciiColor Red = new AsciiColor('c', 31, true);
-        public static readonly AsciiColor Purple = new AsciiColor('d', 31, true);
-        public static readonly AsciiColor Yellow = new AsciiColor('e', 33, true);
-        public static readonly AsciiColor White = new AsciiColor('f', 37, true);
-
-        public const char ColorChar = '\u00a7';
-
-        private AsciiColor(char code, int color, bool isBright = false)
-        {
-            ColorCode = code;
-            Color = color;
-            Bright = isBright;
-
-            byCode.Add(code, this);
-        }
-
-        public static AsciiColor Of(char c)
-        {
-            try
-            {
-                return byCode[c];
-            }
-            catch (KeyNotFoundException)
-            {
-                throw new ArgumentException($"Color of '{c}' is not defined");
-            }
-        }
-
-        public static AsciiColor FromTextColor(TextColor color)
-        {
-            var closest = color.ToNearestPredefinedColor();
-            var code = closest.ToString().Substring(1)[0];
-            return Of(code);
-        }
-
-        public string ToAsciiCode()
-        {
-            string brightPrefix = Bright ? "1;" : "";
-            return $"\u001b[{brightPrefix}{Color}m";
-        }
-
-        public string ToMcCode()
-        {
-            return $"{ColorChar}{ColorCode.ToString().ToLower()}";
-        }
-
-        public static char[] McCodes()
-        {
-            return "0123456789abcdef".ToCharArray();
         }
     }
 }

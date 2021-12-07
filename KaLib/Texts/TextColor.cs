@@ -91,6 +91,9 @@ namespace KaLib.Texts
             throw new ArgumentException("Could not parse TextColor " + name);
         }
 
+        public static TextColor Of(char code)
+            => byChar.ContainsKey(code) ? byChar[code] : null;
+
         public override string ToString() => toString;
 
         public string Name => name;
@@ -154,5 +157,7 @@ namespace KaLib.Texts
         {
             return "0123456789abcdef".ToCharArray();
         }
+        
+        public string ToAsciiCode() => AsciiColor.FromTextColor(this).ToAsciiCode();
     }
 }
