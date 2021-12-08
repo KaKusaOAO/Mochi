@@ -58,10 +58,10 @@ namespace KaLib.Localizations
             }
         }
 
-        public string Get(string key)
+        public virtual string Get(string key)
         {
-            if (locale.ContainsKey(key)) return locale[key];
-            return baseLocale.ContainsKey(key) ? baseLocale[key] : key;
+            if (locale?.ContainsKey(key) ?? false) return locale[key];
+            return baseLocale?.ContainsKey(key) ?? false ? baseLocale[key] : key;
         }
 
         public string Format(string key, params object[] args)
