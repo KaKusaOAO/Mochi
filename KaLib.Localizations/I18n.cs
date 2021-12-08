@@ -5,12 +5,12 @@ namespace KaLib.Localizations
 {
     public class I18n
     {
-        private static Dictionary<string, string>? baseLocale = new();
-        private Dictionary<string, string>? locale = new();
-
         private const string localeDir = "lang";
         private const string baseName = "base";
+        private static Dictionary<string, string>? baseLocale = new();
         private static bool initialized;
+        private string currentLocale;
+        private Dictionary<string, string>? locale = new();
 
         public I18n(string locale = "")
         {
@@ -24,7 +24,9 @@ namespace KaLib.Localizations
                 SetLocale(locale);
             }
         }
-        
+
+        public string CurrentLocale => string.IsNullOrEmpty(currentLocale) ? baseName : currentLocale;
+
         public static void Initialize()
         {
             initialized = true;
@@ -44,13 +46,16 @@ namespace KaLib.Localizations
 
         public void SetLocale(string key)
         {
+            locale?.Clear();
+            currentLocale = key;
+            if (string.IsNullOrEmpty(key)) return;
+            
             var baseFile = $"{localeDir}/{key}.json";
             if (!Directory.Exists(localeDir))
             {
                 Directory.CreateDirectory(localeDir);
             }
 
-            locale?.Clear();
             if (File.Exists(baseFile))
             {
                 locale = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(baseFile))

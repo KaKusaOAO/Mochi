@@ -9,7 +9,7 @@
         <PackageLicenseUrl>https://github.com/ItsArcal139/KaLib/blob/master/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/ItsArcal139/KaLib</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
-        <PackageVersion>1.0.3</PackageVersion>
+        <PackageVersion>1.0.4</PackageVersion>
     </PropertyGroup>
 
     <ItemGroup>
