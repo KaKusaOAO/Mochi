@@ -49,6 +49,15 @@ namespace KaLib.Localizations
         }
 
         public static string Format(string key, params object[] args)
-            => string.Format(Get(key), args);
+        {
+            try
+            {
+                return string.Format(Get(key), args);
+            }
+            catch (FormatException)
+            {
+                return Get(key);
+            }
+        }
     }
 }
