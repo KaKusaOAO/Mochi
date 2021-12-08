@@ -3,16 +3,32 @@ using Newtonsoft.Json;
 
 namespace KaLib.Localizations
 {
-    public static class I18n
+    public class I18n
     {
         private static Dictionary<string, string>? baseLocale = new();
-        private static Dictionary<string, string>? locale = new();
+        private Dictionary<string, string>? locale = new();
 
         private const string localeDir = "lang";
         private const string baseName = "base";
+        private static bool initialized;
+
+        public I18n(string locale = "")
+        {
+            if (!initialized)
+            {
+                Initialize();
+            }
+
+            if (locale.Length > 0)
+            {
+                SetLocale(locale);
+            }
+        }
         
         public static void Initialize()
         {
+            initialized = true;
+            
             var baseFile = $"{localeDir}/{baseName}.json";
             if (!Directory.Exists(localeDir))
             {
@@ -26,7 +42,7 @@ namespace KaLib.Localizations
             }
         }
 
-        public static void SetLocale(string key)
+        public void SetLocale(string key)
         {
             var baseFile = $"{localeDir}/{key}.json";
             if (!Directory.Exists(localeDir))
@@ -42,13 +58,13 @@ namespace KaLib.Localizations
             }
         }
 
-        public static string Get(string key)
+        public string Get(string key)
         {
             if (locale.ContainsKey(key)) return locale[key];
             return baseLocale.ContainsKey(key) ? baseLocale[key] : key;
         }
 
-        public static string Format(string key, params object[] args)
+        public string Format(string key, params object[] args)
         {
             try
             {
