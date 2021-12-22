@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
+using KaLib.Osu.Beatmaps.Sections;
+using KaLib.Texts;
+using KaLib.Utils;
 using KaLib.Utils.Extensions;
 
 namespace KaLib.Osu.Beatmaps
@@ -14,6 +15,8 @@ namespace KaLib.Osu.Beatmaps
 
         public GeneralSection General => Sections.WhereOfType<Section, GeneralSection>();
         public MetadataSection Metadata => Sections.WhereOfType<Section, MetadataSection>();
+        public EditorSection Editor => Sections.WhereOfType<Section, EditorSection>();
+        public DifficultySection Difficulty => Sections.WhereOfType<Section, DifficultySection>();
 
         public int Version { get; private set; }
 
@@ -53,6 +56,11 @@ namespace KaLib.Osu.Beatmaps
 
         public long Available => Parent.Length - Parent.Position;
 
+        /// <summary>
+        /// Read the version line at the very beginning of the beatmap file.
+        /// </summary>
+        /// <returns>The format version of the beatmap file.</returns>
+        /// <exception cref="InvalidDataException">Throws if the read line doesn't match the required format.</exception>
         public int ReadVersion()
         {
             string line = ReadLine();
@@ -67,6 +75,10 @@ namespace KaLib.Osu.Beatmaps
             return version;
         }
 
+        /// <summary>
+        /// Read a section from the beatmap file.
+        /// </summary>
+        /// <returns>A <see cref="Section"/>-based instance represents the section read from the file.</returns>
         public Section ReadSection()
         {
             var header = ReadLine();
@@ -78,6 +90,8 @@ namespace KaLib.Osu.Beatmaps
             }
             else
             {
+                Logger.Warn(TranslateText.Of("Ignoring unknown section: %s")
+                    .AddWith(Text.Represent(header)));
                 while (ReadLine(ignoreEmptyLines: false).Length > 0)
                 {
                 }
@@ -112,49 +126,6 @@ namespace KaLib.Osu.Beatmaps
         {
             Parent?.Dispose();
         }
-    }
-
-    public abstract class Section
-    {
-        public string Name { get; }
-
-        private static Dictionary<string, Type> _typeMap = new();
-
-        static Section()
-        {
-            foreach (var t in typeof(Section).Assembly.GetTypes()
-                .Where(x => typeof(Section).IsAssignableFrom(x) && x != typeof(Section)))
-            {
-                RuntimeHelpers.RunClassConstructor(t.TypeHandle);
-            }
-        }
-
-        internal static void RegisterSectionType(string name, Type type)
-        {
-            if (!typeof(Section).IsAssignableFrom(type))
-            {
-                throw new ArgumentException("The given type is not a subclass of Section.");
-            }
-
-            _typeMap.Add(name, type);
-        }
-
-        public static Section CreateByName(string name)
-        {
-            if (!_typeMap.TryGetValue(name, out Type t))
-            {
-                return null;
-            }
-
-            return (Section)t.GetConstructor(Type.EmptyTypes)?.Invoke(Array.Empty<object>());
-        }
-
-        protected Section(string name)
-        {
-            Name = name;
-        }
-
-        public abstract void ReadFrom(BeatmapReader reader);
     }
 
     public enum SampleSet
