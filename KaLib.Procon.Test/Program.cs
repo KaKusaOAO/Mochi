@@ -35,7 +35,7 @@ namespace KaLib.Procon.Test
             {
                 var left = (float)Math.Max(controller.States.LeftStick.Y, 0) * 250;
                 var right = (float)Math.Max(controller.States.RightStick.Y, 0) * 250;
-                controller.SetVibration(left, right, Math.Max(left, right) / 250);
+                controller.SendRumble(left, right, Math.Max(left, right) / 250);
                 await Task.Yield();
             }
         }

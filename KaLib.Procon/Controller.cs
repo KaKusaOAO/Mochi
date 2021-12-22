@@ -264,7 +264,7 @@ namespace KaLib.Procon
             }
         }
 
-        private byte[] SendRumble(float lowFreq, float highFreq, float amptitude)
+        public byte[] SendRumble(float lowFreq, float highFreq, float amptitude)
         {
             var rumble = new Rumble(new[] { lowFreq, highFreq, amptitude });
             var data = rumble.GetData();
