@@ -13,6 +13,7 @@ namespace KaLib.Procon.Test
             if (controller.Device == null)
             {
                 await Logger.FlushAsync();
+                await Task.Delay(100);
                 return;
             }
             

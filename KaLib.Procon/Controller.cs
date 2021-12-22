@@ -21,8 +21,8 @@ namespace KaLib.Procon
         public static readonly byte[] HidOnlyMode = {0x80, 0x04};
         public static readonly byte[] Enable = {0x01};
 
-        public static readonly byte[] LedCalibration = {0xff};
-        public static readonly byte[] LedCalibrated = {0x01};
+        public static readonly byte[] LedCalibration = { 0b1111 };
+        public static readonly byte[] LedCalibrated = { 0b1 };
 
         public static readonly byte GetInput = 0x1f;
         public static readonly byte[] Empty = Array.Empty<byte>();
@@ -126,7 +126,9 @@ namespace KaLib.Procon
             int ret = Device.Write(data);
             if (ret < 0)
             {
-                throw new Exception(Device.GetLastError());
+                Logger.Warn(Device.GetLastError());
+                Device.Close();
+                return null;
             }
 
             var result = new byte[0x400];
@@ -283,11 +285,16 @@ namespace KaLib.Procon
 
             Device = device;
             Logger.Info("Switching the Baud rate...");
+            ExchangeData(ControllerCommand.Handshake);
             ExchangeData(ControllerCommand.SwitchBaudRate);
             Logger.Info("Handshaking...");
             ExchangeData(ControllerCommand.Handshake);
-            // Logger.Info("Set to HID-only mode...");
-            // ExchangeData(ControllerCommand.HidOnlyMode, true);
+            Logger.Info("Set to HID-only mode...");
+            ExchangeData(ControllerCommand.HidOnlyMode, true);
+
+            SendSubCommand(1, ControllerCommand.Rumble, ControllerCommand.Enable);
+            SendSubCommand(1, ControllerCommand.ImuData, ControllerCommand.Enable);
+            SendSubCommand(1, ControllerCommand.LedCommand, ControllerCommand.LedCalibrated);
 
             Logger.Info("Detecting bad data stream...");
             for (int i = 0; i < TestBadDataCycles; i++)
@@ -352,15 +359,13 @@ namespace KaLib.Procon
         public event ButtonDelegate ButtonPressed;
         public event ButtonDelegate ButtonReleased;
 
-        private DateTime _lastStatus = DateTime.Now;
-
         public void UpdateStatus()
         {
-            if (DateTime.Now - _lastStatus < TimeSpan.FromMilliseconds(100)) return;
-            var left = (float)Math.Max(States.LeftStick.Y, 0) * 1252;
-            var right = (float)Math.Max(States.RightStick.Y, 0) * 1252;
-            SendRumble(left, right, Math.Max(left, right) / 1252);
-            _lastStatus = DateTime.Now;
+            var left = (float)Math.Max(States.LeftStick.Y, 0) * 150;
+            var right = (float)Math.Max(States.RightStick.Y, 0) * 150;
+            var amp = Math.Max(left, right) / 150;
+            if (amp < 0.1f) amp = 0;
+            SendRumble(left, right, amp);
         }
     }
 }

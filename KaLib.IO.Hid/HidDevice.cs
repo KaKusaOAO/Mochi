@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using KaLib.IO.Hid.Native;
 
 namespace KaLib.IO.Hid
@@ -7,6 +8,7 @@ namespace KaLib.IO.Hid
     {
         private HidDeviceInfo _info;
         private unsafe NativeHidDevice* handle;
+        public unsafe bool Closed => handle == null;
 
         public void Dispose()
         {
@@ -26,7 +28,8 @@ namespace KaLib.IO.Hid
         {
             unsafe
             {
-                HidApi.Close(handle);
+                if(handle != null)
+                    HidApi.Close(handle);
             }
         }
 
