@@ -7,7 +7,7 @@ namespace KaLib.IO.Hid
     public class HidDevice : IDisposable
     {
         private HidDeviceInfo _info;
-        private unsafe NativeHidDevice* handle;
+        internal unsafe NativeHidDevice* handle;
         public unsafe bool Closed => handle == null;
 
         public void Dispose()
