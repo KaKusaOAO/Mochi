@@ -63,15 +63,15 @@ public abstract class ArgumentBuilder<TS, T> : ArgumentBuilder<TS> where T : Arg
         return _requirement;
     }
 
-    public T Redirect( CommandNode<TS> target) {
+    public T Redirect(CommandNode<TS> target) {
         return Forward(target, null, false);
     }
 
-    public T Redirect( CommandNode<TS> target,  SingleRedirectModifier<TS>? modifier) {
+    public T Redirect(CommandNode<TS> target,  SingleRedirectModifier<TS>? modifier) {
         return Forward(target, modifier == null ? null : o => new List<TS> { modifier(o) }, false);
     }
 
-    public T Fork( CommandNode<TS> target,  RedirectModifier<TS>? modifier) {
+    public T Fork(CommandNode<TS> target,  RedirectModifier<TS>? modifier) {
         return Forward(target, modifier, true);
     }
 
