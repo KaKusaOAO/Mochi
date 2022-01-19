@@ -5,45 +5,39 @@ namespace KaLib.Brigadier.Builder;
 
 public abstract class ArgumentBuilder<TS>
 {
-    public abstract CommandNode<TS> Build();
-}
+    protected readonly RootCommandNode<TS> _arguments = new();
+    protected ICommand<TS> _command;
+    protected Predicate<TS> _requirement = s => true;
+    protected CommandNode<TS> _target;
+    protected RedirectModifier<TS>? _modifier;
+    protected bool _forks;
 
-public abstract class ArgumentBuilder<TS, T> : ArgumentBuilder<TS> where T : ArgumentBuilder<TS, T> {
-    private readonly RootCommandNode<TS> _arguments = new RootCommandNode<TS>();
-    private ICommand<TS> _command;
-    private Predicate<TS> _requirement = s => true;
-    private CommandNode<TS> _target;
-    private RedirectModifier<TS>? _modifier = null;
-    private bool _forks;
-
-    protected abstract T GetThis();
-
-    public T Then( ArgumentBuilder<TS> argument) {
+    public ArgumentBuilder<TS> Then(ArgumentBuilder<TS> argument) {
         if (_target != null) {
             throw new Exception("Cannot add children to a redirected node");
         }
         _arguments.AddChild(argument.Build());
-        return GetThis();
+        return this;
     }
 
-    public T Then( CommandNode<TS> argument) {
+    public ArgumentBuilder<TS> Then(CommandNode<TS> argument) {
         if (_target != null) {
             throw new Exception("Cannot add children to a redirected node");
         }
         _arguments.AddChild(argument);
-        return GetThis();
+        return this;
     }
 
     public IEnumerable<CommandNode<TS>> GetArguments() {
         return _arguments.GetChildren();
     }
 
-    public T Executes(ICommand<TS> command) {
+    public ArgumentBuilder<TS> Executes(ICommand<TS> command) {
         this._command = command;
-        return GetThis();
+        return this;
     }
 
-    public T Executes(CommandDelegate<TS> cmd) => Executes(new CmdImpl(cmd));
+    public ArgumentBuilder<TS> Executes(CommandDelegate<TS> cmd) => Executes(new CmdImpl(cmd));
 
     public record CmdImpl(CommandDelegate<TS> Del) : ICommand<TS>
     {
@@ -54,35 +48,35 @@ public abstract class ArgumentBuilder<TS, T> : ArgumentBuilder<TS> where T : Arg
         return _command;
     }
 
-    public T Requires( Predicate<TS> requirement) {
+    public ArgumentBuilder<TS> Requires( Predicate<TS> requirement) {
         this._requirement = requirement;
-        return GetThis();
+        return this;
     }
 
     public Predicate<TS> GetRequirement() {
         return _requirement;
     }
 
-    public T Redirect(CommandNode<TS> target) {
+    public ArgumentBuilder<TS> Redirect(CommandNode<TS> target) {
         return Forward(target, null, false);
     }
 
-    public T Redirect(CommandNode<TS> target,  SingleRedirectModifier<TS>? modifier) {
+    public ArgumentBuilder<TS> Redirect(CommandNode<TS> target,  SingleRedirectModifier<TS>? modifier) {
         return Forward(target, modifier == null ? null : o => new List<TS> { modifier(o) }, false);
     }
 
-    public T Fork(CommandNode<TS> target,  RedirectModifier<TS>? modifier) {
+    public ArgumentBuilder<TS> Fork(CommandNode<TS> target,  RedirectModifier<TS>? modifier) {
         return Forward(target, modifier, true);
     }
 
-    public T Forward( CommandNode<TS> target,  RedirectModifier<TS>? modifier,  bool fork) {
+    public ArgumentBuilder<TS> Forward( CommandNode<TS> target,  RedirectModifier<TS>? modifier,  bool fork) {
         if (_arguments.GetChildren().Any()) {
             throw new Exception("Cannot forward a node with children");
         }
         this._target = target;
         this._modifier = modifier;
         this._forks = fork;
-        return GetThis();
+        return this;
     }
 
     public CommandNode<TS> GetRedirect() {
@@ -96,4 +90,31 @@ public abstract class ArgumentBuilder<TS, T> : ArgumentBuilder<TS> where T : Arg
     public bool IsFork() {
         return _forks;
     }
+    
+    public abstract CommandNode<TS> Build();
+}
+
+public abstract class ArgumentBuilder<TS, T> : ArgumentBuilder<TS> where T : ArgumentBuilder<TS, T>
+{
+    protected abstract T GetThis();
+
+    public new T Then(ArgumentBuilder<TS> argument) => (T)base.Then(argument);
+
+    public new T Then(CommandNode<TS> argument) => (T)base.Then(argument);
+    
+    public new T Executes(ICommand<TS> command) => (T)base.Executes(command);
+
+    public new T Executes(CommandDelegate<TS> cmd) => Executes(new CmdImpl(cmd));
+
+    public new T Requires(Predicate<TS> requirement) => (T)base.Requires(requirement);
+
+    public new T Redirect(CommandNode<TS> target) => (T)base.Redirect(target);
+
+    public new T Redirect(CommandNode<TS> target, SingleRedirectModifier<TS>? modifier) =>
+        (T)base.Redirect(target, modifier);
+
+    public new T Fork(CommandNode<TS> target, RedirectModifier<TS>? modifier) => (T)base.Fork(target, modifier);
+
+    public new T Forward(CommandNode<TS> target, RedirectModifier<TS>? modifier, bool fork) =>
+        (T)base.Forward(target, modifier, fork);
 }
