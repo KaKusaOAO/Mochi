@@ -20,9 +20,7 @@ public class LiteralCommandNode<TS> : CommandNode<TS> {
         return _literal;
     }
 
-    public override string GetName() {
-        return _literal;
-    }
+    public override string Name => _literal;
 
     public override void Parse(StringReader reader, CommandContextBuilder<TS> contextBuilder) {
         var start = reader.GetCursor();
@@ -83,10 +81,10 @@ public class LiteralCommandNode<TS> : CommandNode<TS> {
 
     public override ArgumentBuilder<TS> CreateBuilder() {
         var builder = LiteralArgumentBuilder<TS>.Literal(this._literal);
-        builder.Requires(GetRequirement());
-        builder.Forward(GetRedirect(), GetRedirectModifier(), IsFork());
-        if (GetCommand() != null) {
-            builder.Executes(GetCommand());
+        builder.Requires(Requirement);
+        builder.Forward(Redirect, RedirectModifier, IsFork);
+        if (Command != null) {
+            builder.Executes(Command);
         }
         return builder;
     }
@@ -95,9 +93,7 @@ public class LiteralCommandNode<TS> : CommandNode<TS> {
         return _literal;
     }
 
-    public override IEnumerable<string> GetExamples() {
-        return new [] { _literal };
-    }
+    public override IEnumerable<string> GetExamples() => new [] { _literal };
 
     public override string ToString() {
         return "<literal " + _literal + ">";

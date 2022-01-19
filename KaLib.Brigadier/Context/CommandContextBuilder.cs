@@ -51,8 +51,8 @@ public class CommandContextBuilder<TS> {
     public CommandContextBuilder<TS> WithNode(CommandNode<TS> node, StringRange range) {
         _nodes.Add(new ParsedCommandNode<TS>(node, range));
         this._range = StringRange.Encompassing(this._range, range);
-        this._modifier = node.GetRedirectModifier();
-        this._forks = node.IsFork();
+        this._modifier = node.RedirectModifier;
+        this._forks = node.IsFork;
         return this;
     }
 

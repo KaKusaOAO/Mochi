@@ -7,7 +7,7 @@ public abstract class ArgumentBuilder<TS>
 {
     protected readonly RootCommandNode<TS> _arguments = new();
     protected ICommand<TS> _command;
-    protected Predicate<TS> _requirement = s => true;
+    protected Predicate<TS> _requirement = _ => true;
     protected CommandNode<TS> _target;
     protected RedirectModifier<TS>? _modifier;
     protected bool _forks;
@@ -44,18 +44,14 @@ public abstract class ArgumentBuilder<TS>
         public int Run(CommandContext<TS> context) => Del(context);
     }
 
-    public ICommand<TS> GetCommand() {
-        return _command;
-    }
+    public ICommand<TS> Command => _command;
 
     public ArgumentBuilder<TS> Requires( Predicate<TS> requirement) {
         this._requirement = requirement;
         return this;
     }
 
-    public Predicate<TS> GetRequirement() {
-        return _requirement;
-    }
+    public Predicate<TS> Requirement => _requirement;
 
     public ArgumentBuilder<TS> Redirect(CommandNode<TS> target) {
         return Forward(target, null, false);
@@ -83,14 +79,10 @@ public abstract class ArgumentBuilder<TS>
         return _target;
     }
 
-    public RedirectModifier<TS> GetRedirectModifier() {
-        return _modifier;
-    }
+    public RedirectModifier<TS> RedirectModifier => _modifier;
 
-    public bool IsFork() {
-        return _forks;
-    }
-    
+    public bool IsFork => _forks;
+
     public abstract CommandNode<TS> Build();
 }
 

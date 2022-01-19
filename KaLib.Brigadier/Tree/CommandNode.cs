@@ -21,10 +21,8 @@ public abstract class CommandNode<TS> : IComparable<CommandNode<TS>> {
         this._modifier = modifier;
         this._forks = forks;
     }
-
-    public ICommand<TS>? GetCommand() {
-        return _command;
-    }
+    
+    public ICommand<TS>? Command => _command;
 
     public IEnumerable<CommandNode<TS>> GetChildren() {
         return _children.Values;
@@ -34,13 +32,9 @@ public abstract class CommandNode<TS> : IComparable<CommandNode<TS>> {
         return _children.GetValueOrDefault(name);
     }
 
-    public CommandNode<TS>? GetRedirect() {
-        return _redirect;
-    }
+    public CommandNode<TS>? Redirect => _redirect;
 
-    public RedirectModifier<TS> GetRedirectModifier() {
-        return _modifier;
-    }
+    public RedirectModifier<TS> RedirectModifier => _modifier;
 
     public bool CanUse(TS source) {
         return _requirement(source);
@@ -51,21 +45,21 @@ public abstract class CommandNode<TS> : IComparable<CommandNode<TS>> {
             throw new NotSupportedException("Cannot add a RootCommandNode as a child to any other CommandNode");
         }
 
-        var child = _children.GetValueOrDefault(node.GetName());
+        var child = _children.GetValueOrDefault(node.Name);
         if (child != null) {
             // We've found something to merge onto
-            if (node.GetCommand() != null) {
-                child._command = node.GetCommand();
+            if (node.Command != null) {
+                child._command = node.Command;
             }
             foreach (var grandchild in node.GetChildren()) {
                 child.AddChild(grandchild);
             }
         } else {
-            _children.Add(node.GetName(), node);
+            _children.Add(node.Name, node);
             if (node is LiteralCommandNode<TS>) {
-                _literals.Add(node.GetName(), (LiteralCommandNode<TS>) node);
+                _literals.Add(node.Name, (LiteralCommandNode<TS>) node);
             } else if (node is ArgumentCommandNode<TS>) {
-                _arguments.Add(node.GetName(), (ArgumentCommandNode<TS>) node);
+                _arguments.Add(node.Name, (ArgumentCommandNode<TS>) node);
             }
         }
     }
@@ -111,11 +105,9 @@ public abstract class CommandNode<TS> : IComparable<CommandNode<TS>> {
         return 31 * _children.GetHashCode() + (_command?.GetHashCode() ?? 0);
     }
 
-    public Predicate<TS> GetRequirement() {
-        return _requirement;
-    }
+    public Predicate<TS> Requirement => _requirement;
 
-    public abstract string GetName();
+    public abstract string Name { get; }
 
     public abstract string GetUsageText();
 
@@ -155,9 +147,7 @@ public abstract class CommandNode<TS> : IComparable<CommandNode<TS>> {
         return (o is LiteralCommandNode<TS>) ? 1 : -1;
     }
 
-    public bool IsFork() {
-        return _forks;
-    }
+    public bool IsFork => _forks;
 
     public abstract IEnumerable<string> GetExamples();
 }

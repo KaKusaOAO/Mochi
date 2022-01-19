@@ -314,12 +314,12 @@ public class CommandDispatcher<TS> {
                 continue;
             }
 
-            context.WithCommand(child.GetCommand()!);
-            if (reader.CanRead(child.GetRedirect() == null ? 2 : 1)) {
+            context.WithCommand(child.Command!);
+            if (reader.CanRead(child.Redirect == null ? 2 : 1)) {
                 reader.Skip();
-                if (child.GetRedirect() != null) {
-                    var childContext = new CommandContextBuilder<TS>(this, source, child.GetRedirect(), reader.GetCursor());
-                    var parse = ParseNodes(child.GetRedirect(), reader, childContext);
+                if (child.Redirect != null) {
+                    var childContext = new CommandContextBuilder<TS>(this, source, child.Redirect, reader.GetCursor());
+                    var parse = ParseNodes(child.Redirect, reader, childContext);
                     context.WithChild(parse.GetContext());
                     return new ParseResults<TS>(context, parse.GetReader(), parse.GetExceptions());
                 } else {
@@ -393,12 +393,12 @@ public class CommandDispatcher<TS> {
             return;
         }
 
-        if (node.GetCommand() != null) {
+        if (node.Command != null) {
             result.Add(prefix);
         }
 
-        if (node.GetRedirect() != null) {
-            var redirect = node.GetRedirect() == _root ? "..." : "-> " + node.GetRedirect().GetUsageText();
+        if (node.Redirect != null) {
+            var redirect = node.Redirect == _root ? "..." : "-> " + node.Redirect.GetUsageText();
             result.Add(string.IsNullOrEmpty(prefix) ? node.GetUsageText() + ArgumentSeparator + redirect : prefix + ArgumentSeparator + redirect);
         } else if (node.GetChildren().Any()) {
             foreach (var child in node.GetChildren()) {
@@ -426,7 +426,7 @@ public class CommandDispatcher<TS> {
     public Dictionary<CommandNode<TS>, string> GetSmartUsage(CommandNode<TS> node, TS source) {
         Dictionary<CommandNode<TS>, string> result = new();
 
-        var optional = node.GetCommand() != null;
+        var optional = node.Command != null;
         foreach (var child in node.GetChildren()) {
             var usage = GetSmartUsage(child, source, optional, false);
             if (usage != null) {
@@ -443,13 +443,13 @@ public class CommandDispatcher<TS> {
         }
 
         var self = optional ? UsageOptionalOpen + node.GetUsageText() + UsageOptionalClose : node.GetUsageText();
-        var childOptional = node.GetCommand() != null;
+        var childOptional = node.Command != null;
         var open = childOptional ? UsageOptionalOpen : UsageRequiredOpen;
         var close = childOptional ? UsageOptionalClose : UsageRequiredClose;
 
         if (!deep) {
-            if (node.GetRedirect() != null) {
-                var redirect = node.GetRedirect() == _root ? "..." : "-> " + node.GetRedirect().GetUsageText();
+            if (node.Redirect != null) {
+                var redirect = node.Redirect == _root ? "..." : "-> " + node.Redirect.GetUsageText();
                 return self + ArgumentSeparator + redirect;
             } else {
                 var children = node.GetChildren().Where(c => c.CanUse(source)).ToList();
@@ -573,7 +573,7 @@ public class CommandDispatcher<TS> {
         List<List<CommandNode<TS>>> nodes = new ();
         AddPaths(_root, nodes, new List<CommandNode<TS>>());
         foreach (var list in nodes.Where(list => list[^1] == target))
-            return (from node in list where node != _root select node.GetName()).ToList();
+            return (from node in list where node != _root select node.Name).ToList();
         return Array.Empty<string>();
     }
 

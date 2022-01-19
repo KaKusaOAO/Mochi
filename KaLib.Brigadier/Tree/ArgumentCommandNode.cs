@@ -11,30 +11,23 @@ public class ArgumentCommandNode<TS> : CommandNode<TS>
     protected const string UsageArgumentOpen = "<";
     protected const string UsageArgumentClose = ">";
 
-    protected readonly string Name;
-    protected readonly IArgumentType Type;
-    protected readonly SuggestionProvider<TS> CustomSuggestions;
+    protected readonly string _name;
+    public IArgumentType Type { get; }
+    public SuggestionProvider<TS> CustomSuggestions { get; }
 
-    public ArgumentCommandNode(string name, IArgumentType type, ICommand<TS> command, Predicate<TS> requirement, CommandNode<TS> redirect, RedirectModifier<TS> modifier, bool forks, SuggestionProvider<TS> customSuggestions) : base(command, requirement, redirect, modifier, forks) {
-        this.Name = name;
+    public ArgumentCommandNode(string name, IArgumentType type, ICommand<TS> command, Predicate<TS> requirement,
+        CommandNode<TS> redirect, RedirectModifier<TS> modifier, bool forks, SuggestionProvider<TS> customSuggestions) :
+        base(command, requirement, redirect, modifier, forks)
+    {
+        this._name = name;
         this.Type = type;
         this.CustomSuggestions = customSuggestions;
     }
 
-    public IArgumentType GetType() {
-        return Type;
-    }
-
-    public override string GetName() {
-        return Name;
-    }
+    public override string Name => _name;
 
     public override string GetUsageText() {
-        return UsageArgumentOpen + Name + UsageArgumentClose;
-    }
-
-    public SuggestionProvider<TS> GetCustomSuggestions() {
-        return CustomSuggestions;
+        return UsageArgumentOpen + _name + UsageArgumentClose;
     }
 
     public override void Parse(StringReader reader, CommandContextBuilder<TS> contextBuilder) {
@@ -42,7 +35,7 @@ public class ArgumentCommandNode<TS> : CommandNode<TS>
         var result = Type.Parse(reader);
         var parsed = new ParsedArgument<TS>(start, reader.GetCursor(), result);
 
-        contextBuilder.WithArgument(Name, parsed);
+        contextBuilder.WithArgument(_name, parsed);
         contextBuilder.WithNode(this, parsed.GetRange());
     }
 
@@ -61,28 +54,27 @@ public class ArgumentCommandNode<TS> : CommandNode<TS>
             var reader = new StringReader(input);
             Type.Parse(reader);
             return !reader.CanRead() || reader.Peek() == ' ';
-        } catch (CommandSyntaxException ignored) {
+        } catch (CommandSyntaxException) {
             return false;
         }
     }
 
-    public override bool Equals(object o) {
+    public override bool Equals(object? o) {
         if (this == o) return true;
         if (!(o is ArgumentCommandNode<TS> that)) return false;
 
-        if (!Name.Equals(that.Name)) return false;
-        if (!Type.Equals(that.Type)) return false;
-        return Equals(o);
+        if (!_name.Equals(that._name)) return false;
+        return Type.Equals(that.Type) && Equals(o);
     }
 
     public override int GetHashCode() {
-        var result = Name.GetHashCode();
+        var result = _name.GetHashCode();
         result = 31 * result + Type.GetHashCode();
         return result;
     }
 
     protected override string GetSortedKey() {
-        return Name;
+        return _name;
     }
 
     public override IEnumerable<string> GetExamples() {
@@ -90,23 +82,25 @@ public class ArgumentCommandNode<TS> : CommandNode<TS>
     }
 
     public override string ToString() {
-        return "<argument " + Name + ":" + Type +">";
+        return "<argument " + _name + ":" + Type +">";
     }
 }
 
 public class ArgumentCommandNode<TS, T> : ArgumentCommandNode<TS> 
 {
-    public ArgumentCommandNode(string name, IArgumentType<T> type, ICommand<TS> command, Predicate<TS> requirement, CommandNode<TS> redirect, RedirectModifier<TS> modifier, bool forks, SuggestionProvider<TS> customSuggestions) : base(name, type, command, requirement, redirect, modifier, forks, customSuggestions)
+    public ArgumentCommandNode(string name, IArgumentType<T> type, ICommand<TS> command, Predicate<TS> requirement,
+        CommandNode<TS> redirect, RedirectModifier<TS> modifier, bool forks, SuggestionProvider<TS> customSuggestions) :
+        base(name, type, command, requirement, redirect, modifier, forks, customSuggestions)
     {
     }
     
     public override ArgumentBuilder<TS> CreateBuilder() {
-        var builder = RequiredArgumentBuilder<TS, T>.Argument(Name, (IArgumentType<T>)Type);
-        builder.Requires(GetRequirement());
-        builder.Forward(GetRedirect(), GetRedirectModifier(), IsFork());
+        var builder = RequiredArgumentBuilder<TS, T>.Argument(_name, (IArgumentType<T>)Type);
+        builder.Requires(Requirement);
+        builder.Forward(Redirect!, RedirectModifier, IsFork);
         builder.Suggests(CustomSuggestions);
-        if (GetCommand() != null) {
-            builder.Executes(GetCommand());
+        if (Command != null) {
+            builder.Executes(Command);
         }
         return builder;
     }

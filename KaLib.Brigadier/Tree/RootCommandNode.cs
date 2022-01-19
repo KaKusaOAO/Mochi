@@ -9,9 +9,7 @@ public class RootCommandNode<TS> : CommandNode<TS> {
         
     }
 
-    public override string GetName() {
-        return "";
-    }
+    public override string Name => "";
 
     public override string GetUsageText() {
         return "";

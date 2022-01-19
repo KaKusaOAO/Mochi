@@ -31,16 +31,15 @@ public class RequiredArgumentBuilder<TS, T> : ArgumentBuilder<TS, RequiredArgume
         return this;
     }
 
-    public IArgumentType<T> GetType() {
-        return _type;
-    }
+    public IArgumentType<T> Type => _type;
 
     public string GetName() {
         return _name;
     }
 
     public override CommandNode<TS> Build() {
-        var result = new ArgumentCommandNode<TS, T>(GetName(), GetType(), GetCommand(), GetRequirement(), GetRedirect(), GetRedirectModifier(), IsFork(), GetSuggestionsProvider());
+        var result = new ArgumentCommandNode<TS, T>(GetName(), Type, Command, Requirement, GetRedirect(),
+            RedirectModifier, IsFork, GetSuggestionsProvider());
 
         foreach (var argument in GetArguments()) {
             result.AddChild(argument);

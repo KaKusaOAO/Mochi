@@ -17,12 +17,10 @@ public class LiteralArgumentBuilder<TS> : ArgumentBuilder<TS, LiteralArgumentBui
         return this;
     }
 
-    public string GetLiteral() {
-        return _literal;
-    }
+    public string GetLiteral() => _literal;
 
     public override CommandNode<TS> Build() {
-        var result = new LiteralCommandNode<TS>(GetLiteral(), GetCommand(), GetRequirement(), GetRedirect(), GetRedirectModifier(), IsFork());
+        var result = new LiteralCommandNode<TS>(GetLiteral(), Command, Requirement, GetRedirect(), RedirectModifier, IsFork);
 
         foreach (var argument in GetArguments()) {
             result.AddChild(argument);
