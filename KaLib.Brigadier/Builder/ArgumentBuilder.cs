@@ -108,7 +108,11 @@ public abstract class ArgumentBuilder<TS, T> : ArgumentBuilder<TS> where T : Arg
     
     public new T Executes(ICommand<TS> command) => (T)base.Executes(command);
 
-    public new T Executes(CommandDelegateAsync<TS> cmd) => Executes(new CmdImpl(cmd));
+    public new T Executes(CommandDelegate<TS> cmd) => (T)base.Executes(cmd);
+
+    public new T Executes(CommandDelegateAsync<TS> cmd) => (T) base.Executes(cmd);
+    
+    public new T Executes(CommandDelegateResultless<TS> cmd) => (T) base.Executes(cmd);
 
     public new T Requires(Predicate<TS> requirement) => (T)base.Requires(requirement);
 
