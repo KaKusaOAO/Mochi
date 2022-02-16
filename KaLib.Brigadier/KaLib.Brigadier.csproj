@@ -11,7 +11,7 @@
         <PackageLicenseUrl>https://github.com/KawaiiKusa/KaLib/blob/master/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/KawaiiKusa/KaLib</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
-        <PackageVersion>1.0.3</PackageVersion>
+        <PackageVersion>1.0.4</PackageVersion>
     </PropertyGroup>
 
 </Project>

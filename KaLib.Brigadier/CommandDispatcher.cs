@@ -100,6 +100,34 @@ public class CommandDispatcher<TS> {
     public int Execute(string input, TS source) {
         return Execute(new StringReader(input), source);
     }
+    
+    /// <summary>
+    /// Parses and executes a given command asynchronously.
+    /// <para>This is a shortcut to first <see cref="Parse(StringReader,TS)"/> and then <see cref="Execute(ParseResults{TS})"/></para>
+    /// <para>It is recommended to parse and execute as separate steps, as parsing is often the most expensive step, and easiest to cache.</para>
+    /// <para>If this command returns a value, then it successfully executed something. If it could not parse the command, or the execution was a failure,
+    /// then an exception will be thrown. Most exceptions will be of type <see cref="CommandSyntaxException"/>, but it is possible that a <see cref="Exception"/>
+    /// may bubble up from the result of a command. The meaning behind the returned result is arbitrary, and will depend
+    /// entirely on what command was performed.</para>
+    /// <para>If the command passes through a node that is <see cref="CommandNode{TS}.IsFork"/> then it will be 'forked'.
+    /// A forked command will not bubble up any <see cref="CommandSyntaxException"/>s, and the 'result' returned will turn into
+    /// 'amount of successful commands executes'.</para>
+    /// <para>After each and any command is ran, a registered callback given to <see cref="SetConsumer"/>>
+    /// will be notified of the result and success of the command. You can use that method to gather more meaningful
+    /// results than this method will return, especially when a command forks.</para>
+    /// </summary>
+    /// <param name="input">a command string to parse &amp; execute</param>
+    /// <param name="source">a custom "source" object, usually representing the originator of this command</param>
+    /// <returns>a numeric result from a "command" that was performed</returns>
+    /// <exception cref="CommandSyntaxException">if the command failed to parse or execute</exception>
+    /// <exception cref="Exception">if the command failed to execute and was not handled gracefully</exception>
+    /// <seealso cref="Parse(string,TS)"/>
+    /// <seealso cref="Parse(StringReader,TS)"/>
+    /// <seealso cref="Execute(ParseResults{TS})"/>
+    /// <seealso cref="Execute(StringReader,TS)"/>
+    public Task<int> ExecuteAsync(string input, TS source) {
+        return ExecuteAsync(new StringReader(input), source);
+    }
 
     /// <summary>
     /// Parses and executes a given command.
@@ -131,6 +159,35 @@ public class CommandDispatcher<TS> {
     }
     
     /// <summary>
+    /// Parses and executes a given command asynchronously.
+    /// <para>This is a shortcut to first <see cref="Parse(StringReader,TS)"/> and then <see cref="Execute(ParseResults{TS})"/></para>
+    /// <para>It is recommended to parse and execute as separate steps, as parsing is often the most expensive step, and easiest to cache.</para>
+    /// <para>If this command returns a value, then it successfully executed something. If it could not parse the command, or the execution was a failure,
+    /// then an exception will be thrown. Most exceptions will be of type <see cref="CommandSyntaxException"/>, but it is possible that a <see cref="Exception"/>
+    /// may bubble up from the result of a command. The meaning behind the returned result is arbitrary, and will depend
+    /// entirely on what command was performed.</para>
+    /// <para>If the command passes through a node that is <see cref="CommandNode{TS}.IsFork"/> then it will be 'forked'.
+    /// A forked command will not bubble up any <see cref="CommandSyntaxException"/>s, and the 'result' returned will turn into
+    /// 'amount of successful commands executes'.</para>
+    /// <para>After each and any command is ran, a registered callback given to <see cref="SetConsumer"/>>
+    /// will be notified of the result and success of the command. You can use that method to gather more meaningful
+    /// results than this method will return, especially when a command forks.</para>
+    /// </summary>
+    /// <param name="input">a command string to parse &amp; execute</param>
+    /// <param name="source">a custom "source" object, usually representing the originator of this command</param>
+    /// <returns>a numeric result from a "command" that was performed</returns>
+    /// <exception cref="CommandSyntaxException">if the command failed to parse or execute</exception>
+    /// <exception cref="Exception">if the command failed to execute and was not handled gracefully</exception>
+    /// <seealso cref="Parse(string,TS)"/>
+    /// <seealso cref="Parse(StringReader,TS)"/>
+    /// <seealso cref="Execute(ParseResults{TS})"/>
+    /// <seealso cref="Execute(StringReader,TS)"/>
+    public Task<int> ExecuteAsync(StringReader input, TS source) {
+        var parse = this.Parse(input, source);
+        return ExecuteAsync(parse);
+    }
+    
+    /// <summary>
     /// Executes a given pre-parsed command.
     /// <para>If this command returns a value, then it successfully executed something. If it could not parse the command, or the execution was a failure,
     /// then an exception will be thrown. Most exceptions will be of type <see cref="CommandSyntaxException"/>, but it is possible that a <see cref="Exception"/>
@@ -151,7 +208,30 @@ public class CommandDispatcher<TS> {
     /// <seealso cref="Parse(StringReader,TS)"/>
     /// <seealso cref="Execute(ParseResults{TS})"/>
     /// <seealso cref="Execute(StringReader,TS)"/>
-    public int Execute(ParseResults<TS> parse) {
+    public int Execute(ParseResults<TS> parse) => ExecuteAsync(parse).GetAwaiter().GetResult();
+
+    /// <summary>
+    /// Executes a given pre-parsed command asynchronously.
+    /// <para>If this command returns a value, then it successfully executed something. If it could not parse the command, or the execution was a failure,
+    /// then an exception will be thrown. Most exceptions will be of type <see cref="CommandSyntaxException"/>, but it is possible that a <see cref="Exception"/>
+    /// may bubble up from the result of a command. The meaning behind the returned result is arbitrary, and will depend
+    /// entirely on what command was performed.</para>
+    /// <para>If the command passes through a node that is <see cref="CommandNode{TS}.IsFork"/> then it will be 'forked'.
+    /// A forked command will not bubble up any <see cref="CommandSyntaxException"/>s, and the 'result' returned will turn into
+    /// 'amount of successful commands executes'.</para>
+    /// <para>After each and any command is ran, a registered callback given to <see cref="SetConsumer"/>>
+    /// will be notified of the result and success of the command. You can use that method to gather more meaningful
+    /// results than this method will return, especially when a command forks.</para>
+    /// </summary>
+    /// <param name="parse">the result of a successful <see cref="Parse(StringReader,TS)"/>></param>
+    /// <returns>a numeric result from a "command" that was performed</returns>
+    /// <exception cref="CommandSyntaxException">if the command failed to parse or execute</exception>
+    /// <exception cref="Exception">if the command failed to execute and was not handled gracefully</exception>
+    /// <seealso cref="Parse(string,TS)"/>
+    /// <seealso cref="Parse(StringReader,TS)"/>
+    /// <seealso cref="Execute(ParseResults{TS})"/>
+    /// <seealso cref="Execute(StringReader,TS)"/>
+    public async Task<int> ExecuteAsync(ParseResults<TS> parse) {
         if (parse.GetReader().CanRead()) {
             if (parse.GetExceptions().Count == 1) {
                 throw parse.GetExceptions().Values.First();
@@ -205,7 +285,7 @@ public class CommandDispatcher<TS> {
                 } else if (context.GetCommand() != null) {
                     foundCommand = true;
                     try {
-                        var value = context.GetCommand()!.Run(context);
+                        var value = await context.GetCommand()!.Run(context);
                         result += value;
                         _consumer(context, true, value);
                         successfulForks++;
