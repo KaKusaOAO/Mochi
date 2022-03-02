@@ -38,7 +38,7 @@ public struct ByteSize
     public string ToString(int precision)
     {
         var p = Math.Pow(10, precision);
-        return bytes switch
+        return Math.Abs(bytes) switch
         {
             >= TerabyteInBytes => $"{Math.Round(TotalTerabytes * p) / p} TB",
             >= GigabyteInBytes => $"{Math.Round(TotalGigabytes * p) / p} GB",
