@@ -36,12 +36,24 @@ public abstract class ArgumentBuilder<TS>
         this._command = command;
         return this;
     }
-
-    public ArgumentBuilder<TS> Executes(CommandDelegate<TS> cmd) => Executes(new CmdImpl(cmd));
-
-    public record CmdImpl(CommandDelegate<TS> Del) : ICommand<TS>
+    
+    public ArgumentBuilder<TS> Executes(CommandDelegate<TS> cmd) => Executes(new CmdImpl(async c =>
     {
-        public int Run(CommandContext<TS> context) => Del(context);
+        await Task.CompletedTask;
+        return cmd(c);
+    }));
+
+    public ArgumentBuilder<TS> Executes(CommandDelegateAsync<TS> cmd) => Executes(new CmdImpl(cmd));
+
+    public ArgumentBuilder<TS> Executes(CommandDelegateResultless<TS> cmd) => Executes(new CmdImpl(async c =>
+    {
+        await cmd(c);
+        return 1;
+    }));
+
+    public record CmdImpl(CommandDelegateAsync<TS> Del) : ICommand<TS>
+    {
+        public Task<int> Run(CommandContext<TS> context) => Del(context);
     }
 
     public ICommand<TS> Command => _command;
@@ -96,7 +108,11 @@ public abstract class ArgumentBuilder<TS, T> : ArgumentBuilder<TS> where T : Arg
     
     public new T Executes(ICommand<TS> command) => (T)base.Executes(command);
 
-    public new T Executes(CommandDelegate<TS> cmd) => Executes(new CmdImpl(cmd));
+    public new T Executes(CommandDelegate<TS> cmd) => (T)base.Executes(cmd);
+
+    public new T Executes(CommandDelegateAsync<TS> cmd) => (T) base.Executes(cmd);
+    
+    public new T Executes(CommandDelegateResultless<TS> cmd) => (T) base.Executes(cmd);
 
     public new T Requires(Predicate<TS> requirement) => (T)base.Requires(requirement);
 
