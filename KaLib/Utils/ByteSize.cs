@@ -33,13 +33,18 @@ public struct ByteSize
     public int Gigabytes => (int) Math.Floor(TotalGigabytes % UnitScale);
     public int Terabytes => (int) Math.Floor(TotalTerabytes % UnitScale);
 
-    public override string ToString() =>
-        bytes switch
+    public override string ToString() => ToString(2);
+        
+    public string ToString(int precision)
+    {
+        var p = Math.Pow(10, precision);
+        return bytes switch
         {
-            >= TerabyteInBytes => $"{TotalTerabytes} TB",
-            >= GigabyteInBytes => $"{TotalGigabytes} GB",
-            >= MegabyteInBytes => $"{TotalMegabytes} MB",
-            >= KilobyteInBytes => $"{TotalKilobytes} KB",
+            >= TerabyteInBytes => $"{Math.Round(TotalTerabytes * p) / p} TB",
+            >= GigabyteInBytes => $"{Math.Round(TotalGigabytes * p) / p} GB",
+            >= MegabyteInBytes => $"{Math.Round(TotalMegabytes * p) / p} MB",
+            >= KilobyteInBytes => $"{Math.Round(TotalKilobytes * p) / p} KB",
             _ => $"{bytes} B"
         };
+    }
 }
