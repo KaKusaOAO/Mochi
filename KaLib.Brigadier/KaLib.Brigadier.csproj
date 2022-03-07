@@ -1,9 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Authors>Kaka</Authors>
         <Description>A C# implementation of Mojang's Brigadier.</Description>
@@ -11,7 +8,8 @@
         <PackageLicenseUrl>https://github.com/KawaiiKusa/KaLib/blob/master/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/KawaiiKusa/KaLib</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
-        <PackageVersion>1.0.5</PackageVersion>
+        <PackageVersion>1.0.6</PackageVersion>
+        <TargetFrameworks>net48;net6.0;netstandard2.1</TargetFrameworks>
     </PropertyGroup>
 
 </Project>

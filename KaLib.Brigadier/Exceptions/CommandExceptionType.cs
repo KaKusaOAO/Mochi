@@ -1,4 +1,5 @@
-﻿namespace KaLib.Brigadier.Exceptions;
-
-public interface ICommandExceptionType {
+﻿namespace KaLib.Brigadier.Exceptions
+{
+    public interface ICommandExceptionType {
+    }
 }

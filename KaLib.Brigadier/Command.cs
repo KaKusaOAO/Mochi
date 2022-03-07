@@ -1,16 +1,16 @@
-﻿using KaLib.Brigadier.Context;
+﻿using System.Threading.Tasks;
+using KaLib.Brigadier.Context;
 
-namespace KaLib.Brigadier;
-
-public interface ICommand<TS>
+namespace KaLib.Brigadier
 {
-    const int SingleSuccess = 1;
+    public interface ICommand<TS>
+    {
+        Task<int> Run(CommandContext<TS> context);
+    }
 
-    Task<int> Run(CommandContext<TS> context);
+    public delegate int CommandDelegate<TS>(CommandContext<TS> context);
+
+    public delegate Task<int> CommandDelegateAsync<TS>(CommandContext<TS> context);
+
+    public delegate Task CommandDelegateResultless<TS>(CommandContext<TS> context);
 }
-
-public delegate int CommandDelegate<TS>(CommandContext<TS> context);
-
-public delegate Task<int> CommandDelegateAsync<TS>(CommandContext<TS> context);
-
-public delegate Task CommandDelegateResultless<TS>(CommandContext<TS> context);
