@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using Newtonsoft.Json;
 
 namespace KaLib.Localizations
@@ -7,10 +9,10 @@ namespace KaLib.Localizations
     {
         private const string localeDir = "lang";
         private const string baseName = "base";
-        private static Dictionary<string, string>? baseLocale = new();
+        private static Dictionary<string, string> baseLocale = new Dictionary<string, string>();
         private static bool initialized;
         private string currentLocale;
-        private Dictionary<string, string>? locale = new();
+        private Dictionary<string, string> locale = new Dictionary<string, string>();
 
         public I18n(string locale = "")
         {

@@ -72,7 +72,7 @@ namespace KaLib.Brigadier.Suggests
 
         public override int GetHashCode()
         {
-#if NETCOREAPP || NETSTANDARD
+#if NETCOREAPP
             return HashCode.Combine(_range, _text, _tooltip);
 #else
             return (_range.GetHashCode() * 31 + _text.GetHashCode()) * 31 + _tooltip.GetHashCode();

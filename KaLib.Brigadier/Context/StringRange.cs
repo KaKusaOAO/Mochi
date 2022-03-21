@@ -62,7 +62,7 @@ namespace KaLib.Brigadier.Context
 
         public override int GetHashCode() 
         {
-#if !NET48
+#if NETCOREAPP
             return HashCode.Combine(_start, _end);
 #else
             return _start * 31 + _end;

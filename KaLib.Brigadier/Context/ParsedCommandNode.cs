@@ -40,7 +40,7 @@ namespace KaLib.Brigadier.Context
 
         public override int GetHashCode()
         {
-#if NETSTANDARD || NETCOREAPP
+#if NETCOREAPP
             return HashCode.Combine(_node, _range);
 #else
             return _node.GetHashCode() * 31 + _range.GetHashCode();

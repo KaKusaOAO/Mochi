@@ -42,7 +42,7 @@ namespace KaLib.Brigadier
         }
 
         public string GetRead() {
-#if NETSTANDARD || NETCOREAPP
+#if NETCOREAPP
             return _str[.._cursor];
 #else
             return _str.Substring(0, _cursor);
@@ -50,7 +50,7 @@ namespace KaLib.Brigadier
         }
 
         public string GetRemaining() {
-#if NETSTANDARD || NETCOREAPP
+#if NETCOREAPP
             return _str[_cursor..];
 #else
             return _str.Substring(_cursor);

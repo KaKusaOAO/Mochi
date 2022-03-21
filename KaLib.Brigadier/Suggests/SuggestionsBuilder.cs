@@ -16,7 +16,7 @@ namespace KaLib.Brigadier.Suggests
             this._input = input;
             this._inputLowerCase = inputLowerCase;
             this._start = start;
-#if NETSTANDARD || NETCOREAPP
+#if NETCOREAPP
             this._remaining = input[start..];
             this._remainingLowerCase = inputLowerCase[start..];
 #else

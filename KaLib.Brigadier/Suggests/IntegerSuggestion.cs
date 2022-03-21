@@ -40,7 +40,7 @@ namespace KaLib.Brigadier.Suggests
 
         public override int GetHashCode()
         {
-#if !NET48
+#if NETCOREAPP
             return HashCode.Combine(base.GetHashCode(), _value);
 #else
             return GetHashCode() * 31 + _value;
