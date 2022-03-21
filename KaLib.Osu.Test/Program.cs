@@ -44,9 +44,6 @@ namespace KaLib.Osu.Test
                     .Replace('&', '\u00a7')
                 ));
             Logger.Info("--------------------------------------------------------");
-
-            await Logger.WaitForActiveLogAsync();
-            await Logger.FlushAsync();
             await Task.Delay(16);
         }
     }
