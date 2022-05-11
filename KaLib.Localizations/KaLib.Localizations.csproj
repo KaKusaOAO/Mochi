@@ -6,10 +6,11 @@
         <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Authors>Kaka</Authors>
-        <PackageLicenseUrl>https://github.com/KawaiiKusa/KaLib/blob/master/LICENSE</PackageLicenseUrl>
-        <RepositoryUrl>https://github.com/KawaiiKusa/KaLib</RepositoryUrl>
+        <PackageLicenseUrl>https://github.com/KaKusaOAO/KaLib/blob/master/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/KaKusaOAO/KaLib</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
         <PackageVersion>1.0.4</PackageVersion>
+        <PackageProjectUrl>https://github.com/KaKusaOAO/KaLib</PackageProjectUrl>
     </PropertyGroup>
 
     <ItemGroup>
