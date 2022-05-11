@@ -1,24 +1,25 @@
-﻿namespace KaLib.Brigadier;
-
-public interface IMmutableStringReader
+﻿namespace KaLib.Brigadier
 {
-    string GetString();
+    public interface IMmutableStringReader
+    {
+        string GetString();
 
-    int GetRemainingLength();
+        int GetRemainingLength();
 
-    int GetTotalLength();
+        int GetTotalLength();
 
-    int GetCursor();
+        int GetCursor();
 
-    string GetRead();
+        string GetRead();
 
-    string GetRemaining();
+        string GetRemaining();
 
-    bool CanRead(int length);
+        bool CanRead(int length);
 
-    bool CanRead();
+        bool CanRead();
 
-    char Peek();
+        char Peek();
 
-    char Peek(int offset);
+        char Peek(int offset);
+    }
 }

@@ -9,8 +9,9 @@
         <PackageLicenseUrl>https://github.com/KaKusaOAO/KaLib/blob/master/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/KaKusaOAO/KaLib</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
-        <PackageVersion>1.0.4</PackageVersion>
+        <PackageVersion>1.0.5</PackageVersion>
         <PackageProjectUrl>https://github.com/KaKusaOAO/KaLib</PackageProjectUrl>
+        <TargetFrameworks>net6.0;netstandard2.0;netstandard2.1</TargetFrameworks>
     </PropertyGroup>
 
     <ItemGroup>

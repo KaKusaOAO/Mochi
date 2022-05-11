@@ -1,6 +1,7 @@
-﻿namespace KaLib.Brigadier;
-
-public interface IMessage
+﻿namespace KaLib.Brigadier
 {
-    string GetString();
+    public interface IMessage
+    {
+        string GetString();
+    }
 }

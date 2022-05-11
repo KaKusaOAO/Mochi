@@ -10,12 +10,7 @@ namespace KaLib.Procon.Test
         {
             var controller = new Controller();
             controller.OpenFirstProcon();
-            if (controller.Device == null)
-            {
-                await Logger.FlushAsync();
-                await Task.Delay(100);
-                return;
-            }
+            if (controller.Device == null) return;
             
             Logger.Info("Now we have a Procon!");
             controller.ButtonPressed += b =>

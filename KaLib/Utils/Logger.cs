@@ -12,7 +12,6 @@ namespace KaLib.Utils
 
     public static class Logger
     {
-        private static readonly TaskQueue TaskQueue = new();
         private const int STD_OUTPUT_HANDLE = -11;
         private const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
         private const uint DISABLE_NEWLINE_AUTO_RETURN = 0x0008;
@@ -100,22 +99,19 @@ namespace KaLib.Utils
         
         private static void Log(LogLevel level, Text t, TextColor color, Text name)
         {
-            TaskQueue.Enqueue(async () =>
-            {
-                var _name = name.CloneAsBase();
-                Logged?.Invoke(level, t, color, _name).ConfigureAwait(false);
+            var _name = name.CloneAsBase();
+            Logged?.Invoke(level, t, color, _name).ConfigureAwait(false);
                 
-                if (Level > level) return;
-                await _logLock.WaitAsync();
+            if (Level > level) return;
+            _logLock.Wait();
 
-                var f = PrefixFormat;
-                _name.Color = color;
-                var tag = TranslateText.Of("[%s]").AddWith(_name).SetColor(color);
-                var now = DateTime.Now.ToString();
-                Console.WriteLine(f.AddWith(tag, t, LiteralText.Of(now)).ToAscii());
+            var f = PrefixFormat;
+            _name.Color = color;
+            var tag = TranslateText.Of("[%s]").AddWith(_name).SetColor(color);
+            var now = DateTime.Now.ToString();
+            Console.WriteLine(f.AddWith(tag, t, LiteralText.Of(now)).ToAscii());
                 
-                _logLock.Release();
-            });
+            _logLock.Release();
         }
 
         public static void Log(Text t, string name = DefaultName)
@@ -192,23 +188,11 @@ namespace KaLib.Utils
                 Log(LogLevel.Error, LiteralText.Of(line), TextColor.Red, tag);
             }
         }
-        
-        public static async Task WaitForActiveLogAsync()
-        {
-            while (!TaskQueue.IsActive)
-            {
-                await Task.Yield();
-            }
-        }
 
-        public static async Task FlushAsync()
-        {
-            await Task.Delay(10);
-            while (TaskQueue.Count > 0)
-            {
-                await Task.Yield();
-            }
-            await Task.Delay(10);
-        }
+        [Obsolete("This method will be removed.", true)]
+        public static Task WaitForActiveLogAsync() => Task.CompletedTask;
+
+        [Obsolete("This method will be removed.", true)]
+        public static Task FlushAsync() => Task.CompletedTask;
     }
 }
