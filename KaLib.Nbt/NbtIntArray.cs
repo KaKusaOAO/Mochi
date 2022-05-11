@@ -1,4 +1,6 @@
-﻿namespace KaLib.Nbt
+﻿using System;
+
+namespace KaLib.Nbt
 {
     public class NbtIntArray : NbtTag, INbtValue<int[]>
     {

@@ -1,4 +1,6 @@
-﻿namespace KaLib.Nbt.Serializations.Converters
+﻿using System;
+
+namespace KaLib.Nbt.Serializations.Converters
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class NbtConverterAttribute : Attribute

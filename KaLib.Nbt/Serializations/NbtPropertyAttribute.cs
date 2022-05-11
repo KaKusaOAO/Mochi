@@ -1,4 +1,6 @@
-﻿namespace KaLib.Nbt.Serializations
+﻿using System;
+
+namespace KaLib.Nbt.Serializations
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class NbtPropertyAttribute : Attribute

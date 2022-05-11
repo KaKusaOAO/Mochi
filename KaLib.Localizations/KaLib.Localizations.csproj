@@ -1,9 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Authors>Kaka</Authors>
         <PackageLicenseUrl>https://github.com/KaKusaOAO/KaLib/blob/master/LICENSE</PackageLicenseUrl>
@@ -12,6 +9,7 @@
         <PackageVersion>1.0.5</PackageVersion>
         <PackageProjectUrl>https://github.com/KaKusaOAO/KaLib</PackageProjectUrl>
         <TargetFrameworks>net6.0;netstandard2.0;netstandard2.1</TargetFrameworks>
+        <LangVersion>7.3</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
