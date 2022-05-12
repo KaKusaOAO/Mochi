@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaLib.Brigadier", "KaLib.Br
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaLib.Nbt", "KaLib.Nbt\KaLib.Nbt.csproj", "{DA4CFEE4-5B5F-4EB1-BAC5-1D303E7486B8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaLib.Localizations.Test", "KaLib.Localizations.Test\KaLib.Localizations.Test.csproj", "{EBB49D24-D0BB-44BB-BAFB-67000489E0ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,5 +62,9 @@ Global
 		{DA4CFEE4-5B5F-4EB1-BAC5-1D303E7486B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA4CFEE4-5B5F-4EB1-BAC5-1D303E7486B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA4CFEE4-5B5F-4EB1-BAC5-1D303E7486B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBB49D24-D0BB-44BB-BAFB-67000489E0ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBB49D24-D0BB-44BB-BAFB-67000489E0ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBB49D24-D0BB-44BB-BAFB-67000489E0ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBB49D24-D0BB-44BB-BAFB-67000489E0ED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

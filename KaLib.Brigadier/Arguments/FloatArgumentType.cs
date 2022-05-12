@@ -36,7 +36,7 @@ namespace KaLib.Brigadier.Arguments
             return new FloatArgumentType(min, max);
         }
 
-        public static float GetDouble<T>(CommandContext<T> context, String name)
+        public static float GetFloat<T>(CommandContext<T> context, String name)
         {
             return context.GetArgument<float>(name);
         }
@@ -62,14 +62,14 @@ namespace KaLib.Brigadier.Arguments
             if (result < minimum)
             {
                 reader.SetCursor(start);
-                throw CommandSyntaxException.BuiltInExceptions.DoubleTooLow()
+                throw CommandSyntaxException.BuiltInExceptions.FloatTooLow()
                     .CreateWithContext(reader, result, minimum);
             }
 
             if (result > maximum)
             {
                 reader.SetCursor(start);
-                throw CommandSyntaxException.BuiltInExceptions.DoubleTooHigh()
+                throw CommandSyntaxException.BuiltInExceptions.FloatTooHigh()
                     .CreateWithContext(reader, result, maximum);
             }
 
