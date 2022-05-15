@@ -83,7 +83,7 @@ namespace KaLib.Texts
 
         public override string ToPlainText()
         {
-            string extra = base.ToAscii();
+            string extra = base.ToPlainText();
 
             string result = "";
             for (int i = 0; i < Translate.Length; i++)
