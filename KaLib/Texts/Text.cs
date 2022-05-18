@@ -34,7 +34,7 @@ namespace KaLib.Texts
             {
                 extra += e.ToAscii() + (Color ?? ParentColor).ToAsciiCode();
             }
-            return extra;
+            return extra + ParentColor.ToAsciiCode();
         }
 
         public virtual string ToPlainText()

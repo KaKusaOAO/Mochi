@@ -36,11 +36,11 @@ namespace KaLib.Brigadier.Context
         }
 
         public string Get(IMmutableStringReader reader) {
-            return reader.GetString().Substring(_start, _end);
+            return reader.GetString().Substring(_start, GetLength());
         }
 
         public string Get(string str) {
-            return str.Substring(_start, _end);
+            return str.Substring(_start, GetLength());
         }
 
         public bool IsEmpty() {

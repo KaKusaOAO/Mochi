@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -82,35 +83,28 @@ namespace KaLib.Utils
 #else
             Level = LogLevel.Info;
 #endif
-
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-            {
-                // Force the console to use UTF-8
-                SetConsoleCP(65001);
-                SetConsoleOutputCP(65001);
-                
-                // Write ASCII colored text on Windows
-                var iStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-                GetConsoleMode(iStdOut, out uint outConsoleMode);
-                outConsoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
-                SetConsoleMode(iStdOut, outConsoleMode);
-            }
         }
         
         private static void Log(LogLevel level, Text t, TextColor color, Text name)
         {
-            var _name = name.CloneAsBase();
-            Logged?.Invoke(level, t, color, _name).ConfigureAwait(false);
-                
-            if (Level > level) return;
-            _logLock.Wait();
+            Logged?.Invoke(level, t.CloneAsBase(), color, name.CloneAsBase()).ConfigureAwait(false);
+        }
 
+        public static Text GetDefaultFormattedLine(Text t, TextColor color, Text name)
+        {
+            var _name = name.CloneAsBase();
             var f = PrefixFormat;
             _name.Color = color;
             var tag = TranslateText.Of("[%s]").AddWith(_name).SetColor(color);
-            var now = DateTime.Now.ToString();
-            Console.WriteLine(f.AddWith(tag, t, LiteralText.Of(now)).ToAscii());
-                
+            var now = DateTime.Now.ToString(CultureInfo.InvariantCulture);
+            return f.AddWith(tag, t.CloneAsBase(), LiteralText.Of(now));
+        }
+
+        public static async Task LogToConsoleAsync(LogLevel level, Text t, TextColor color, Text name)
+        {
+            if (Level > level) return;
+            await _logLock.WaitAsync();
+            Console.WriteLine(GetDefaultFormattedLine(t, color, name).ToAscii());
             _logLock.Release();
         }
 
