@@ -13,28 +13,7 @@ namespace KaLib.Utils
 
     public static class Logger
     {
-        private const int STD_OUTPUT_HANDLE = -11;
-        private const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
-        private const uint DISABLE_NEWLINE_AUTO_RETURN = 0x0008;
         public static event AsyncLogDelegate Logged;
-
-        [DllImport("kernel32.dll")]
-        private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
-
-        [DllImport("kernel32.dll")]
-        private static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern IntPtr GetStdHandle(int nStdHandle);
-
-        [DllImport("kernel32.dll")]
-        public static extern uint GetLastError();
-
-        [DllImport("kernel32")]
-        private static extern bool SetConsoleCP(uint cp);
-        
-        [DllImport("kernel32")]
-        private static extern bool SetConsoleOutputCP(uint cp);
         
         public static LogLevel Level { get; set; }
 
@@ -105,6 +84,14 @@ namespace KaLib.Utils
             if (Level > level) return;
             await _logLock.WaitAsync();
             Console.WriteLine(GetDefaultFormattedLine(t, color, name).ToAscii());
+            _logLock.Release();
+        }
+        
+        public static async Task LogToEmulatedTerminalAsync(LogLevel level, Text t, TextColor color, Text name)
+        {
+            if (Level > level) return;
+            await _logLock.WaitAsync();
+            Terminal.WriteLineStdOut(GetDefaultFormattedLine(t, color, name).ToAscii());
             _logLock.Release();
         }
 

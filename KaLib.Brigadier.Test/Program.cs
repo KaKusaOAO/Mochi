@@ -1,109 +1,38 @@
-﻿using KaLib;
+﻿using System.Text;
+using KaLib;
 using KaLib.Brigadier;
 using KaLib.Brigadier.Arguments;
 using KaLib.Brigadier.Builder;
-using KaLib.Brigadier.Tree;
+using KaLib.Brigadier.TerminalHelper;
 using KaLib.Texts;
 using KaLib.Utils;
+using StringReader = KaLib.Brigadier.StringReader;
 
-public static class Helper
+public class SpaceSeperatedArgument : IArgumentType<string>
 {
-    public static List<string> AutoComplete(string input, int index, CommandDispatcher<CommandSource> dispatcher)
-    {
-        return new List<string>();
-    }
+    private SpaceSeperatedArgument() {}
     
-    public static void Render(string input, string suggestion, int suggestionCursor, int index, CommandDispatcher<CommandSource> dispatcher)
-    {       
-        Console.CursorTop--;
-        var c = Console.CursorLeft;
-        Console.CursorLeft = 0;
-        Terminal.ClearLine();
-        Console.CursorLeft = c;
-        Console.CursorTop++;
-        
-        var result = dispatcher.Parse(input, new CommandSource());
-        var err = result.GetExceptions();
-        if (err.Any())
+    public static SpaceSeperatedArgument String() => new();
+    
+    public string Parse(StringReader reader)
+    {
+        var ch = reader.Peek();
+        if (!StringReader.IsQuotedStringStart(ch))
         {
-            Terminal.Write(LiteralText.Of(input).SetColor(TextColor.Red));
-            var c1 = Console.CursorLeft;
-            Terminal.ClearRemaining();
-            
-            Console.CursorLeft = c1 + 1;
-            Terminal.Write(LiteralText.Of("<- " + err.First().Value.Message).SetColor(TextColor.Red));
-            Terminal.ClearRemaining();
-            Console.CursorLeft = c1;
-            return;
-        }
+            var sb = new StringBuilder();
+            while (reader.CanRead() && reader.Peek() == ' ') reader.Skip();
+            while (reader.CanRead() && reader.Peek() != ' ') sb.Append(reader.Read());
 
-        var reader = result.GetReader();
-
-        var context = result.GetContext();
-        if (reader.CanRead())
-        {
-            if (context.GetRange().IsEmpty())
+            if (reader.CanRead())
             {
-                Terminal.Write(LiteralText.Of(input).SetColor(TextColor.Red));
-                Terminal.ClearRemaining();
-                return;
+                while (reader.CanRead() && reader.Peek() == ' ') reader.Skip();
+                reader.SetCursor(reader.GetCursor() - 1);
             }
             
-            Terminal.Write(LiteralText.Of(reader.GetRead()));
-            Terminal.Write(LiteralText.Of(reader.GetRemaining()).SetColor(TextColor.Red));
-            var c1 = Console.CursorLeft;
-            Terminal.ClearRemaining();
-
-            Console.CursorLeft = c1 + 1;
-            Terminal.Write(LiteralText.Of(" <- Incorrect argument").SetColor(TextColor.Red));
-            Terminal.Write(" ".PadRight(Console.BufferWidth - 1 - Console.CursorLeft));
-            Console.CursorLeft = c1;
-            return;
+            return sb.ToString();
         }
-        
-        var started = false;
-        var startFrom = 0;
-
-        var colors = new TextColor[]
-        {
-            TextColor.Aqua, TextColor.Yellow, TextColor.Green, TextColor.Purple
-        };
-        var colorIndex = 0;
-        
-        foreach (var node in context.GetNodes())
-        {
-            if (node == null)
-            {
-                Terminal.WriteLineStdOut("node is null??");
-                continue;
-            }
-            
-            try
-            {
-                if (started) Terminal.Write(" ");
-                startFrom = node.GetRange().GetEnd();
-
-                var useColor = node.GetNode() is not LiteralCommandNode<CommandSource>;
-                Terminal.Write(LiteralText.Of(node.GetRange().Get(reader)).SetColor(useColor ? colors[colorIndex++] : null));
-                colorIndex %= colors.Length;
-                started = true;
-            }
-            catch (Exception ex)
-            {
-                var range = node.GetRange();
-                Terminal.Write(LiteralText.Of(input[range.GetStart()..range.GetEnd()])
-                    .SetColor(TextColor.Red));
-
-                var c1 = c + reader.GetCursor();
-                Console.CursorLeft = c1 + 1;
-                Terminal.Write(LiteralText.Of("<- " + ex.Message).SetColor(TextColor.Red));
-                Terminal.ClearRemaining();
-                Console.CursorLeft = c1;
-            }
-        }
-
-        Terminal.Write(input[startFrom..]);
-        Terminal.ClearRemaining();
+        reader.Skip();
+        return reader.ReadStringUntil(ch);
     }
 }
 
@@ -117,6 +46,19 @@ public static class Program
 
     public static void Main(string[] args)
     {
+        Logger.Logged += Logger.LogToEmulatedTerminalAsync;
+
+        Task.Run(async () =>
+        {
+            var rand = new Random();
+            var i = 0;
+            while (true)
+            {
+                await Task.Delay(1000);
+                Logger.Verbose($"Rand: {rand.Next(100)} (iteration: {i++})");
+            }
+        });
+        
         var dispatcher = new CommandDispatcher<CommandSource>();
         
         // Register some commands
@@ -124,39 +66,54 @@ public static class Program
         dispatcher.Register(Literal("execute")
             .Then(Literal("run").Redirect(dispatcher.GetRoot()))
             .Then(Literal("at")
-                .Then(Argument("target", StringArgumentType.Word()).Fork(rootNode, context => new[] { context.GetSource() })))
+                .Then(Argument("target", SpaceSeperatedArgument.String()).Fork(rootNode, context => new[] { context.GetSource() })))
             .Then(Literal("as")
-                .Then(Argument("target", StringArgumentType.Word()).Fork(rootNode, context => new[] { context.GetSource() })))
+                .Then(Argument("target", SpaceSeperatedArgument.String()).Fork(rootNode, context => new[] { context.GetSource() })))
         );
         
         dispatcher.Register(Literal("foo")
             .Then(Literal("bar").Executes(context =>
             {
-                Terminal.WriteLineStdOut("FooBar");
-                return 1;
-            })
-            .Executes(context =>
-            {
-                Terminal.WriteLineStdOut("Foo without Bar");
+                Logger.Info("FooBar", "/foo");
                 return 1;
             }))
+            .Executes(context =>
+            {
+                Logger.Info("Foo without Bar", "/foo");
+                return 1;
+            })
         );
+
+        dispatcher.Register(Literal("data")
+            .Then(Literal("modify")
+                .Then(Literal("entity")
+                    .Then(Argument("target", StringArgumentType.Word())
+                        .Then(Argument("targetPath", StringArgumentType.Word())
+                            .Then(Literal("set")
+                                .Then(Literal("from")
+                                    .Then(Literal("entity")
+                                        .Then(Argument("source", StringArgumentType.Word())
+                                            .Then(Argument("sourcePath", StringArgumentType.Word())
+                                                .Executes(_ => 1)))))))))));
         
         while (true)
         {
             try
             {
+                var source = new CommandSource();
                 var line = Terminal.ReadLine("> ",
-                    (input, index) => Helper.AutoComplete(input, index, dispatcher),
-                    (input, suggestion, suggestionCursor, index) => Helper.Render(input, suggestion, suggestionCursor, index, dispatcher));
+                    (input, index) => BrigadierTerminal.AutoComplete(input, index, dispatcher, source),
+                    (input, suggestion, index) => BrigadierTerminal.Render(input, suggestion, index, dispatcher, source));
 
+                var text = LiteralText.Of("Console issued: ")
+                    .AddExtra(LiteralText.Of(line).SetColor(TextColor.Aqua));
+                Logger.Info(text);
                 dispatcher.Execute(line, new CommandSource());
             }
             catch (Exception ex)
             {
-                Terminal.WriteLineStdOut("Exception occurred!");
-                Terminal.WriteLineStdOut(ex.ToString());
-                Terminal.WriteLineStdOut(ex.StackTrace);
+                Logger.Error("Exception occurred!");
+                Logger.Error(ex.ToString());
             }
         }
     }

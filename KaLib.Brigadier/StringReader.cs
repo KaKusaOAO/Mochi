@@ -4,7 +4,8 @@ using KaLib.Brigadier.Exceptions;
 
 namespace KaLib.Brigadier
 {
-    public class StringReader : IMmutableStringReader {
+    public class StringReader : IMmutableStringReader
+    {
         private const char SyntaxEscape = '\\';
         private const char SyntaxDoubleQuote = '"';
         private const char SyntaxSingleQuote = '\'';
@@ -12,36 +13,44 @@ namespace KaLib.Brigadier
         private string _str;
         private int _cursor;
 
-        public StringReader(StringReader other) {
+        public StringReader(StringReader other)
+        {
             this._str = other._str;
             this._cursor = other._cursor;
         }
 
-        public StringReader(string str) {
+        public StringReader(string str)
+        {
             this._str = str;
         }
 
-        public string GetString() {
+        public string GetString()
+        {
             return _str;
         }
 
-        public void SetCursor(int cursor) {
+        public void SetCursor(int cursor)
+        {
             this._cursor = cursor;
         }
 
-        public int GetRemainingLength() {
+        public int GetRemainingLength()
+        {
             return _str.Length - _cursor;
         }
 
-        public int GetTotalLength() {
+        public int GetTotalLength()
+        {
             return _str.Length;
         }
 
-        public int GetCursor() {
+        public int GetCursor()
+        {
             return _cursor;
         }
 
-        public string GetRead() {
+        public string GetRead()
+        {
 #if NETCOREAPP
             return _str[.._cursor];
 #else
@@ -49,7 +58,8 @@ namespace KaLib.Brigadier
 #endif
         }
 
-        public string GetRemaining() {
+        public string GetRemaining()
+        {
 #if NETCOREAPP
             return _str[_cursor..];
 #else
@@ -57,113 +67,160 @@ namespace KaLib.Brigadier
 #endif
         }
 
-        public bool CanRead(int length) {
+        public bool CanRead(int length)
+        {
             return _cursor + length <= _str.Length;
         }
 
-        public bool CanRead() {
+        public bool CanRead()
+        {
             return CanRead(1);
         }
 
-        public char Peek() {
+        public char Peek()
+        {
             return _str[_cursor];
         }
 
-        public char Peek(int offset) {
+        public char Peek(int offset)
+        {
             return _str[_cursor + offset];
         }
 
-        public char Read() {
+        public char Read()
+        {
             return _str[_cursor++];
         }
 
-        public void Skip() {
+        public void Skip()
+        {
             _cursor++;
         }
 
-        public static bool IsAllowedNumber(char c) {
+        public static bool IsAllowedNumber(char c)
+        {
             return c >= '0' && c <= '9' || c == '.' || c == '-';
         }
 
-        public static bool IsQuotedStringStart(char c) {
+        public static bool IsQuotedStringStart(char c)
+        {
             return c == SyntaxDoubleQuote || c == SyntaxSingleQuote;
         }
 
-        public void SkipWhitespace() {
-            while (CanRead() && char.IsWhiteSpace(Peek())) {
+        public void SkipWhitespace()
+        {
+            while (CanRead() && char.IsWhiteSpace(Peek()))
+            {
                 Skip();
             }
         }
 
-        public int ReadInt() {
+        public int ReadInt()
+        {
             var start = _cursor;
-            while (CanRead() && IsAllowedNumber(Peek())) {
+            while (CanRead() && IsAllowedNumber(Peek()))
+            {
                 Skip();
             }
+
             var number = _str.Substring(start, _cursor - start);
-            if (string.IsNullOrEmpty(number)) {
+            if (string.IsNullOrEmpty(number))
+            {
                 throw CommandSyntaxException.BuiltInExceptions.ReaderExpectedInt().CreateWithContext(this);
             }
-            try {
+
+            try
+            {
                 return int.Parse(number);
-            } catch (FormatException) {
+            }
+            catch (Exception ex)
+            {
+                if (!(ex is FormatException || ex is OverflowException)) throw;
                 _cursor = start;
                 throw CommandSyntaxException.BuiltInExceptions.ReaderInvalidInt().CreateWithContext(this, number);
             }
         }
 
-        public long ReadLong() {
+        public long ReadLong()
+        {
             var start = _cursor;
-            while (CanRead() && IsAllowedNumber(Peek())) {
+            while (CanRead() && IsAllowedNumber(Peek()))
+            {
                 Skip();
             }
+
             var number = _str.Substring(start, _cursor - start);
-            if (string.IsNullOrEmpty(number)) {
+            if (string.IsNullOrEmpty(number))
+            {
                 throw CommandSyntaxException.BuiltInExceptions.ReaderExpectedLong().CreateWithContext(this);
             }
-            try {
+
+            try
+            {
                 return long.Parse(number);
-            } catch (FormatException) {
+            }
+            catch (Exception ex)
+            {
+                if (!(ex is FormatException || ex is OverflowException)) throw;
                 _cursor = start;
                 throw CommandSyntaxException.BuiltInExceptions.ReaderInvalidLong().CreateWithContext(this, number);
             }
         }
 
-        public double ReadDouble() {
+        public double ReadDouble()
+        {
             var start = _cursor;
-            while (CanRead() && IsAllowedNumber(Peek())) {
+            while (CanRead() && IsAllowedNumber(Peek()))
+            {
                 Skip();
             }
+
             var number = _str.Substring(start, _cursor - start);
-            if (string.IsNullOrEmpty(number)) {
+            if (string.IsNullOrEmpty(number))
+            {
                 throw CommandSyntaxException.BuiltInExceptions.ReaderExpectedDouble().CreateWithContext(this);
             }
-            try {
+
+            try
+            {
                 return double.Parse(number);
-            } catch (FormatException) {
+            }
+            catch (Exception ex)
+            {
+                if (!(ex is FormatException || ex is OverflowException)) throw;
                 _cursor = start;
                 throw CommandSyntaxException.BuiltInExceptions.ReaderInvalidDouble().CreateWithContext(this, number);
             }
         }
 
-        public float ReadFloat() {
+        public float ReadFloat()
+        {
             var start = _cursor;
-            while (CanRead() && IsAllowedNumber(Peek())) {
+            while (CanRead() && IsAllowedNumber(Peek()))
+            {
                 Skip();
             }
+
             var number = _str.Substring(start, _cursor - start);
-            if (string.IsNullOrEmpty(number)) {
+            if (string.IsNullOrEmpty(number))
+            {
                 throw CommandSyntaxException.BuiltInExceptions.ReaderExpectedFloat().CreateWithContext(this);
             }
-            try {
+
+            try
+            {
                 return float.Parse(number);
-            } catch (FormatException) {
+            }
+            catch (Exception ex)
+            {
+                if (!(ex is FormatException || ex is OverflowException)) throw;
                 _cursor = start;
                 throw CommandSyntaxException.BuiltInExceptions.ReaderInvalidFloat().CreateWithContext(this, number);
             }
         }
 
-        public static bool IsAllowedInUnquotedString(char c) {
+        public static bool IsAllowedInUnquotedString(char c)
+        {
             return c >= '0' && c <= '9'
                    || c >= 'A' && c <= 'Z'
                    || c >= 'a' && c <= 'z'
@@ -171,44 +228,65 @@ namespace KaLib.Brigadier
                    || c == '.' || c == '+';
         }
 
-        public string ReadUnquotedString() {
+        public string ReadUnquotedString()
+        {
             var start = _cursor;
-            while (CanRead() && IsAllowedInUnquotedString(Peek())) {
+            while (CanRead() && IsAllowedInUnquotedString(Peek()))
+            {
                 Skip();
             }
+
             return _str.Substring(start, _cursor - start);
         }
 
-        public string ReadQuotedString() {
-            if (!CanRead()) {
+        public string ReadQuotedString()
+        {
+            if (!CanRead())
+            {
                 return "";
             }
+
             var next = Peek();
-            if (!IsQuotedStringStart(next)) {
+            if (!IsQuotedStringStart(next))
+            {
                 throw CommandSyntaxException.BuiltInExceptions.ReaderExpectedStartOfQuote().CreateWithContext(this);
             }
+
             Skip();
             return ReadStringUntil(next);
         }
 
-        public string ReadStringUntil(char terminator) {
+        public string ReadStringUntil(char terminator)
+        {
             var result = new StringBuilder();
             var escaped = false;
-            while (CanRead()) {
+            while (CanRead())
+            {
                 var c = Read();
-                if (escaped) {
-                    if (c == terminator || c == SyntaxEscape) {
+                if (escaped)
+                {
+                    if (c == terminator || c == SyntaxEscape)
+                    {
                         result.Append(c);
                         escaped = false;
-                    } else {
-                        SetCursor(GetCursor() - 1);
-                        throw CommandSyntaxException.BuiltInExceptions.ReaderInvalidEscape().CreateWithContext(this, "" + c);
                     }
-                } else if (c == SyntaxEscape) {
+                    else
+                    {
+                        SetCursor(GetCursor() - 1);
+                        throw CommandSyntaxException.BuiltInExceptions.ReaderInvalidEscape()
+                            .CreateWithContext(this, "" + c);
+                    }
+                }
+                else if (c == SyntaxEscape)
+                {
                     escaped = true;
-                } else if (c == terminator) {
+                }
+                else if (c == terminator)
+                {
                     return result.ToString();
-                } else {
+                }
+                else
+                {
                     result.Append(c);
                 }
             }
@@ -216,39 +294,54 @@ namespace KaLib.Brigadier
             throw CommandSyntaxException.BuiltInExceptions.ReaderExpectedEndOfQuote().CreateWithContext(this);
         }
 
-        public string ReadString()  {
-            if (!CanRead()) {
+        public string ReadString()
+        {
+            if (!CanRead())
+            {
                 return "";
             }
+
             var next = Peek();
-            if (IsQuotedStringStart(next)) {
+            if (IsQuotedStringStart(next))
+            {
                 Skip();
                 return ReadStringUntil(next);
             }
+
             return ReadUnquotedString();
         }
 
-        public bool ReadBoolean() {
+        public bool ReadBoolean()
+        {
             var start = _cursor;
             var value = ReadString();
-            if (string.IsNullOrEmpty(value)) {
+            if (string.IsNullOrEmpty(value))
+            {
                 throw CommandSyntaxException.BuiltInExceptions.ReaderExpectedBool().CreateWithContext(this);
             }
 
-            if (value.Equals("true")) {
+            if (value.Equals("true"))
+            {
                 return true;
-            } else if (value.Equals("false")) {
+            }
+            else if (value.Equals("false"))
+            {
                 return false;
-            } else {
+            }
+            else
+            {
                 _cursor = start;
                 throw CommandSyntaxException.BuiltInExceptions.ReaderInvalidBool().CreateWithContext(this, value);
             }
         }
 
-        public void Expect(char c) {
-            if (!CanRead() || Peek() != c) {
+        public void Expect(char c)
+        {
+            if (!CanRead() || Peek() != c)
+            {
                 throw CommandSyntaxException.BuiltInExceptions.ReaderExpectedSymbol().CreateWithContext(this, "" + c);
             }
+
             Skip();
         }
     }

@@ -59,25 +59,25 @@ namespace KaLib.Texts
             => LiteralText.Of(val.ToString())
                 .SetColor(color ?? TextColor.Gold);
 
-        private static Text RepresentGoldWithRedSuffix(string s, string suffix, TextColor color = null)
+        private static Text RepresentDefGoldWithRedSuffix(string s, string suffix, TextColor color = null)
             => TranslateText.Of($"{s}%s")
                 .SetColor(color ?? TextColor.Gold)
                 .AddWith(LiteralText.Of(suffix).SetColor(TextColor.Red));
 
         private static Text RepresentLong(long val, TextColor color = null)
-            => RepresentGoldWithRedSuffix(val.ToString(), "L", color);
+            => RepresentDefGoldWithRedSuffix(val.ToString(), "L", color);
 
         private static Text RepresentFloat(float val, TextColor color = null)
-            => RepresentGoldWithRedSuffix(val.ToString(CultureInfo.InvariantCulture), "f", color);
+            => RepresentDefGoldWithRedSuffix(val.ToString(CultureInfo.InvariantCulture), "f", color);
 
         private static Text RepresentDouble(double val, TextColor color = null)
-            => RepresentGoldWithRedSuffix(val.ToString(CultureInfo.InvariantCulture), "d", color);
+            => RepresentDefGoldWithRedSuffix(val.ToString(CultureInfo.InvariantCulture), "d", color);
 
         private static Text RepresentDecimal(decimal val, TextColor color = null)
-            => RepresentGoldWithRedSuffix(val.ToString(CultureInfo.InvariantCulture), "m", color);
+            => RepresentDefGoldWithRedSuffix(val.ToString(CultureInfo.InvariantCulture), "m", color);
 
         private static Text RepresentByte(byte val, TextColor color = null)
-            => RepresentGoldWithRedSuffix(val.ToString(), "b", color);
+            => RepresentDefGoldWithRedSuffix(val.ToString(), "b", color);
 
         private static Text RepresentString(string val, TextColor color = null)
             => TranslateText.Of(@"""%s""")
@@ -85,7 +85,7 @@ namespace KaLib.Texts
                 .AddWith(LiteralText.Of(val));
 
         private static Text RepresentShort(short val, TextColor color = null)
-            => RepresentGoldWithRedSuffix(val.ToString(), "s", color);
+            => RepresentDefGoldWithRedSuffix(val.ToString(), "s", color);
         
         private static Text RepresentBool(bool val, TextColor color = null)
             => LiteralText.Of(val.ToString())
@@ -135,7 +135,14 @@ namespace KaLib.Texts
         public override Text CloneAsBase()
         {
             var clone = Clone();
+            foreach (var extra in Extra) clone.Extra.Add(extra);
             clone.Color = Color;
+            clone.Bold = Bold; 
+            clone.Italic = Italic; 
+            clone.Obfuscated = Obfuscated; 
+            clone.Strikethrough = Strikethrough; 
+            clone.Underline = Underline; 
+            clone.Reset = Reset; 
             return clone;
         }
 
