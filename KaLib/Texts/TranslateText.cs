@@ -8,21 +8,21 @@ namespace KaLib.Texts
     public class TranslateText : Text<TranslateText>
     {
         public string Translate { get; set; }
-        public ICollection<Text> With { get; set; } = new List<Text>();
+        public ICollection<IText> With { get; set; } = new List<IText>();
 
-        public TranslateText(string translate, params Text[] texts)
+        public TranslateText(string translate, params IText[] texts)
         {
             Translate = translate;
-            foreach (Text t in texts)
+            foreach (IText t in texts)
             {
                 With.Add(t);
                 t.Parent = this;
             }
         }
 
-        public TranslateText AddWith(params Text[] texts)
+        public TranslateText AddWith(params IText[] texts)
         {
-            foreach (Text text in texts)
+            foreach (IText text in texts)
             {
                 With.Add(text);
                 text.Parent = this;
@@ -31,7 +31,7 @@ namespace KaLib.Texts
             return this;
         }
 
-        public static TranslateText Of(string format, params Text[] texts)
+        public static TranslateText Of(string format, params IText[] texts)
         {
             return new TranslateText(format, texts);
         }

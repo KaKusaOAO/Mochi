@@ -9,7 +9,7 @@ using KaLib.Texts;
 
 namespace KaLib.Utils
 {
-    public delegate Task AsyncLogDelegate(LogLevel level, Text text, TextColor color, Text name);
+    public delegate Task AsyncLogDelegate(LogLevel level, IText text, TextColor color, IText name);
 
     public static class Logger
     {
@@ -19,7 +19,7 @@ namespace KaLib.Utils
 
         private const string DefaultName = null;
 
-        public static  TranslateText PrefixFormat => TranslateText.Of("{2} - {0} {1}");
+        public static TranslateText PrefixFormat => TranslateText.Of("{2} - {0} {1}");
 
         private static SemaphoreSlim _logLock = new(1, 1);
 
@@ -64,22 +64,22 @@ namespace KaLib.Utils
 #endif
         }
         
-        private static void Log(LogLevel level, Text t, TextColor color, Text name)
+        private static void Log(LogLevel level, IText t, TextColor color, IText name)
         {
-            Logged?.Invoke(level, t.CloneAsBase(), color, name.CloneAsBase()).ConfigureAwait(false);
+            Logged?.Invoke(level, t.Clone(), color, name.Clone()).ConfigureAwait(false);
         }
 
-        public static Text GetDefaultFormattedLine(Text t, TextColor color, Text name)
+        public static IText GetDefaultFormattedLine(IText t, TextColor color, IText name)
         {
-            var _name = name.CloneAsBase();
+            var _name = name.MutableCopy();
             var f = PrefixFormat;
             _name.Color = color;
             var tag = TranslateText.Of("[%s]").AddWith(_name).SetColor(color);
             var now = DateTime.Now.ToString(CultureInfo.InvariantCulture);
-            return f.AddWith(tag, t.CloneAsBase(), LiteralText.Of(now));
+            return f.AddWith(tag, t.Clone(), LiteralText.Of(now));
         }
 
-        public static async Task LogToConsoleAsync(LogLevel level, Text t, TextColor color, Text name)
+        public static async Task LogToConsoleAsync(LogLevel level, IText t, TextColor color, IText name)
         {
             if (Level > level) return;
             await _logLock.WaitAsync();
@@ -87,7 +87,7 @@ namespace KaLib.Utils
             _logLock.Release();
         }
         
-        public static async Task LogToEmulatedTerminalAsync(LogLevel level, Text t, TextColor color, Text name)
+        public static async Task LogToEmulatedTerminalAsync(LogLevel level, IText t, TextColor color, IText name)
         {
             if (Level > level) return;
             await _logLock.WaitAsync();
@@ -95,7 +95,7 @@ namespace KaLib.Utils
             _logLock.Release();
         }
 
-        public static void Log(Text t, string name = DefaultName)
+        public static void Log(IText t, string name = DefaultName)
         {
             var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
             Log(LogLevel.Log, t, TextColor.DarkGray, tag);
@@ -110,7 +110,7 @@ namespace KaLib.Utils
             }
         }
 
-        public static void Verbose(Text t, string name = DefaultName)
+        public static void Verbose(IText t, string name = DefaultName)
         {
             var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
             Log(LogLevel.Verbose, t, TextColor.DarkGray, tag);
@@ -125,7 +125,7 @@ namespace KaLib.Utils
             }
         }
 
-        public static void Info(Text t, string name = DefaultName)
+        public static void Info(IText t, string name = DefaultName)
         {
             var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
             Log(LogLevel.Info, t, TextColor.Green, tag);
@@ -140,7 +140,7 @@ namespace KaLib.Utils
             }
         }
 
-        public static void Warn(Text t, string name = DefaultName)
+        public static void Warn(IText t, string name = DefaultName)
         {
             var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
             Log(LogLevel.Warn, t, TextColor.Gold, tag);
@@ -155,7 +155,7 @@ namespace KaLib.Utils
             }
         }
 
-        public static void Error(Text t, string name = DefaultName)
+        public static void Error(IText t, string name = DefaultName)
         {
             var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
             Log(LogLevel.Error, t, TextColor.Red, tag);

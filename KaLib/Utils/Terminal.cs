@@ -44,7 +44,7 @@ public static class Terminal
     private static int _historyIndex = -1;
     private static bool _browsingHistory;
     private static int _inputIndex;
-    private static Text _currentPrompt;
+    private static IText _currentPrompt;
     private static SemaphoreSlim _readLineLock = new(1, 1);
     private static InputBufferRendererDelegate _inputRenderer;
 
@@ -76,7 +76,7 @@ public static class Terminal
         (_stdoutCursorX, _stdoutCursorY) = (Console.CursorLeft, Console.CursorTop);
     }
 
-    public static void WriteStdOut(Text text) => WriteStdOut(text.ToAscii());
+    public static void WriteStdOut(IText text) => WriteStdOut(text.ToAscii());
 
     public static void WriteLineStdOut(string text)
     {
@@ -100,7 +100,7 @@ public static class Terminal
         DrawPromptLine(inputBufferRenderer: _inputRenderer);
     }
 
-    public static void WriteLineStdOut(Text text) => WriteLineStdOut(text.ToAscii());
+    public static void WriteLineStdOut(IText text) => WriteLineStdOut(text.ToAscii());
     
     public static void Write(string text)
     {
@@ -109,7 +109,7 @@ public static class Terminal
         _writeLock.Release();
     }
 
-    public static void Write(Text text) => Write(text.ToAscii());
+    public static void Write(IText text) => Write(text.ToAscii());
     
     public static void WriteLine(string text)
     {
@@ -120,7 +120,7 @@ public static class Terminal
 
     public static string CurrentInput => string.Join("", _inputBuffer);
 
-    public static void WriteLine(Text text) => WriteLine(text.ToAscii());
+    public static void WriteLine(IText text) => WriteLine(text.ToAscii());
 
     public static void ClearLine()
     {
@@ -208,7 +208,7 @@ public static class Terminal
         });
     }
     
-    public static string ReadLine(Text prompt = null, AutoCompleterDelegate autoCompleter = null, InputBufferRendererDelegate inputBufferRenderer = null)
+    public static string ReadLine(IText prompt = null, AutoCompleterDelegate autoCompleter = null, InputBufferRendererDelegate inputBufferRenderer = null)
     {
         _readLineLock.Wait();
         try

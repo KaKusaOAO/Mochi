@@ -22,7 +22,7 @@ public static class BrigadierTerminal
         Console.CursorLeft = c;
         Console.CursorTop++;
 
-        void WriteWithSuggestion(Text text, int? co = null)
+        void WriteWithSuggestion(IText text, int? co = null)
         {
             co ??= Console.CursorLeft;
             Terminal.Write(text);

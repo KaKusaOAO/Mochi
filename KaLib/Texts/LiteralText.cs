@@ -19,7 +19,7 @@ namespace KaLib.Texts
             };
         }
 
-        public static Text FromLegacyText(string message)
+        public static IText FromLegacyText(string message)
         {
             List<LiteralText> texts = new();
             StringBuilder sb = new();

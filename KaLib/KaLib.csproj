@@ -4,7 +4,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <RepositoryUrl>https://github.com/KawaiiKusa/KaLib</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
-        <PackageVersion>1.0.13</PackageVersion>
+        <PackageVersion>1.0.14</PackageVersion>
         <PackageLicenseUrl>https://github.com/KaKusaOAO/KaLib/blob/master/LICENSE</PackageLicenseUrl>
         <LangVersion>10</LangVersion>
         <TargetFrameworks>net472;net6.0;netstandard2.0</TargetFrameworks>
