@@ -14,7 +14,7 @@ namespace KaLib.Brigadier.Exceptions
         private readonly string _input;
         private readonly int _cursor;
 
-        public CommandSyntaxException(ICommandExceptionType type, IMessage message) : base(message.GetString())
+        public CommandSyntaxException(ICommandExceptionType type, IMessage message, Exception inner = null) : base(message.GetString(), inner)
         {
             this._type = type;
             this._message = message;
@@ -22,8 +22,8 @@ namespace KaLib.Brigadier.Exceptions
             this._cursor = -1;
         }
 
-        public CommandSyntaxException(ICommandExceptionType type, IMessage message, string input, int cursor) : base(
-            message.GetString())
+        public CommandSyntaxException(ICommandExceptionType type, IMessage message, string input, int cursor, Exception inner = null) : base(
+            message.GetString(), inner)
         {
             this._type = type;
             this._message = message;

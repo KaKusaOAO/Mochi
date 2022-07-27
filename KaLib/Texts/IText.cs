@@ -16,12 +16,13 @@ namespace KaLib.Texts
 
         TextColor ParentColor { get; }
         string ToPlainText();
+        string ToAscii();
     }
 
-    public interface IText<S> : IText
+    public interface IText<out T> : IText where T : IText<T>
     {
-        S AddExtra(params IText[] texts);
-        S SetColor(TextColor color);
-        S Format(TextFormatFlag flags);
+        T AddExtra(params IText[] texts);
+        T SetColor(TextColor color);
+        T Format(TextFormatFlag flags);
     }
 }

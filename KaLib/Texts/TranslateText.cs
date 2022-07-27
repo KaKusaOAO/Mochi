@@ -73,7 +73,7 @@ namespace KaLib.Texts
             return string.Format(fmt, o.ToArray());
         }
 
-        internal override string ToAscii()
+        public override string ToAscii()
         {
             var extra = base.ToAscii();
             var color = (Color ?? ParentColor).ToAsciiCode();

@@ -8,7 +8,7 @@
 
         public NbtString(string s) : base(8) => Value = s;
 
-        public string Value { get; set; }
+        public string Value { get; private set; }
 
         public static NbtString Deserialize(byte[] buffer, ref int index, bool named = false)
         {
@@ -25,5 +25,14 @@
         }
 
         public override string ToValue() => Value;
+
+        // ReSharper disable once NonReadonlyMemberInGetHashCode
+        public override int GetHashCode() => Value.GetHashCode();
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is NbtString str)) return false;
+            return Value == str.Value;
+        }
     }
 }

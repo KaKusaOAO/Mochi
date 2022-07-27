@@ -382,7 +382,7 @@ namespace KaLib.Brigadier
                     try {
                         child.Parse(reader, context);
                     } catch (Exception ex) {
-                        throw CommandSyntaxException.BuiltInExceptions.DispatcherParseException().CreateWithContext(reader, ex.Message);
+                        throw CommandSyntaxException.BuiltInExceptions.DispatcherParseException().CreateWithContext(reader, ex.Message, ex);
                     }
                     if (reader.CanRead()) {
                         if (reader.Peek() != ArgumentSeparatorChar) {

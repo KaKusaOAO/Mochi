@@ -29,5 +29,14 @@
             var name = Name == null ? "None" : $"'{Name}'";
             return $"TAG_Byte({name}): {Value}";
         }
+
+        // ReSharper disable once NonReadonlyMemberInGetHashCode
+        public override int GetHashCode() => Value.GetHashCode();
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is NbtByte b)) return false;
+            return Value == b.Value;
+        }
     }
 }

@@ -27,7 +27,7 @@ namespace KaLib.Texts
             }
         }
 
-        internal virtual string ToAscii()
+        public virtual string ToAscii()
         {
             string extra = "";
             foreach (Text e in Extra)

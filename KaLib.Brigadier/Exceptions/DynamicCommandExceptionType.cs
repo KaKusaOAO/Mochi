@@ -9,12 +9,12 @@ namespace KaLib.Brigadier.Exceptions
             this._function = function;
         }
 
-        public CommandSyntaxException Create(object arg) {
-            return new CommandSyntaxException(this, _function(arg));
+        public CommandSyntaxException Create(object arg, Exception inner = null) {
+            return new CommandSyntaxException(this, _function(arg), inner);
         }
 
-        public CommandSyntaxException CreateWithContext(IMmutableStringReader reader, object arg) {
-            return new CommandSyntaxException(this, _function(arg), reader.GetString(), reader.GetCursor());
+        public CommandSyntaxException CreateWithContext(IMmutableStringReader reader, object arg, Exception inner = null) {
+            return new CommandSyntaxException(this, _function(arg), reader.GetString(), reader.GetCursor(), inner);
         }
     }
 }

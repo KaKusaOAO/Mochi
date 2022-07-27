@@ -99,7 +99,7 @@ namespace KaLib.Texts
             return result;
         }
 
-        internal override string ToAscii()
+        public override string ToAscii()
         {
             string extra = base.ToAscii();
             string color = (Color ?? ParentColor).ToAsciiCode();
