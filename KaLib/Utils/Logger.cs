@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
@@ -9,11 +10,21 @@ using KaLib.Texts;
 
 namespace KaLib.Utils
 {
-    public delegate Task AsyncLogDelegate(LogLevel level, IText text, TextColor color, IText name);
+    public class LoggerEventArgs : EventArgs
+    {
+        public LogLevel Level { get; set; } = LogLevel.Verbose;
+        public IText Content { get; set; } = LiteralText.Of("Log message not set");
+        public IText Tag { get; set; } = LiteralText.Of("Unknown");
+        public TextColor TagColor { get; set; } = TextColor.DarkGray;
+        public Thread SourceThread { get; set; } = Thread.CurrentThread;
+        public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.Now;
+    }
+    
+    public delegate Task AsyncLogEventDelegate(LoggerEventArgs data);
 
     public static class Logger
     {
-        public static event AsyncLogDelegate Logged;
+        public static event AsyncLogEventDelegate Logged;
         
         public static LogLevel Level { get; set; }
 
@@ -23,37 +34,11 @@ namespace KaLib.Utils
 
         private static SemaphoreSlim _logLock = new(1, 1);
 
-        private static string GetCallSourceName()
-        {
-            string name;
-            StackTrace stack = new StackTrace();
-            MethodBase method = stack.GetFrame(2)?.GetMethod();
-            if (method == null)
-            {
-                name = "?";
-            }
-            else
-            {
-                name = GetRootType(method.DeclaringType).FullName;
-            }
-            return name;
-        }
+        private static readonly ConcurrentQueue<Action> _recordCall = new();
 
-        private static Type GetCallSourceType()
-        {
-            StackTrace stack = new StackTrace();
-            MethodBase method = stack.GetFrame(2)?.GetMethod();
-            return GetRootType(method.DeclaringType);
-        }
+        private static Thread _thread;
 
-        private static Type GetRootType(Type t)
-        {
-            if (t.Name.StartsWith("<"))
-            {
-                return GetRootType(t.DeclaringType);
-            }
-            return t;
-        }
+        private static bool _bootstrapped;
 
         static Logger()
         {
@@ -63,36 +48,187 @@ namespace KaLib.Utils
             Level = LogLevel.Info;
 #endif
         }
-        
-        private static void Log(LogLevel level, IText t, TextColor color, IText name)
+
+        public static void RunThreaded()
         {
-            Logged?.Invoke(level, t.Clone(), color, name.Clone()).ConfigureAwait(false);
+            if (_bootstrapped) return;
+            _bootstrapped = true;
+            
+            var thread = new Thread(RunEventLoop)
+            {
+                Name = "Logger Thread"
+            };
+            _thread = thread;
+            thread.Start();
+        }
+        
+        private static void RunEventLoop() 
+        {
+            while (_bootstrapped) PollEvents();
+        }
+        
+        public static void RunManualPoll()
+        {
+            if (_bootstrapped) return;
+            _bootstrapped = true;
+            _thread = Thread.CurrentThread;
+        }
+        
+        public static void RunBlocking()
+        {
+            if (_bootstrapped) return;
+            _bootstrapped = true;
+            _thread = Thread.CurrentThread;
+            
+            while (_bootstrapped) PollEvents();
         }
 
-        public static IText GetDefaultFormattedLine(IText t, TextColor color, IText name)
+        public static void PollEvents()
+        {
+            if (!_bootstrapped)
+                throw new Exception("Logger is not bootstrapped");
+            if (_thread != Thread.CurrentThread)
+                throw new Exception("PollEvents() called from wrong thread");
+            
+            while (_recordCall.TryDequeue(out var action)) action();
+        }
+        
+        private static void InternalOnLogged(LoggerEventArgs data)
+        {
+            Logged?.Invoke(data).ConfigureAwait(false);
+        }
+        
+        private static void CallOrQueue(Action action)
+        {
+            if (!_bootstrapped)
+            {
+                RunThreaded();
+                SpinWait.SpinUntil(() => _thread != null);
+                
+                var d = new LoggerEventArgs
+                {
+                    Level = LogLevel.Warn,
+                    Content = LiteralText.Of("*** Logger is not bootstrapped. ***"),
+                    TagColor = TextColor.Gold,
+                    SourceThread = _thread,
+                    Tag = Text.RepresentType(typeof(Logger))
+                };
+                InternalOnLogged(d);
+
+                d = new LoggerEventArgs
+                {
+                    Level = LogLevel.Warn,
+                    Content = LiteralText.Of(
+                        "Logger now requires either RunThreaded(), RunBlocking() or RunManualPoll() to poll log events."),
+                    TagColor = TextColor.Gold,
+                    SourceThread = _thread,
+                    Tag = Text.RepresentType(typeof(Logger))
+                };
+                InternalOnLogged(d);
+                
+                d = new LoggerEventArgs
+                {
+                    Level = LogLevel.Warn,
+                    Content = LiteralText.Of(
+                        "The threaded approach will be used by default."),
+                    TagColor = TextColor.Gold,
+                    SourceThread = _thread,
+                    Tag = Text.RepresentType(typeof(Logger))
+                };
+                InternalOnLogged(d);
+            }
+
+            if (!_bootstrapped) throw new Exception("Logger is not bootstrapped.");
+            
+            if (Thread.CurrentThread != _thread)
+            {
+                _recordCall.Enqueue(action);
+            }
+            else
+            {
+                action(); 
+            }
+        }
+
+        private static string GetCallSourceName()
+        {
+            string name;
+            var stack = new StackTrace();
+            var method = stack.GetFrame(2)?.GetMethod();
+            name = method == null ? "?" : GetRootType(method.DeclaringType).FullName;
+            return name;
+        }
+
+        private static Type GetCallSourceType()
+        {
+            var stack = new StackTrace();
+            var method = stack.GetFrame(2)?.GetMethod();
+            return GetRootType(method!.DeclaringType);
+        }
+
+        private static Type GetRootType(Type t)
+        {
+            while (true)
+            {
+                if (!t!.Name.StartsWith("<")) return t;
+                t = t.DeclaringType;
+            }
+        }
+
+        private static void Log(LogLevel level, IText t, TextColor color, IText name)
+        {
+            var thread = Thread.CurrentThread;
+            var tClone = t.Clone();
+            var nameClone = name.Clone();
+            var data = new LoggerEventArgs
+            {
+                Content = tClone,
+                Tag = nameClone,
+                TagColor = color,
+                SourceThread = thread,
+                Level = level
+            };
+            CallOrQueue(() => InternalOnLogged(data));
+        }
+
+        public static IText GetDefaultFormattedLine(DateTimeOffset time, IText t, TextColor color, IText name, Thread thread)
         {
             var _name = name.MutableCopy();
             var f = PrefixFormat;
             _name.Color = color;
-            var tag = TranslateText.Of("[%s]").AddWith(_name).SetColor(color);
-            var now = DateTime.Now.ToString(CultureInfo.InvariantCulture);
+            var tag = LiteralText.Of($"[{thread.Name}@{thread.ManagedThreadId}] ")
+                .SetColor(TextColor.DarkGray)
+                .AddExtra(TranslateText.Of("[%s]").AddWith(_name).SetColor(color));
+            var now = time.ToLocalTime().DateTime.ToString(CultureInfo.InvariantCulture);
             return f.AddWith(tag, t.Clone(), LiteralText.Of(now));
         }
 
-        public static async Task LogToConsoleAsync(LogLevel level, IText t, TextColor color, IText name)
+        public static async Task LogToConsoleAsync(LoggerEventArgs data)
         {
+            var level = data.Level;
             if (Level > level) return;
-            await _logLock.WaitAsync();
-            Console.WriteLine(GetDefaultFormattedLine(t, color, name).ToAscii());
-            _logLock.Release();
+            
+            var t = data.Content;
+            var color = data.TagColor;
+            var name = data.Tag;
+            
+            // await _logLock.WaitAsync();
+            Console.WriteLine(GetDefaultFormattedLine(data.Timestamp, t, color, name, data.SourceThread).ToAscii());
+            // _logLock.Release();
         }
         
-        public static async Task LogToEmulatedTerminalAsync(LogLevel level, IText t, TextColor color, IText name)
+        public static async Task LogToEmulatedTerminalAsync(LoggerEventArgs data)
         {
+            var level = data.Level;
             if (Level > level) return;
-            await _logLock.WaitAsync();
-            Terminal.WriteLineStdOut(GetDefaultFormattedLine(t, color, name).ToAscii());
-            _logLock.Release();
+            
+            var t = data.Content;
+            var color = data.TagColor;
+            var name = data.Tag;
+            
+            // await _logLock.WaitAsync();
+            Terminal.WriteLineStdOut(GetDefaultFormattedLine(data.Timestamp, t, color, name, data.SourceThread).ToAscii());
+            // _logLock.Release();
         }
 
         public static void Log(IText t, string name = DefaultName)

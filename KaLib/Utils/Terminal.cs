@@ -37,6 +37,9 @@ public static class Terminal
     public delegate void InputBufferRendererDelegate(string input, string suggestion, int cursor);
     
     private static SemaphoreSlim _writeLock = new(1, 1);
+    private static SemaphoreSlim _readLineLock = new(1, 1);
+    private static SemaphoreSlim _promptRenderLock = new(1, 1);
+    private static SemaphoreSlim _cursorLock = new(1, 1);
 
     private static List<char> _inputBuffer = new();
     private static int _suggestApplyFrom = 0;
@@ -45,12 +48,10 @@ public static class Terminal
     private static bool _browsingHistory;
     private static int _inputIndex;
     private static IText _currentPrompt;
-    private static SemaphoreSlim _readLineLock = new(1, 1);
     private static InputBufferRendererDelegate _inputRenderer;
 
     private static List<string> _suggestions = new();
     private static int _suggestionIndex = -1;
-
     private static int _stdoutCursorX;
     private static int _stdoutCursorY;
     
@@ -133,9 +134,6 @@ public static class Terminal
         // Console.Write(" ".PadRight(Console.BufferWidth - 1 - Console.CursorLeft));
         Console.Write("\u001b[J");
     }
-
-    private static SemaphoreSlim _promptRenderLock = new(1, 1);
-    private static SemaphoreSlim _cursorLock = new(1, 1);
     
     public static void DrawPromptLine(string text = null, InputBufferRendererDelegate inputBufferRenderer = null)
     {
@@ -217,7 +215,7 @@ public static class Terminal
             _inputRenderer = inputBufferRenderer;
             DrawPromptLine(inputBufferRenderer: inputBufferRenderer);
             UpdateSuggestions(autoCompleter);
-            
+
             while (true)
             {
                 var key = Console.ReadKey(true);
@@ -238,6 +236,7 @@ public static class Terminal
                         _browsingHistory = false;
                         _inputIndex = _inputBuffer.Count;
                     }
+
                     DrawPromptLine(inputBufferRenderer: inputBufferRenderer);
                     continue;
                 }
@@ -283,7 +282,6 @@ public static class Terminal
                         ClearLine();
                         _inputHistory.Add(line);
                         _inputRenderer = null;
-                        _readLineLock.Release();
                         return line;
                     }
 
@@ -304,10 +302,9 @@ public static class Terminal
                 DrawPromptLine(inputBufferRenderer: inputBufferRenderer);
             }
         }
-        catch (Exception)
+        finally
         {
-            if (_readLineLock.CurrentCount == 0) _readLineLock.Release();
-            throw;
+            _readLineLock.Release();
         }
     }
 }
