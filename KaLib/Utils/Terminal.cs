@@ -218,6 +218,7 @@ public static class Terminal
 
             while (true)
             {
+                SpinWait.SpinUntil(() => Console.KeyAvailable);
                 var key = Console.ReadKey(true);
                 if (key.Modifiers.HasFlag(ConsoleModifiers.Control)) continue;
                 if (key.Modifiers.HasFlag(ConsoleModifiers.Alt)) continue;
