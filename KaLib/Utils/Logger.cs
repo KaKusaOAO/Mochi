@@ -37,7 +37,7 @@ namespace KaLib.Utils
         private static readonly ConcurrentQueue<Action> _recordCall = new();
 
         private static Thread _thread;
-
+        private static bool _isThreaded;
         private static bool _bootstrapped;
 
         static Logger()
@@ -53,6 +53,7 @@ namespace KaLib.Utils
         {
             if (_bootstrapped) return;
             _bootstrapped = true;
+            _isThreaded = true;
             
             var thread = new Thread(RunEventLoop)
             {
@@ -64,7 +65,12 @@ namespace KaLib.Utils
         
         private static void RunEventLoop() 
         {
-            while (_bootstrapped) PollEvents();
+            while (_bootstrapped)
+            {
+                SpinWait.SpinUntil(() => !_recordCall.IsEmpty);
+                PollEvents();
+                Thread.Yield();
+            }
         }
         
         public static void RunManualPoll()
@@ -79,8 +85,7 @@ namespace KaLib.Utils
             if (_bootstrapped) return;
             _bootstrapped = true;
             _thread = Thread.CurrentThread;
-            
-            while (_bootstrapped) PollEvents();
+            RunEventLoop();
         }
 
         public static void PollEvents()
@@ -89,8 +94,12 @@ namespace KaLib.Utils
                 throw new Exception("Logger is not bootstrapped");
             if (_thread != Thread.CurrentThread)
                 throw new Exception("PollEvents() called from wrong thread");
-            
-            while (_recordCall.TryDequeue(out var action)) action();
+
+            while (_recordCall.TryDequeue(out var action))
+            {
+                action();
+                Thread.Yield();
+            }
         }
         
         private static void InternalOnLogged(LoggerEventArgs data)
