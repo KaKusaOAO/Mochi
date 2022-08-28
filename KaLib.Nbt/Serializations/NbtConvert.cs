@@ -373,18 +373,18 @@ namespace KaLib.Nbt.Serializations
                     {
                         var val = dict[dictName];
 
-                        if (val is Dictionary<string, object>)
-                            val = CastFromDictionary(prop.PropertyType, (Dictionary<string, object>)val);
+                        if (val is Dictionary<string, object> dictionary)
+                            val = CastFromDictionary(prop.PropertyType, dictionary);
 
-                        if (val is byte && prop.PropertyType == typeof(bool)) val = (byte)val == 1;
+                        if (val is byte b && prop.PropertyType == typeof(bool)) val = b == 1;
 
                         if (val is ICollection && !(val is Array) ||
                             Reflections.IsTypeOfGenericType(typeof(ICollection<>), prop.PropertyType))
                         {
                             var related = prop.PropertyType.GetGenericArguments()[0];
-                            var listType = typeof(List<>).MakeGenericType(new Type[] { related });
+                            var listType = typeof(List<>).MakeGenericType(related);
 
-                            var list = listType.GetConstructor(new Type[0]).Invoke(new object[0]);
+                            var list = listType.GetConstructor(Type.EmptyTypes).Invoke(Array.Empty<object>());
                             var count = (int)val.GetType().GetProperty("Count").GetValue(val);
 
                             for (var i = 0; i < count; i++)
