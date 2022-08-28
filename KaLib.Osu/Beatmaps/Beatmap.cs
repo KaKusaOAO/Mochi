@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using KaLib.Osu.Beatmaps.Sections;
 using KaLib.Texts;
@@ -13,10 +14,10 @@ namespace KaLib.Osu.Beatmaps
     {
         public List<Section> Sections { get; } = new();
 
-        public GeneralSection General => Sections.WhereOfType<Section, GeneralSection>();
-        public MetadataSection Metadata => Sections.WhereOfType<Section, MetadataSection>();
-        public EditorSection Editor => Sections.WhereOfType<Section, EditorSection>();
-        public DifficultySection Difficulty => Sections.WhereOfType<Section, DifficultySection>();
+        public GeneralSection General => Sections.OfType<GeneralSection>().First();
+        public MetadataSection Metadata => Sections.OfType<MetadataSection>().First();
+        public EditorSection Editor => Sections.OfType<EditorSection>().First();
+        public DifficultySection Difficulty => Sections.OfType<DifficultySection>().First();
 
         public int Version { get; private set; }
 

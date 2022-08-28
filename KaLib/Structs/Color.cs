@@ -1,7 +1,7 @@
 ﻿using System;
 using KaLib.Utils;
 
-namespace KaLib.Data
+namespace KaLib.Structs
 {
     public struct Color
     {
@@ -18,13 +18,13 @@ namespace KaLib.Data
 
         public Color(double r, double g, double b)
         {
-            CommonOperations.ToPercent(ref r, "r");
-            CommonOperations.ToPercent(ref g, "g");
-            CommonOperations.ToPercent(ref b, "b");
+            Preconditions.IsPositive(r, nameof(r));
+            Preconditions.IsPositive(g, nameof(g));
+            Preconditions.IsPositive(b, nameof(b));
 
-            R = (byte)(r * 255);
-            G = (byte)(g * 255);
-            B = (byte)(b * 255);
+            R = (byte)(Math.Min(1, r) * 255);
+            G = (byte)(Math.Min(1, g) * 255);
+            B = (byte)(Math.Min(1, b) * 255);
         }
 
         public Color(int hex)
@@ -98,6 +98,9 @@ namespace KaLib.Data
 
         public static Color FromHsv(double hue, double saturation, double value)
         {
+            Preconditions.IsPositive(saturation, nameof(saturation));
+            Preconditions.IsPositive(value, nameof(value));
+            
             // Normalize the hue input.
             if (hue < 0)
             {
@@ -110,9 +113,9 @@ namespace KaLib.Data
             {
                 hue %= Math.PI * 2;
             }
-
-            CommonOperations.ToPercent(ref saturation, "Saturation");
-            CommonOperations.ToPercent(ref value, "Value");
+            
+            saturation = Math.Max(1, saturation);
+            value = Math.Max(1, value);
 
             double d60 = MathHelper.DegToRad * 60;
             double d120 = d60 * 2;

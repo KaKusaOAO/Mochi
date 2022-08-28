@@ -77,7 +77,7 @@ namespace KaLib.Texts
         {
             var extra = base.ToAscii();
             var color = (Color ?? ParentColor).ToAsciiCode();
-            var withAscii = With.Map(text => text.ToAscii() + color).ToArray();
+            var withAscii = With.Select(text => text.ToAscii() + color).ToArray();
             return color + Format(Translate, withAscii) + extra;
         }
 
@@ -99,7 +99,7 @@ namespace KaLib.Texts
                 }
             }
 
-            string[] withAscii = With.Map(text => { return text.ToPlainText(); }).ToArray();
+            string[] withAscii = With.Select(text => { return text.ToPlainText(); }).ToArray();
 
             return Format(result, withAscii) + extra;
         }

@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace KaLib.Utils;
+namespace KaLib.Structs;
 
-public struct ByteSize
+public struct DataSize
 {
     private long bytes;
 
@@ -12,7 +12,7 @@ public struct ByteSize
     private const long GigabyteInBytes = MegabyteInBytes * UnitScale;
     private const long TerabyteInBytes = GigabyteInBytes * UnitScale;
 
-    public ByteSize(long b = 0, long kb = 0, long mb = 0, long gb = 0, long tb = 0)
+    public DataSize(long b = 0, long kb = 0, long mb = 0, long gb = 0, long tb = 0)
     {
         bytes = b;
         bytes += kb * KilobyteInBytes;
