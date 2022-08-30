@@ -6,7 +6,7 @@
         <RepositoryUrl>https://github.com/KaKusaOAO/KaLib</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
         <TargetFrameworks>net6.0;netstandard2.0;netstandard2.1</TargetFrameworks>
-        <PackageVersion>1.0.2</PackageVersion>
+        <PackageVersion>1.0.3</PackageVersion>
     </PropertyGroup>
 
 </Project>

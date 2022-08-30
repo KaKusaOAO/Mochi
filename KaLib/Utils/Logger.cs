@@ -98,7 +98,14 @@ namespace KaLib.Utils
 
             while (_recordCall.TryDequeue(out var action))
             {
-                action();
+                try
+                {
+                    action();
+                }
+                catch (Exception)
+                {
+                    // Ignored
+                }
                 Thread.Yield();
             }
         }
