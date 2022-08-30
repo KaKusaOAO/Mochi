@@ -32,12 +32,9 @@ namespace KaLib.Utils
 
         public static TranslateText PrefixFormat => TranslateText.Of("{2} - {0} {1}");
 
-        private static SemaphoreSlim _logLock = new(1, 1);
-
+        private static readonly SemaphoreSlim _logLock = new(1, 1);
         private static readonly ConcurrentQueue<Action> _recordCall = new();
-
         private static Thread _thread;
-        private static bool _isThreaded;
         private static bool _bootstrapped;
 
         static Logger()
@@ -53,8 +50,7 @@ namespace KaLib.Utils
         {
             if (_bootstrapped) return;
             _bootstrapped = true;
-            _isThreaded = true;
-            
+
             var thread = new Thread(RunEventLoop)
             {
                 Name = "Logger Thread",
@@ -229,9 +225,9 @@ namespace KaLib.Utils
             var color = data.TagColor;
             var name = data.Tag;
             
-            // await _logLock.WaitAsync();
+            await _logLock.WaitAsync();
             Console.WriteLine(GetDefaultFormattedLine(data.Timestamp, t, color, name, data.SourceThread).ToAscii());
-            // _logLock.Release();
+            _logLock.Release();
         }
         
         public static async Task LogToEmulatedTerminalAsync(LoggerEventArgs data)
@@ -243,9 +239,9 @@ namespace KaLib.Utils
             var color = data.TagColor;
             var name = data.Tag;
             
-            // await _logLock.WaitAsync();
+            await _logLock.WaitAsync();
             Terminal.WriteLineStdOut(GetDefaultFormattedLine(data.Timestamp, t, color, name, data.SourceThread).ToAscii());
-            // _logLock.Release();
+            _logLock.Release();
         }
 
         public static void Log(IText t, string name = DefaultName)

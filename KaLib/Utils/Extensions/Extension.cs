@@ -1,23 +1,51 @@
-﻿using System;
-using System.Collections;
+﻿#if NETCOREAPP3_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#define HAS_CODEANALYSIS
+#define HAS_ASYNC_ENUMERATOR
+#endif
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+#if HAS_ASYNC_ENUMERATOR
+using System.Threading.Tasks;
+#endif
+#if HAS_CODEANALYSIS
+using System.Diagnostics.CodeAnalysis;
+#endif
 
-namespace KaLib.Utils.Extensions
+namespace KaLib.Utils.Extensions;
+
+public static class Extension
 {
-    public static class Extension
+#if HAS_CODEANALYSIS
+    [return: NotNull]
+#endif
+    public static string JoinStrings(
+#if HAS_CODEANALYSIS
+        [AllowNull]
+#endif
+        this IEnumerable<string> input, string separator)
     {
-        public static string JoinStrings(this IEnumerable<string> input, string separator)
-        {
-            var result = "";
-            if (input == null) return result;
+        var result = "";
+        if (input == null) return result;
             
-            result = input.Aggregate(result, (current, entry) => current + separator + entry);
-            return result.Length == 0 ? "" : result.Substring(separator.Length);
+        result = input.Aggregate(result, (current, entry) => current + separator + entry);
+        return result.Length == 0 ? "" : result.Substring(separator.Length);
+    }
+
+    public static string Hexdump(this IEnumerable<byte> data) => 
+        data.Select(t => $"{t:x2}").JoinStrings(" ").Trim();
+
+
+#if HAS_ASYNC_ENUMERATOR
+    public static async Task<IEnumerable<T>> CollectAllAsync<T>(this IAsyncEnumerable<T> enumerator)
+    {
+        var result = new List<T>();
+        await foreach (var item in enumerator)
+        {
+            result.Add(item);
         }
 
-        public static string Hexdump(this IEnumerable<byte> data) => 
-            data.Select(t => $"{t:x2}").JoinStrings(" ").Trim();
+        return result;
     }
+#endif
 }

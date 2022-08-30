@@ -42,7 +42,6 @@ public static class Terminal
     private static SemaphoreSlim _cursorLock = new(1, 1);
 
     private static List<char> _inputBuffer = new();
-    private static int _suggestApplyFrom = 0;
     private static List<string> _inputHistory = new();
     private static int _historyIndex = -1;
     private static bool _browsingHistory;
@@ -252,7 +251,6 @@ public static class Terminal
                 }
 
                 var handleNeeded = false;
-                var isSuggestion = false;
                 switch (key.Key)
                 {
                     case ConsoleKey.LeftArrow:
