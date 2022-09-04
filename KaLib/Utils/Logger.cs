@@ -54,7 +54,7 @@ namespace KaLib.Utils
             var thread = new Thread(RunEventLoop)
             {
                 Name = "Logger Thread",
-                IsBackground = false
+                IsBackground = true
             };
             _thread = thread;
             thread.Start();
