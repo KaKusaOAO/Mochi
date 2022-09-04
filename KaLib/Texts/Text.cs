@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
+using KaLib.Utils;
 
 namespace KaLib.Texts
 {
@@ -97,29 +98,30 @@ namespace KaLib.Texts
         public bool Reset { get; set; }
 
         public bool ShouldSerializeExtra() => Extra.Count > 0;
+        
         public TextColor ParentColor
         {
             get
             {
-                if (Parent == null) return Environment.OSVersion.Platform == PlatformID.Win32NT ? TextColor.Gray : TextColor.White;
+                if (Parent == null) return null;
                 return Parent.Color ?? Parent.ParentColor;
             }
         }
 
         public virtual string ToAscii()
         {
-            string extra = "";
-            foreach (IText e in Extra)
+            var extra = "";
+            foreach (var e in Extra)
             {
-                extra += e.ToAscii() + (Color ?? ParentColor).ToAsciiCode();
+                extra += e.ToAscii() + (Color ?? ParentColor).GetAsciiCode();
             }
-            return extra + ParentColor.ToAsciiCode();
+            return extra + ParentColor.GetAsciiCode();
         }
 
         public virtual string ToPlainText()
         {
-            string extra = "";
-            foreach (IText e in Extra)
+            var extra = "";
+            foreach (var e in Extra)
             {
                 extra += e.ToPlainText();
             }
@@ -147,8 +149,8 @@ namespace KaLib.Texts
 
         public T AddExtra(params IText[] texts)
         {
-            T t = ResolveThis();
-            foreach (IText text in texts)
+            var t = ResolveThis();
+            foreach (var text in texts)
             {
                 Extra.Add(text);
                 text.Parent = this;
@@ -158,14 +160,14 @@ namespace KaLib.Texts
 
         public T SetColor(TextColor color)
         {
-            T t = ResolveThis();
+            var t = ResolveThis();
             Color = color;
             return t;
         }
 
         public T Format(TextFormatFlag flags)
         {
-            T t = ResolveThis();
+            var t = ResolveThis();
             Bold = flags.HasFlag(TextFormatFlag.Bold);
             Italic = flags.HasFlag(TextFormatFlag.Italic);
             Obfuscated = flags.HasFlag(TextFormatFlag.Obfuscated);

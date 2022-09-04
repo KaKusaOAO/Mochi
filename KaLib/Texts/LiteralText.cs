@@ -102,7 +102,7 @@ namespace KaLib.Texts
         public override string ToAscii()
         {
             string extra = base.ToAscii();
-            string color = (Color ?? ParentColor).ToAsciiCode();
+            string color = (Color ?? ParentColor).GetAsciiCode();
             return color + Text + extra;
         }
 

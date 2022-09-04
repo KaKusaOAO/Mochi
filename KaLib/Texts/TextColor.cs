@@ -10,15 +10,15 @@ namespace KaLib.Texts
     {
         public const char ColorChar = '\u00a7';
 
-        private string name;
-        private int ordinal;
-        private string toString;
-        private Color color;
+        private string _name;
+        private int _ordinal;
+        private string _toString;
+        private Color _color;
 
-        private static Dictionary<char, TextColor> byChar = new();
-        private static Dictionary<string, TextColor> byName = new();
+        private static readonly Dictionary<char, TextColor> _byChar = new();
+        private static readonly Dictionary<string, TextColor> _byName = new();
 
-        private static int count = 0;
+        private static int _count;
 
         public static readonly TextColor Black      = new('0', "black",       new Color(0));
         public static readonly TextColor DarkBlue   = new('1', "dark_blue",   new Color(0xaa));
@@ -39,21 +39,21 @@ namespace KaLib.Texts
 
         private TextColor(char code, string name, Color color)
         {
-            this.name = name;
-            toString = ColorChar + "" + code;
-            ordinal = count++;
-            this.color = color;
+            this._name = name;
+            _toString = ColorChar + "" + code;
+            _ordinal = _count++;
+            this._color = color;
 
-            byChar.Add(code, this);
-            byName.Add(name, this);
+            _byChar.Add(code, this);
+            _byName.Add(name, this);
         }
 
         private TextColor(string name, string toString, int rgb)
         {
-            this.name = name;
-            this.toString = toString;
-            ordinal = -1;
-            color = new Color(rgb);
+            this._name = name;
+            this._toString = toString;
+            _ordinal = -1;
+            _color = new Color(rgb);
         }
 
         public static TextColor Of(Color color)
@@ -77,13 +77,13 @@ namespace KaLib.Texts
                     throw new ArgumentException("Illegal hex string " + name);
                 }
 
-                string magic = ColorChar + "x";
+                var magic = ColorChar + "x";
                 magic = name.Substring(1).Aggregate(magic, (current, c) => current + (ColorChar + "" + c));
 
                 return new TextColor(name, magic, rgb);
             }
 
-            if(byName.TryGetValue(name, out TextColor defined))
+            if(_byName.TryGetValue(name, out var defined))
             {
                 return defined;
             }
@@ -92,56 +92,55 @@ namespace KaLib.Texts
         }
 
         public static TextColor Of(char code)
-            => byChar.ContainsKey(code) ? byChar[code] : null;
+            => _byChar.ContainsKey(code) ? _byChar[code] : null;
 
-        public override string ToString() => toString;
+        public override string ToString() => _toString;
 
-        public string Name => name;
+        public string Name => _name;
 
-        public Color Color => color;
+        public Color Color => _color;
+
+        private static TextColor[] _predefined = {
+            Black,
+            DarkBlue,
+            DarkGreen,
+            DarkAqua,
+            DarkRed,
+            DarkPurple,
+            Gold,
+            Gray,
+            DarkGray,
+            Blue,
+            Green,
+            Aqua,
+            Red,
+            Purple,
+            Yellow,
+            White
+        };
 
         public TextColor ToNearestPredefinedColor()
         {
-            char c = toString[1];
+            var c = _toString[1];
             if (c != 'x')
             {
                 return this;
             }
 
             TextColor closest = null;
-            Color cl = Color;
+            var cl = Color;
 
-            TextColor[] defined = new TextColor[]
+            var smallestDiff = 0;
+            foreach (var tc in _predefined)
             {
-                Black,
-                DarkBlue,
-                DarkGreen,
-                DarkAqua,
-                DarkRed,
-                DarkPurple,
-                Gold,
-                Gray,
-                DarkGray,
-                Blue,
-                Green,
-                Aqua,
-                Red,
-                Purple,
-                Yellow,
-                White
-            };
+                var rAverage = (tc.Color.R + cl.R) / 2;
+                var rDiff = tc.Color.R - cl.R;
+                var gDiff = tc.Color.G - cl.G;
+                var bDiff = tc.Color.B - cl.B;
 
-            int smallestDiff = 0;
-            foreach (TextColor tc in defined)
-            {
-                int rAverage = (tc.Color.R + cl.R) / 2;
-                int rDiff = tc.Color.R - cl.R;
-                int gDiff = tc.Color.G - cl.G;
-                int bDiff = tc.Color.B - cl.B;
-
-                int diff = ((2 + (rAverage >> 8)) * rDiff * rDiff)
-                    + (4 * gDiff * gDiff)
-                    + ((2 + ((255 - rAverage) >> 8)) * bDiff * bDiff);
+                var diff = ((2 + (rAverage >> 8)) * rDiff * rDiff)
+                           + (4 * gDiff * gDiff)
+                           + ((2 + ((255 - rAverage) >> 8)) * bDiff * bDiff);
 
                 if (closest == null || diff < smallestDiff)
                 {
@@ -159,5 +158,10 @@ namespace KaLib.Texts
         }
         
         public string ToAsciiCode() => AsciiColor.FromTextColor(this).ToAsciiCode();
+    }
+
+    internal static class TextColorEx
+    {
+        public static string GetAsciiCode(this TextColor color) => color?.ToAsciiCode() ?? AsciiColor.Reset.ToAsciiCode();
     }
 }
