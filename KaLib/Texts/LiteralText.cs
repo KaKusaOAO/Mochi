@@ -15,7 +15,7 @@ namespace KaLib.Texts
         {
             return new LiteralText
             {
-                Text = text
+                Text = text ?? ""
             };
         }
 

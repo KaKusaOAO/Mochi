@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -24,7 +26,12 @@ namespace KaLib.Utils
 
     public static class Logger
     {
-        public static event AsyncLogEventDelegate Logged;
+        private static readonly AsyncEventHandler<AsyncLogEventDelegate> _loggedHandler = new();
+        public static event AsyncLogEventDelegate Logged
+        {
+            add => _loggedHandler.AddHandler(value);
+            remove => _loggedHandler.RemoveHandler(value);
+        }
         
         public static LogLevel Level { get; set; }
 
@@ -108,9 +115,54 @@ namespace KaLib.Utils
         
         private static void InternalOnLogged(LoggerEventArgs data)
         {
-            Logged?.Invoke(data).ConfigureAwait(false);
+            foreach (var handler in _loggedHandler.Handlers)
+            {
+                void HandleException(Exception ex)
+                {
+                    _ = LogToEmulatedTerminalAsync(new LoggerEventArgs
+                    {
+                        Content = TranslateText.Of("Unhandled exception in handler %s!")
+                            .AddWith(LiteralText.Of($"{handler.Method}").SetColor(TextColor.Gold)),
+                        Level = LogLevel.Error,
+                        SourceThread = _thread,
+                        Tag = LiteralText.Of("Logger"),
+                        TagColor = TextColor.Red,
+                        Timestamp = DateTimeOffset.Now
+                    });
+                    
+                    _ = LogToEmulatedTerminalAsync(new LoggerEventArgs
+                    {
+                        Content = LiteralText.Of($"{ex}"),
+                        Level = LogLevel.Error,
+                        SourceThread = _thread,
+                        Tag = LiteralText.Of("Logger"),
+                        TagColor = TextColor.Red,
+                        Timestamp = DateTimeOffset.Now
+                    });
+                }
+
+                try
+                {
+                    var task = handler(data);
+                    Common.DiscardAndCatch(task, HandleException);
+                }
+                catch (Exception ex)
+                {
+                    HandleException(ex);
+                }
+                
+            }
+        }
+
+        public static void Flush()
+        {
+            var called = false;
+            CallOrQueue(() => called = true);
+            SpinWait.SpinUntil(() => called);
         }
         
+        public static Task FlushAsync() => Task.Run(Flush);
+
         private static void CallOrQueue(Action action)
         {
             if (!_bootstrapped)
@@ -152,6 +204,11 @@ namespace KaLib.Utils
             }
 
             if (!_bootstrapped) throw new Exception("Logger is not bootstrapped.");
+
+            AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+            {
+                Flush();
+            };
             
             if (Thread.CurrentThread != _thread)
             {
@@ -204,7 +261,7 @@ namespace KaLib.Utils
             CallOrQueue(() => InternalOnLogged(data));
         }
 
-        public static IText GetDefaultFormattedLine(DateTimeOffset time, IText t, TextColor color, IText name, Thread thread)
+        public static List<string> GetDefaultFormattedLines(DateTimeOffset time, IText t, TextColor color, IText name, Thread thread, bool ascii = true)
         {
             var _name = name.MutableCopy();
             var f = PrefixFormat;
@@ -213,7 +270,20 @@ namespace KaLib.Utils
                 .SetColor(TextColor.DarkGray)
                 .AddExtra(TranslateText.Of("[%s]").AddWith(_name).SetColor(color));
             var now = time.ToLocalTime().DateTime.ToString(CultureInfo.InvariantCulture);
-            return f.AddWith(tag, t.Clone(), LiteralText.Of(now));
+
+            var text = t.Clone();
+            var prefix = f.AddWith(tag, LiteralText.Of(""), LiteralText.Of(now));
+            
+            var pPlain = prefix.ToPlainText();
+            var pf = ascii ? prefix.ToAscii() : prefix.ToPlainText(); 
+            var content = ascii ? text.ToAscii() : text.ToPlainText();
+            var lines = content.Split('\n');
+
+            var remainPrefixPlain = "+ ->> ";
+            var remainPrefix = (ascii ? AsciiColor.DarkGray.ToAsciiCode() : "") + remainPrefixPlain +
+                               (ascii ? AsciiColor.Reset.ToAsciiCode() : "");
+            return lines.Take(1).Select(c => pf + c)
+                .Concat(lines.Skip(1).Select(c => (remainPrefix + c).PadLeft(c.Length + pPlain.Length + remainPrefix.Length - remainPrefixPlain.Length))).ToList();
         }
 
         public static async Task LogToConsoleAsync(LoggerEventArgs data)
@@ -224,10 +294,14 @@ namespace KaLib.Utils
             var t = data.Content;
             var color = data.TagColor;
             var name = data.Tag;
-            
-            await _logLock.WaitAsync();
-            Console.WriteLine(GetDefaultFormattedLine(data.Timestamp, t, color, name, data.SourceThread).ToAscii());
-            _logLock.Release();
+
+            await Common.AcquireSemaphoreAsync(_logLock, () =>
+            {
+                foreach (var line in GetDefaultFormattedLines(data.Timestamp, t, color, name, data.SourceThread))
+                {
+                    Console.WriteLine(line);
+                }
+            });
         }
         
         public static async Task LogToEmulatedTerminalAsync(LoggerEventArgs data)
@@ -238,10 +312,14 @@ namespace KaLib.Utils
             var t = data.Content;
             var color = data.TagColor;
             var name = data.Tag;
-            
-            await _logLock.WaitAsync();
-            Terminal.WriteLineStdOut(GetDefaultFormattedLine(data.Timestamp, t, color, name, data.SourceThread).ToAscii());
-            _logLock.Release();
+
+            await Common.AcquireSemaphoreAsync(_logLock, () =>
+            {
+                foreach (var line in GetDefaultFormattedLines(data.Timestamp, t, color, name, data.SourceThread))
+                {
+                    Terminal.WriteLineStdOut(line);
+                }
+            });
         }
 
         public static void Log(IText t, string name = DefaultName)
@@ -253,10 +331,7 @@ namespace KaLib.Utils
         public static void Log(string msg, string name = DefaultName)
         {
             var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
-            foreach (string line in msg.Split('\n'))
-            {
-                Log(LogLevel.Log, LiteralText.Of(line), TextColor.DarkGray, tag);
-            }
+            Log(LogLevel.Log, LiteralText.Of(msg), TextColor.DarkGray, tag);
         }
 
         public static void Verbose(IText t, string name = DefaultName)
@@ -268,10 +343,7 @@ namespace KaLib.Utils
         public static void Verbose(string msg, string name = DefaultName)
         {
             var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
-            foreach (string line in msg.Split('\n'))
-            {
-                Log(LogLevel.Verbose, LiteralText.Of(line), TextColor.DarkGray, tag);
-            }
+            Log(LogLevel.Verbose, LiteralText.Of(msg), TextColor.DarkGray, tag);
         }
 
         public static void Info(IText t, string name = DefaultName)
@@ -283,10 +355,7 @@ namespace KaLib.Utils
         public static void Info(string msg, string name = DefaultName)
         {
             var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
-            foreach (string line in msg.Split('\n'))
-            {
-                Log(LogLevel.Info, LiteralText.Of(line), TextColor.Green, tag);
-            }
+            Log(LogLevel.Info, LiteralText.Of(msg), TextColor.Green, tag);
         }
 
         public static void Warn(IText t, string name = DefaultName)
@@ -298,10 +367,7 @@ namespace KaLib.Utils
         public static void Warn(string msg, string name = DefaultName)
         {
             var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
-            foreach (string line in msg.Split('\n'))
-            {
-                Log(LogLevel.Warn, LiteralText.Of(line), TextColor.Gold, tag);
-            }
+            Log(LogLevel.Warn, LiteralText.Of(msg), TextColor.Gold, tag);
         }
 
         public static void Error(IText t, string name = DefaultName)
@@ -313,16 +379,7 @@ namespace KaLib.Utils
         public static void Error(string msg, string name = DefaultName)
         {
             var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
-            foreach (string line in msg.Split('\n'))
-            {
-                Log(LogLevel.Error, LiteralText.Of(line), TextColor.Red, tag);
-            }
+            Log(LogLevel.Error, LiteralText.Of(msg), TextColor.Red, tag);
         }
-
-        [Obsolete("This method will be removed.", true)]
-        public static Task WaitForActiveLogAsync() => Task.CompletedTask;
-
-        [Obsolete("This method will be removed.", true)]
-        public static Task FlushAsync() => Task.CompletedTask;
     }
 }
