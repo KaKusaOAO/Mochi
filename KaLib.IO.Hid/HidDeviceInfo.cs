@@ -30,6 +30,7 @@ namespace KaLib.IO.Hid
                 #else
                 var path = Marshal.PtrToStringAuto((IntPtr)handle.Path);
                 #endif
+                
                 var manufacturer = new string(handle.ManufacturerString);
                 var product = new string(handle.ProductString);
                 var vendorId = handle.VendorId;

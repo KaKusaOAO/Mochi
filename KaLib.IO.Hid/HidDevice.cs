@@ -4,65 +4,25 @@ using KaLib.IO.Hid.Native;
 
 namespace KaLib.IO.Hid
 {
-    public class HidDevice : IDisposable
+    public abstract class HidDevice : IDisposable
     {
-        private HidDeviceInfo _info;
-        internal unsafe NativeHidDevice* handle;
-        public unsafe bool Closed => handle == null;
+        public abstract int Write(byte[] data);
+    
+        public abstract int Read(byte[] output);
+        public abstract int Read(byte[] output, int millis);
+        // TODO: Can we use CancellationToken?
 
-        public void Dispose()
-        {
-            Close();
-        }
+        public abstract int SetBlocking(bool blocking);
+        public abstract int SendFeatureReport(byte[] data);
+        public abstract int GetFeatureReport(byte[] output);
+        public abstract int GetInputReport(byte[] output);
+        public abstract void Dispose();
+        protected abstract string InternalGetManufacturer();
+        protected abstract string InternalGetProduct();
+        protected abstract string InternalGetSerialNumber();
 
-        public bool Open(HidDeviceInfo dev)
-        {
-            unsafe
-            {
-                handle = HidApi.OpenPath(dev.Path);
-                return handle != null;
-            }
-        }
-
-        public void Close()
-        {
-            unsafe
-            {
-                if(handle != null)
-                    HidApi.Close(handle);
-            }
-        }
-
-        public int Write(byte[] data)
-        {
-            unsafe
-            {
-                return HidApi.Write(handle, data, data.Length);
-            }
-        }
-
-        public int Read(byte[] data)
-        {
-            unsafe
-            {
-                return HidApi.Read(handle, data, data.Length);
-            }
-        }
-        
-        public int ReadTimeout(byte[] data, int millis)
-        {
-            unsafe
-            {
-                return HidApi.ReadTimeout(handle, data, data.Length, millis);
-            }
-        }
-
-        public string GetLastError()
-        {
-            unsafe
-            {
-                return HidApi.Error(handle);
-            }
-        }
+        public string Manufacturer => InternalGetManufacturer();
+        public string Product => InternalGetProduct();
+        public string SerialNumber => InternalGetSerialNumber();
     }
 }

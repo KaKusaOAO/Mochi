@@ -6,7 +6,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\KaLib.Procon\KaLib.Procon.csproj" />
+      <ProjectReference Include="..\KaLib.IO.Hid\KaLib.IO.Hid.csproj" />
+      <ProjectReference Include="..\KaLib\KaLib.csproj" />
     </ItemGroup>
 
 </Project>

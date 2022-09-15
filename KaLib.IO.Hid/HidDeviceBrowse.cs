@@ -7,7 +7,7 @@ namespace KaLib.IO.Hid
     {
         public static List<HidDeviceInfo> Browse()
         {
-            List<HidDeviceInfo> result = new();
+            var result = new List<HidDeviceInfo>();
             unsafe
             {
                 var item = HidApi.Enumerate();

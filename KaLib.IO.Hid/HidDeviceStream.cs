@@ -15,7 +15,6 @@ public class HidDeviceStream : Stream
 
     public override void Close()
     {
-        Device.Close();
         Device.Dispose();
     }
 
@@ -23,10 +22,11 @@ public class HidDeviceStream : Stream
 
     public override int Read(byte[] buffer, int offset, int count)
     {
-        var buf = new byte[count];
-        var len = ReadTimeout == 0 ? Device.Read(buf) : Device.ReadTimeout(buf, ReadTimeout);
-        Array.Copy(buf, 0, buffer, offset, count);
-        return len;
+        throw new NotImplementedException();
+        // var buf = new byte[count];
+        // var len = ReadTimeout == 0 ? Device.Read(buf) : Device.ReadTimeout(buf, ReadTimeout);
+        // Array.Copy(buf, 0, buffer, offset, count);
+        // return len;
     }
 
     public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();

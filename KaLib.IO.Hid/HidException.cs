@@ -10,10 +10,7 @@ public class HidException : IOException
 
     public static HidException CreateFromLast(HidDevice device)
     {
-        unsafe
-        {
-            return new HidException(HidApi.Error(device.handle));
-        }
+        throw new NotImplementedException();
     }
         
 }
