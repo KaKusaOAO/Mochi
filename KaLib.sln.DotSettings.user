@@ -1,41 +1,41 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/PredefinedNamingRules/=PrivateStaticReadonly/@EntryIndexedValue">&lt;Policy Inspect="True" Prefix="_" Suffix="" Style="aaBb" /&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=2a07cb48_002D6149_002D4894_002D899e_002Da86d40121248/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Tests #6" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;TestAncestor&gt;
-    &lt;TestId&gt;NUnit3x::72C75B42-B533-495B-B27B-5A2F5D8CDFB6::net5.0::KaLib.IO.Hid.Test.Tests&lt;/TestId&gt;
-    &lt;TestId&gt;NUnit3x::28F69222-B948-4BED-987A-8122F58D147B::net5.0::KaLib.Procon.Test.Tests&lt;/TestId&gt;
-  &lt;/TestAncestor&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=2a07cb48_002D6149_002D4894_002D899e_002Da86d40121248/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Tests #6" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::72C75B42-B533-495B-B27B-5A2F5D8CDFB6::net5.0::KaLib.IO.Hid.Test.Tests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::28F69222-B948-4BED-987A-8122F58D147B::net5.0::KaLib.Procon.Test.Tests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=35c27b4e_002Dbd4c_002D4343_002Da3e4_002D412f8f62b0be/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Tests #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;TestAncestor&gt;
-    &lt;TestId&gt;NUnit3x::72C75B42-B533-495B-B27B-5A2F5D8CDFB6::net5.0::KaLib.IO.Hid.Test.Tests&lt;/TestId&gt;
-    &lt;TestId&gt;NUnit3x::28F69222-B948-4BED-987A-8122F58D147B::net5.0::KaLib.Procon.Test.Tests&lt;/TestId&gt;
-  &lt;/TestAncestor&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=35c27b4e_002Dbd4c_002D4343_002Da3e4_002D412f8f62b0be/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Tests #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::72C75B42-B533-495B-B27B-5A2F5D8CDFB6::net5.0::KaLib.IO.Hid.Test.Tests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::28F69222-B948-4BED-987A-8122F58D147B::net5.0::KaLib.Procon.Test.Tests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=3f3bd16b_002Dbf24_002D440b_002D8c5a_002Ddeb2f8642f11/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Tests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;TestAncestor&gt;
-    &lt;TestId&gt;NUnit3x::72C75B42-B533-495B-B27B-5A2F5D8CDFB6::net5.0::KaLib.IO.Hid.Test.Tests&lt;/TestId&gt;
-    &lt;TestId&gt;NUnit3x::28F69222-B948-4BED-987A-8122F58D147B::net5.0::KaLib.Procon.Test.Tests&lt;/TestId&gt;
-  &lt;/TestAncestor&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=3f3bd16b_002Dbf24_002D440b_002D8c5a_002Ddeb2f8642f11/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Tests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::72C75B42-B533-495B-B27B-5A2F5D8CDFB6::net5.0::KaLib.IO.Hid.Test.Tests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::28F69222-B948-4BED-987A-8122F58D147B::net5.0::KaLib.Procon.Test.Tests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5309d2a1_002D6c10_002D49c6_002D9a12_002D5687d61ef15b/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Tests #4" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;TestAncestor&gt;
-    &lt;TestId&gt;NUnit3x::72C75B42-B533-495B-B27B-5A2F5D8CDFB6::net5.0::KaLib.IO.Hid.Test.Tests&lt;/TestId&gt;
-    &lt;TestId&gt;NUnit3x::28F69222-B948-4BED-987A-8122F58D147B::net5.0::KaLib.Procon.Test.Tests&lt;/TestId&gt;
-  &lt;/TestAncestor&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5309d2a1_002D6c10_002D49c6_002D9a12_002D5687d61ef15b/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Tests #4" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::72C75B42-B533-495B-B27B-5A2F5D8CDFB6::net5.0::KaLib.IO.Hid.Test.Tests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::28F69222-B948-4BED-987A-8122F58D147B::net5.0::KaLib.Procon.Test.Tests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=d04e7d1d_002Daf7b_002D434a_002Dbc77_002D5178b1dce678/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Tests #5" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;TestAncestor&gt;
-    &lt;TestId&gt;NUnit3x::72C75B42-B533-495B-B27B-5A2F5D8CDFB6::net5.0::KaLib.IO.Hid.Test.Tests&lt;/TestId&gt;
-    &lt;TestId&gt;NUnit3x::28F69222-B948-4BED-987A-8122F58D147B::net5.0::KaLib.Procon.Test.Tests&lt;/TestId&gt;
-  &lt;/TestAncestor&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=d04e7d1d_002Daf7b_002D434a_002Dbc77_002D5178b1dce678/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Tests #5" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::72C75B42-B533-495B-B27B-5A2F5D8CDFB6::net5.0::KaLib.IO.Hid.Test.Tests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::28F69222-B948-4BED-987A-8122F58D147B::net5.0::KaLib.Procon.Test.Tests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=f37ab552_002D65a7_002D4482_002D935a_002D67372de1b3ab/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Tests #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;TestAncestor&gt;
-    &lt;TestId&gt;NUnit3x::72C75B42-B533-495B-B27B-5A2F5D8CDFB6::net5.0::KaLib.IO.Hid.Test.Tests&lt;/TestId&gt;
-    &lt;TestId&gt;NUnit3x::28F69222-B948-4BED-987A-8122F58D147B::net5.0::KaLib.Procon.Test.Tests&lt;/TestId&gt;
-  &lt;/TestAncestor&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=f37ab552_002D65a7_002D4482_002D935a_002D67372de1b3ab/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Tests #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::72C75B42-B533-495B-B27B-5A2F5D8CDFB6::net5.0::KaLib.IO.Hid.Test.Tests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::28F69222-B948-4BED-987A-8122F58D147B::net5.0::KaLib.Procon.Test.Tests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	
 	

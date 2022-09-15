@@ -48,7 +48,7 @@ public static class Program
     {
         Logger.Logged += Logger.LogToEmulatedTerminalAsync;
 
-        Task.Run(async () =>
+        _ = Task.Run(async () =>
         {
             var rand = new Random();
             var i = 0;
@@ -95,7 +95,7 @@ public static class Program
                                         .Then(Argument("source", StringArgumentType.Word())
                                             .Then(Argument("sourcePath", StringArgumentType.Word())
                                                 .Executes(_ => 1)))))))))));
-        
+
         while (true)
         {
             try

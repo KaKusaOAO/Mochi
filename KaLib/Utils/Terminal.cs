@@ -36,21 +36,20 @@ public static class Terminal
 
     public delegate void InputBufferRendererDelegate(string input, string suggestion, int cursor);
     
-    private static SemaphoreSlim _writeLock = new(1, 1);
-    private static SemaphoreSlim _readLineLock = new(1, 1);
-    private static SemaphoreSlim _promptRenderLock = new(1, 1);
-    private static SemaphoreSlim _cursorLock = new(1, 1);
+    private static readonly SemaphoreSlim _writeLock = new(1, 1);
+    private static readonly SemaphoreSlim _readLineLock = new(1, 1);
+    private static readonly SemaphoreSlim _promptRenderLock = new(1, 1);
+    private static readonly SemaphoreSlim _cursorLock = new(1, 1);
 
-    private static List<char> _inputBuffer = new();
-    private static int _suggestApplyFrom = 0;
-    private static List<string> _inputHistory = new();
+    private static readonly List<char> _inputBuffer = new();
+    private static readonly List<string> _inputHistory = new();
     private static int _historyIndex = -1;
     private static bool _browsingHistory;
     private static int _inputIndex;
     private static IText _currentPrompt;
     private static InputBufferRendererDelegate _inputRenderer;
 
-    private static List<string> _suggestions = new();
+    private static readonly List<string> _suggestions = new();
     private static int _suggestionIndex = -1;
     private static int _stdoutCursorX;
     private static int _stdoutCursorY;
@@ -81,8 +80,7 @@ public static class Terminal
 
     public static void WriteLineStdOut(string text)
     {
-        _cursorLock.Wait();
-        try
+        Common.AcquireSemaphore(_cursorLock, () =>
         {
             if (Console.WindowTop + Console.WindowHeight - 1 == _stdoutCursorY) _stdoutCursorY--;
             (Console.CursorLeft, Console.CursorTop) = (_stdoutCursorX, _stdoutCursorY);
@@ -93,11 +91,7 @@ public static class Terminal
             {
                 Console.WriteLine();
             }
-        }
-        finally
-        {
-            _cursorLock.Release();
-        }
+        });
         DrawPromptLine(inputBufferRenderer: _inputRenderer);
     }
 
@@ -208,8 +202,7 @@ public static class Terminal
     
     public static string ReadLine(IText prompt = null, AutoCompleterDelegate autoCompleter = null, InputBufferRendererDelegate inputBufferRenderer = null)
     {
-        _readLineLock.Wait();
-        try
+        return Common.AcquireSemaphore(_readLineLock, () =>
         {
             _currentPrompt = prompt;
             _inputRenderer = inputBufferRenderer;
@@ -252,7 +245,6 @@ public static class Terminal
                 }
 
                 var handleNeeded = false;
-                var isSuggestion = false;
                 switch (key.Key)
                 {
                     case ConsoleKey.LeftArrow:
@@ -302,10 +294,6 @@ public static class Terminal
                 UpdateSuggestions(autoCompleter, inputBufferRenderer);
                 DrawPromptLine(inputBufferRenderer: inputBufferRenderer);
             }
-        }
-        finally
-        {
-            _readLineLock.Release();
-        }
+        });
     }
 }

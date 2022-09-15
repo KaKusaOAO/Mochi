@@ -146,7 +146,7 @@
         public void WriteString(NbtString tag)
         {
             WritePrefix(tag);
-            result += $@"""{tag.Value.Replace("\\", "\\\\")}""";
+            result += $@"'{tag.Value.Replace("\\", "\\\\")}'";
         }
     }
 }

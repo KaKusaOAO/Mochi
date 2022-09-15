@@ -76,7 +76,7 @@ namespace KaLib.Texts
         public override string ToAscii()
         {
             var extra = base.ToAscii();
-            var color = (Color ?? ParentColor).ToAsciiCode();
+            var color = (Color ?? ParentColor).GetAsciiCode();
             var withAscii = With.Select(text => text.ToAscii() + color).ToArray();
             return color + Format(Translate, withAscii) + extra;
         }

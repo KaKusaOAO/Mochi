@@ -10,6 +10,7 @@ using KaLib.IO.Hid;
 using KaLib.Texts;
 using KaLib.Utils;
 using KaLib.Utils.Extensions;
+#pragma warning disable CS0649
 
 namespace KaLib.Procon
 {
