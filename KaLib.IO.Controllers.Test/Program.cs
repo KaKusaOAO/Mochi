@@ -57,7 +57,7 @@ stopwatch.Start();
 while (connected)
 {
     var hue = stopwatch.ElapsedMilliseconds / 1000f;
-    var color = Color.FromHsv(hue, 1, 1);
+    var color = Color.FromHsv(hue, 1, controller.TouchPad.TouchStates[0].Position.X);
     controller.TouchPad.LedColor = color;
     controller.Update();
     SpinWait.SpinUntil(() => false, 16);

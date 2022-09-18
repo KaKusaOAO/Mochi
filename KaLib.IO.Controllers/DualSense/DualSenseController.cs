@@ -107,8 +107,13 @@ public class DualSenseController : IBasicController
         var gz = packet.Gyroscope[2] / (float) short.MaxValue;
         Gyroscope = new Vector3(gx, gy, gz);
 
+        TouchPad.TouchStates[0] = TouchState.FromRaw(packet.Touch1);
+        TouchPad.TouchStates[1] = TouchState.FromRaw(packet.Touch2);
+
         _ = Task.CompletedTask;
     }
+    
+    
 
     public unsafe void SendStates()
     {
@@ -117,26 +122,20 @@ public class DualSenseController : IBasicController
         buf[1] = 0xff;
         buf[2] = 0xf7;
 
+        var force = (byte) Math.Round(TouchPad.TouchStates[0].Position.X * 255);
+
         var output = new DualSenseOutputState
         {
-            LeftRumble = (byte) Math.Round(LeftTrigger.Value * 255f),
-            RightRumble = (byte) Math.Round(RightTrigger.Value * 255f),
+            LeftRumble = 0,
+            RightRumble = 0,
             MicLed = (byte) (Mic.IsLedEnabled ? 0x1 : 0x0),
             MicFlag = (byte) (Mic.IsLedEnabled ? 0x10 : 0x00),
-            LeftAdaptiveTriggerState = new AdaptiveTriggerState
-            {
-                Mode = AdaptiveTriggerMode.Section,
-                Forces = new AdaptiveTriggerForces
-                {
-                    Force1 = 128
-                }
-            },
             RightAdaptiveTriggerState = new AdaptiveTriggerState
             {
                 Mode = AdaptiveTriggerMode.Section,
                 Forces = new AdaptiveTriggerForces
                 {
-                    Force1 = 128
+                    Force1 = force
                 }
             },
             PlayerLed = TouchPad.PlayerLed,

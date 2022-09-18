@@ -11,6 +11,7 @@ public class DualSenseTouchPad : IControllerButton
     public event Action<IControllerButton> ButtonReleased;
     public Color LedColor { get; set; } = Color.White;
     public PlayerLedMode PlayerLed { get; set; } = PlayerLedMode.One;
+    public TouchState[] TouchStates { get; } = new TouchState[2];
 
     public bool Pressed
     {

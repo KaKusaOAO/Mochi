@@ -14,7 +14,8 @@ internal unsafe struct DualSenseOutputState
     [FieldOffset(7)] public byte MicFlag;
     [FieldOffset(8)] public AdaptiveTriggerState RightAdaptiveTriggerState;
     [FieldOffset(19)] public AdaptiveTriggerState LeftAdaptiveTriggerState;
-    
+
+    [FieldOffset(40)] public byte Brightness;
     [FieldOffset(41)] public PlayerLedMode PlayerLed;
     [FieldOffset(42)] public byte TouchpadColorR;
     [FieldOffset(43)] public byte TouchpadColorG;
