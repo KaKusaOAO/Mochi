@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using KaLib.Texts;
@@ -81,5 +82,16 @@ public static class Common
         {
             semaphore.Release();
         }
+    }
+
+    public static T BufferToStructure<T>(byte[] buf, int offset)
+    {
+        var b = new byte[buf.Length - offset];
+        Array.Copy(buf, offset, b, 0, b.Length);
+        var ptr = Marshal.AllocHGlobal(b.Length);
+        Marshal.Copy(b, 0, ptr, b.Length);
+        var result = Marshal.PtrToStructure<T>(ptr);
+        Marshal.FreeHGlobal(ptr);
+        return result;
     }
 }

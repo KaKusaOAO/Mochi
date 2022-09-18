@@ -74,8 +74,7 @@ namespace KaLib.IO.Hid.Native
             [MarshalAs(UnmanagedType.LPWStr)] ref string str, int maxlen);
 
         [DllImport(DllName, EntryPoint = "hid_error")]
-        [return: MarshalAs(UnmanagedType.LPWStr)]
-        public static extern string Error(NativeHidDevice* device);
+        public static extern IntPtr Error(NativeHidDevice* device);
     }
 
     [StructLayout(LayoutKind.Sequential)]

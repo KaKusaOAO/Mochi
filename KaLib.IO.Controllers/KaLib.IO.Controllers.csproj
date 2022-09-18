@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyName>KaLib.IO.Controllers</AssemblyName>
+        <RootNamespace>KaLib.IO.Controllers</RootNamespace>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\KaLib.IO.Hid\KaLib.IO.Hid.csproj" />
+      <ProjectReference Include="..\KaLib\KaLib.csproj" />
+    </ItemGroup>
+
+</Project>

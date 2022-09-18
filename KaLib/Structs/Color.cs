@@ -5,6 +5,7 @@ namespace KaLib.Structs
 {
     public struct Color
     {
+        private static Color _white;
         public byte R { get; set; }
         public byte G { get; set; }
         public byte B { get; set; }
@@ -95,6 +96,8 @@ namespace KaLib.Structs
         }
 
         public double Hue => ToHsv().Item1;
+
+        public static readonly Color White = new(0xffffff);
 
         public static Color FromHsv(double hue, double saturation, double value)
         {

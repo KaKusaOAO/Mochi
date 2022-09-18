@@ -9,8 +9,8 @@
         <PackageVersion>1.0.1</PackageVersion>
         <PackageProjectUrl>https://github.com/KaKusaOAO/KaLib</PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/KaKusaOAO/KaLib/blob/master/LICENSE</PackageLicenseUrl>
-        <TargetFrameworks>net472;net6.0;netstandard2.0</TargetFrameworks>
         <LangVersion>10</LangVersion>
+        <TargetFrameworks>net48;net6.0;netstandard2.1</TargetFrameworks>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

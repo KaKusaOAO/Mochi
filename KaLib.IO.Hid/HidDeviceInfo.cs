@@ -25,13 +25,9 @@ namespace KaLib.IO.Hid
         {
             unsafe
             {
-                #if NET6_0_OR_GREATER
-                var path = Marshal.PtrToStringUTF8((IntPtr)handle.Path);
-                #else
                 var path = Marshal.PtrToStringAuto((IntPtr)handle.Path);
-                #endif
-                var manufacturer = new string(handle.ManufacturerString);
-                var product = new string(handle.ProductString);
+                var manufacturer = Marshal.PtrToStringAuto((IntPtr)handle.ManufacturerString);
+                var product = Marshal.PtrToStringAuto((IntPtr)handle.ProductString);
                 var vendorId = handle.VendorId;
                 var productId = handle.ProductId;
                 var serial = new string(handle.SerialNumber);

@@ -28,16 +28,18 @@ namespace KaLib.IO.Hid
         {
             unsafe
             {
-                if(handle != null)
+                if (handle != null)
+                {
                     HidApi.Close(handle);
+                }
             }
         }
 
         public int Write(byte[] data)
         {
             unsafe
-            {
-                return HidApi.Write(handle, data, data.Length);
+            { 
+                return Wrap(() => HidApi.Write(handle, data, data.Length));
             }
         }
 
@@ -45,7 +47,7 @@ namespace KaLib.IO.Hid
         {
             unsafe
             {
-                return HidApi.Read(handle, data, data.Length);
+                return Wrap(() => HidApi.Read(handle, data, data.Length));
             }
         }
         
@@ -53,16 +55,19 @@ namespace KaLib.IO.Hid
         {
             unsafe
             {
-                return HidApi.ReadTimeout(handle, data, data.Length, millis);
+                return Wrap(() => HidApi.ReadTimeout(handle, data, data.Length, millis));
             }
         }
 
-        public string GetLastError()
+        private int Wrap(Func<int> result)
         {
-            unsafe
+            var r = result();
+            if (r < 0)
             {
-                return HidApi.Error(handle);
+                throw HidException.CreateFromLast(this);
             }
+
+            return r;
         }
     }
 }
