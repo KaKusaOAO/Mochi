@@ -7,6 +7,9 @@ public struct TouchState
     public Vector2 Position { get; set; }
     public byte Id { get; set; }
     public bool IsActive { get; set; }
+    
+    private const int TouchPadWidth = 1920;
+    private const int TouchPadHeight = 1080;
 
     public static TouchState FromRaw(uint value)
     {
@@ -17,7 +20,7 @@ public struct TouchState
 
         return new TouchState
         {
-            Position = new Vector2(x / 1919f, y / 1079f),
+            Position = new Vector2(x * 1f / TouchPadWidth, y * 1f / TouchPadHeight),
             Id = id,
             IsActive = down
         };

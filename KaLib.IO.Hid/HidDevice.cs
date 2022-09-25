@@ -6,7 +6,7 @@ namespace KaLib.IO.Hid
 {
     public class HidDevice : IDisposable
     {
-        private HidDeviceInfo _info;
+        public HidDeviceInfo Info { get; private set; }
         internal unsafe NativeHidDevice* handle;
         public unsafe bool Closed => handle == null;
 
@@ -20,7 +20,14 @@ namespace KaLib.IO.Hid
             unsafe
             {
                 handle = HidApi.OpenPath(dev.Path);
-                return handle != null;
+                var result = handle != null;
+                
+                if (result)
+                {
+                    Info = dev;
+                }
+
+                return result;
             }
         }
 

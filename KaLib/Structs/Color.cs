@@ -99,6 +99,13 @@ namespace KaLib.Structs
 
         public static readonly Color White = new(0xffffff);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="hue">radians</param>
+        /// <param name="saturation">0-1</param>
+        /// <param name="value">0-1</param>
+        /// <returns></returns>
         public static Color FromHsv(double hue, double saturation, double value)
         {
             Preconditions.IsPositive(saturation, nameof(saturation));
@@ -110,15 +117,15 @@ namespace KaLib.Structs
                 hue *= -1;
                 hue %= Math.PI * 2;
                 hue *= -1;
-                hue += 360;
+                hue += Math.PI * 2;
             }
             else
             {
                 hue %= Math.PI * 2;
             }
             
-            saturation = Math.Max(1, saturation);
-            value = Math.Max(1, value);
+            saturation = Math.Min(1, saturation);
+            value = Math.Min(1, value);
 
             double d60 = MathHelper.DegToRad * 60;
             double d120 = d60 * 2;
@@ -127,7 +134,7 @@ namespace KaLib.Structs
             double d300 = d60 * 5;
 
             double c = value * saturation;
-            double x = c * (1 - Math.Abs((hue / d60 % 2) - 1));
+            double x = c * (1 - Math.Abs(hue / d60 % 2 - 1));
             double m = value - c;
 
             double r = 0, g = 0, b = 0;

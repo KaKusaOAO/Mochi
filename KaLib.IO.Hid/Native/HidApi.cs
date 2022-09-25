@@ -16,6 +16,8 @@ namespace KaLib.IO.Hid.Native
             var path = Path.GetDirectoryName(typeof(HidApi).Assembly.Location) ?? "";
             path = Path.Combine(path, IntPtr.Size == 8 ? "x64" : "x86");
             if (!SetDllDirectory(path)) throw new Win32Exception();
+            
+            
         }
         
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -105,5 +107,15 @@ namespace KaLib.IO.Hid.Native
         public ushort Usage;
         public int InterfaceNumber;
         public NativeHidDeviceInfo* Next;
+        public BusType BusType;
+    }
+
+    public enum BusType
+    {
+        Unknown,
+        Usb,
+        Bluetooth,
+        I2C,
+        Spi
     }
 }

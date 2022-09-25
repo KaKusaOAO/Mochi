@@ -1,15 +1,18 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
 using KaLib.IO.Hid;
+using KaLib.IO.Hid.Native;
 using KaLib.Utils;
 using KaLib.Utils.Extensions;
 
 namespace KaLib.IO.Controllers.DualSense;
 
-public class DualSenseController : IBasicController
+public class DualSenseController : IController<DualSenseSnapshot>, IHybridController
 {
     private readonly HidDevice _device;
-    private IEnumerable<IControllerButton> _buttons;
+    private readonly ButtonDescription[] _buttons;
+    public ConnectionType ConnectionType { get; }
+    
     public GenericStick LeftStick { get; } = new("L3");
     public GenericStick RightStick { get; } = new("R3");
     public DualSenseTrigger LeftTrigger { get; } = new();
@@ -26,38 +29,91 @@ public class DualSenseController : IBasicController
     public DualSenseTouchPad TouchPad { get; } = new();
     public GeneralControllerButton PlayStationLogo { get; } = new();
     public DualSenseMicButton Mic { get; } = new();
+    
+    /// <summary>
+    /// The accelerometer values in G.
+    /// </summary>
     public Vector3 Accelerometer { get; private set; }
+    
+    /// <summary>
+    /// The gyroscope values in deg/s.
+    /// </summary>
     public Vector3 Gyroscope { get; private set; }
+
+    private const int AccResolutionPerG = 8192;
+    private const int AccRange = 4 * AccResolutionPerG;
+
+    private const int GyroResolutionPerDegS = 1024;
+    private const int GyroRange = 2048 * GyroResolutionPerDegS;
 
     public event Action<IControllerButton> ButtonPressed;
     public event Action<IControllerButton> ButtonReleased;
+    public event Action<DualSenseSnapshot, DualSenseSnapshot> SnapshotUpdated;
     public event Action Disconnected;
+
+    private IOptional<DualSenseSnapshot> _lastSnapshot = Optional.Empty<DualSenseSnapshot>();
+    private byte _sequenceTag;
 
     public DualSenseController(HidDevice device)
     {
         _device = device;
-        _buttons = new IControllerButton[]
+        ConnectionType = device.Info.BusType == BusType.Bluetooth ? ConnectionType.Bluetooth : ConnectionType.Usb;
+        
+        _buttons = new ButtonDescription[]
         {
-            LeftStick, RightStick, LeftTrigger, RightTrigger,
-            ButtonCircle, ButtonCross, ButtonSquare, ButtonTriangle,
-            LeftShoulder, RightShoulder, DPad.Up, DPad.Down, DPad.Left, DPad.Right,
-            Share, Options, TouchPad, PlayStationLogo, Mic
+            new(LeftStick, s => s.LeftStick.Pressed),
+            new(RightStick, s => s.RightStick.Pressed),
+            new(LeftTrigger, s => s.IsLeftTriggerPressed()),
+            new(RightTrigger, s => s.IsRightTriggerPressed()),
+            new(ButtonCircle, s => s.ButtonCircle), 
+            new(ButtonCross, s => s.ButtonCross),
+            new(ButtonSquare, s => s.ButtonSquare),
+            new(ButtonTriangle, s => s.ButtonTriangle),
+            new(LeftShoulder, s => s.LeftShoulder),
+            new(RightShoulder, s => s.RightShoulder),
+            new(DPad.Up, s => s.DPad.Up),
+            new(DPad.Down, s => s.DPad.Down),
+            new(DPad.Left, s => s.DPad.Left),
+            new(DPad.Right, s => s.DPad.Right),
+            new(Share, s => s.Share),
+            new(Options, s => s.Options),
+            new(TouchPad, s => s.TouchPad.Pressed),
+            new(PlayStationLogo, s => s.PlayStationLogo),
+            new(Mic, s => s.Mic)
         };
-
-        foreach (var button in ((IController)this).Buttons)
-        {
-            button.ButtonPressed += b => ButtonPressed?.Invoke(b);
-            button.ButtonReleased += b => ButtonReleased?.Invoke(b);
-        }
     }
 
-    public IEnumerable<IControllerButton> Buttons => _buttons;
+    private record ButtonDescription(IControllerButton Button, Func<DualSenseSnapshot, bool> StateFromSnapshot);
 
-    public unsafe void PollEvents()
+    public unsafe DualSenseSnapshot PollInput()
     {
-        var buf = new byte[64];
-        _device.Read(buf);
-        var packet = Common.BufferToStructure<DualSenseInputState>(buf, 1);
+        var size = ConnectionType == ConnectionType.Usb ? 64 : 78;
+        var buf = new byte[size];
+        try
+        {
+            var read = _device.ReadTimeout(buf, 64);
+            if (read == 0) throw new Exception("Read timed out");
+        }
+        catch (HidException)
+        {
+            Disconnected?.Invoke();
+            return default;
+        }
+
+        if (ConnectionType == ConnectionType.Bluetooth)
+        {
+            var report = new byte[size - 4];
+            Array.Copy(buf, report, report.Length);
+
+            var inputCrc = BitConverter.ToUInt32(buf, report.Length);
+            var expected = DoCrc32(report, 0xa1);
+            if (inputCrc != expected)
+            {
+                throw new Exception("DualSense input CRC check failed");
+            }
+        }
+        
+        var packet = Common.BufferToStructure<DualSenseInputState>(buf, ConnectionType == ConnectionType.Usb ? 1 : 2);
 
         var x = packet.LeftStickX / 128f - 1;
         var y = packet.LeftStickY / 128f - 1;
@@ -110,22 +166,69 @@ public class DualSenseController : IBasicController
         TouchPad.TouchStates[0] = TouchState.FromRaw(packet.Touch1);
         TouchPad.TouchStates[1] = TouchState.FromRaw(packet.Touch2);
 
-        _ = Task.CompletedTask;
+        var capacity = (packet.Status & 0b111) * 1f / 0b111;
+        var status = (DualSenseBatteryStatus) ((packet.Status & 0b1110000) >> 4);
+
+        var current = new DualSenseSnapshot
+        {
+            LeftStick = LeftStick.GetState<IControllerStickButton.StickButtonState>(),
+            RightStick = RightStick.GetState<IControllerStickButton.StickButtonState>(),
+            LeftTrigger = LeftTrigger.Value,
+            RightTrigger = RightTrigger.Value,
+            ButtonCircle = ButtonCircle.Pressed,
+            ButtonCross = ButtonCross.Pressed,
+            ButtonSquare = ButtonSquare.Pressed,
+            ButtonTriangle = ButtonTriangle.Pressed,
+            LeftShoulder = LeftShoulder.Pressed,
+            RightShoulder = RightShoulder.Pressed,
+            DPad = DPad.GetState(),
+            Share = Share.Pressed,
+            Options = Options.Pressed,
+            TouchPad = TouchPad.State,
+            PlayStationLogo = PlayStationLogo.Pressed,
+            Mic = Mic.Pressed,
+            Accelerometer = Accelerometer,
+            Gyroscope = Gyroscope,
+            BatteryCapacity = capacity,
+            BatteryStatus = status
+        };
+
+        _lastSnapshot.IfPresent(last =>
+        {
+            SnapshotUpdated?.Invoke(last, current);
+            
+            foreach (var button in _buttons)
+            {
+                TriggerButtonEventIfChanged(button.Button, button.StateFromSnapshot(last),
+                    button.StateFromSnapshot(current));
+            }
+        });
+
+        _lastSnapshot = Optional.Of(current);
+        return current;
     }
-    
-    
 
-    public unsafe void SendStates()
+    private void TriggerButtonEventIfChanged(IControllerButton button, bool oldState, bool newState)
     {
-        var buf = new byte[0x40];
-        buf[0] = 2;
-        buf[1] = 0xff;
-        buf[2] = 0xf7;
+        if (oldState == newState) return;
+        
+        if (newState)
+        {
+            ButtonPressed?.Invoke(button);
+        }
+        else
+        {
+            ButtonReleased?.Invoke(button);
+        }
+    }
 
-        var force = (byte) Math.Round(TouchPad.TouchStates[0].Position.X * 255);
-
+    public unsafe void UpdateStates()
+    {
+        var f = (byte) (TouchPad.TouchStates[0].Position.X * 255);
         var output = new DualSenseOutputState
         {
+            Flag1 = 0xff,
+            ControlFlags = (DualSenseControlFlags) 0xf7,
             LeftRumble = 0,
             RightRumble = 0,
             MicLed = (byte) (Mic.IsLedEnabled ? 0x1 : 0x0),
@@ -135,39 +238,60 @@ public class DualSenseController : IBasicController
                 Mode = AdaptiveTriggerMode.Section,
                 Forces = new AdaptiveTriggerForces
                 {
-                    Force1 = force
+                    Force1 = f
                 }
             },
             PlayerLed = TouchPad.PlayerLed,
-            TouchpadColorR = TouchPad.LedColor.R,
-            TouchpadColorG = TouchPad.LedColor.G,
-            TouchpadColorB = TouchPad.LedColor.B
+            LightBarColorR = TouchPad.LightBar.R,
+            LightBarColorG = TouchPad.LightBar.G,
+            LightBarColorB = TouchPad.LightBar.B
         };
-        
-        var ptr = Marshal.AllocHGlobal(61);
-        for (var i = 0; i < 61; i++)
+
+        var reportLength = ConnectionType == ConnectionType.Usb ? 63 : 78;
+        var buf = new byte[reportLength];
+
+        if (ConnectionType == ConnectionType.Usb)
+        {
+            buf[0] = 2;
+        }
+        else
+        {
+            buf[0] = 0x31;
+            buf[1] = (byte) (_sequenceTag << 4);
+            buf[2] = 0x10;
+
+            if (++_sequenceTag >= 16)
+            {
+                _sequenceTag = 0;
+            }
+        }
+
+        var size = DualSenseOutputState.Size;
+        var ptr = Marshal.AllocHGlobal(size);
+        for (var i = 0; i < size; i++)
         {
             Marshal.WriteByte(ptr, i, 0);
         }
         
         Marshal.StructureToPtr(output, ptr, false);
-        Marshal.Copy(ptr, buf, 3, 61);
+        Marshal.Copy(ptr, buf, ConnectionType == ConnectionType.Usb ? 1 : 3, size);
         Marshal.FreeHGlobal(ptr);
-        
-        _device.Write(buf);
-    }
 
-    public void Update()
-    {
+        if (ConnectionType == ConnectionType.Bluetooth)
+        {
+            var report = new byte[buf.Length - 4];
+            Array.Copy(buf, report, buf.Length - 4);
+            var crc = BitConverter.GetBytes(DoCrc32(report, 0xa2));
+            Array.Copy(crc, 0, buf, 74, 4);
+        }
+
         try
         {
-            PollEvents();
-            SendStates();
+            _device.Write(buf);
         }
         catch (HidException)
         {
             Disconnected?.Invoke();
-            Dispose();
         }
     }
 
@@ -189,24 +313,15 @@ public class DualSenseController : IBasicController
         return null;
     }
 
+    private static uint DoCrc32(byte[] buf, byte seed)
+    {
+        var crc = Crc32.Shared.Get(new[] { seed });
+        crc = ~Crc32.Shared.Get(buf, crc);
+        return crc;
+    }
+
     public void Dispose()
     {
         _device.Dispose();
     }
-
-    IControllerStickButton IBasicController.LeftStick => LeftStick;
-    IControllerStickButton IBasicController.RightStick => RightStick;
-    IControllerTrigger IBasicController.LeftTrigger => LeftTrigger;
-    IControllerTrigger IBasicController.RightTrigger => RightTrigger;
-    IControllerButton IBasicController.ButtonA => ButtonCross;
-    IControllerButton IBasicController.ButtonB => ButtonCircle;
-    IControllerButton IBasicController.ButtonX => ButtonSquare;
-    IControllerButton IBasicController.ButtonY => ButtonTriangle;
-    IControllerButton IBasicController.LeftShoulder => LeftShoulder;
-    IControllerButton IBasicController.RightShoulder => RightShoulder;
-    IControllerDPad IBasicController.DPad => DPad;
-    IControllerButton IBasicController.Share => Share;
-    IControllerButton IBasicController.Options => Options;
-    IControllerButton IBasicController.Function => TouchPad;
-    IControllerButton IBasicController.Home => PlayStationLogo;
 }

@@ -13,4 +13,22 @@
       <ProjectReference Include="..\KaLib\KaLib.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="ImGui.NET" Version="1.87.3" />
+      <PackageReference Include="Veldrid.ImGui" Version="5.72.0" />
+      <PackageReference Include="Veldrid.StartupUtilities" Version="4.8.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="cimgui.dylib">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="libsdl2.dylib">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="libveldrid-spirv.dylib">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

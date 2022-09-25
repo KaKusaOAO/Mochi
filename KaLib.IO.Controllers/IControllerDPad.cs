@@ -2,7 +2,7 @@ using System.Numerics;
 
 namespace KaLib.IO.Controllers;
 
-public interface IControllerDPad
+public interface IControllerDPad : IControllerStateComponent<IControllerDPad.DPadState>
 {
     IControllerButton Up { get; }
     IControllerButton Down { get; }
@@ -24,5 +24,21 @@ public interface IControllerDPad
             var v = new Vector2(x, y);
             return v / v.Length();
         }
+    }
+
+    DPadState IControllerStateComponent<DPadState>.State => new()
+    {
+        Up = Up.Pressed,
+        Down = Down.Pressed,
+        Left = Left.Pressed,
+        Right = Right.Pressed
+    };
+
+    public struct DPadState
+    {
+        public bool Up { get; init; }
+        public bool Down { get; init; }
+        public bool Left { get; init; }
+        public bool Right { get; init; }
     }
 }
