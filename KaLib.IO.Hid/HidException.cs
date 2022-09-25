@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using KaLib.IO.Hid.Native;
+using KaLib.Utils;
 
 namespace KaLib.IO.Hid;
 
@@ -14,8 +16,7 @@ public class HidException : IOException
         unsafe
         {
             var message = HidApi.Error(device.handle);
-            var msg = Marshal.PtrToStringAuto(message);
-            return new HidException(msg);
+            return new HidException(Common.GetNullTerminatedWideString(message));
         }
     }
         

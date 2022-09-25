@@ -15,7 +15,6 @@ public class Crc32
 
     public uint Get(byte[] bytes, uint crc = 0xffffffff)
     {
-        // var crc = 0xffffffff;
         foreach (var t in bytes)
         {
             var index = (byte)((crc & 0xff) ^ t);
@@ -34,11 +33,10 @@ public class Crc32
     {
         var poly = 0xedb88320;
         table = new uint[256];
-        
-        uint temp;
+
         for (uint i = 0; i < table.Length; ++i)
         {
-            temp = i;
+            var temp = i;
             for (var j = 8; j > 0; --j)
             {
                 if ((temp & 1) == 1)

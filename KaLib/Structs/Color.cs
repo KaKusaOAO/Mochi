@@ -5,7 +5,6 @@ namespace KaLib.Structs
 {
     public struct Color
     {
-        private static Color _white;
         public byte R { get; set; }
         public byte G { get; set; }
         public byte B { get; set; }
@@ -47,9 +46,9 @@ namespace KaLib.Structs
             }
         }
 
-        public (double, double, double) Normalized => (R / 255.0, G / 255.0, B / 255.0);
+        public (double NormalizedR, double NormalizedG, double NormalizedB) Normalized => (R / 255.0, G / 255.0, B / 255.0);
 
-        public (double, double, double) ToHsv()
+        public (double Hue, double Saturation, double Value) ToHsv()
         {
             var (r, g, b) = Normalized;
 
@@ -95,7 +94,7 @@ namespace KaLib.Structs
             return (hue, saturation, value);
         }
 
-        public double Hue => ToHsv().Item1;
+        public double Hue => ToHsv().Hue;
 
         public static readonly Color White = new(0xffffff);
 

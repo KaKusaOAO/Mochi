@@ -306,7 +306,19 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
         if (info == null) return null;
 
         var device = new HidDevice();
-        if (device.Open(info)) return device;
+        if (device.Open(info))
+        {
+            try
+            {
+                device.Write(new byte[2]);
+                return device;
+            }
+            catch (HidException)
+            {
+                device.Close();
+                return null;
+            }
+        }
 
         Logger.Error($"Failed to open the device path, path = {info.Path}");
         device.Close();

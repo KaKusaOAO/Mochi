@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Threading;
 using ImGuiNET;
 using KaLib.IO.Controllers.DualSense;
 using KaLib.IO.Controllers.Test;
@@ -31,19 +32,47 @@ window.Resized += () =>
 var cl = gd.ResourceFactory.CreateCommandList();
 var controller = null as DualSenseController;
 
-var touch1History = new List<TouchState>();
-var touch2History = new List<TouchState>();
-
 var fixVectorsBound = true;
 var applyDeadzone = true;
 
 var stopwatch = new Stopwatch();
 stopwatch.Start();
 
+var pollStopwatch = new Stopwatch();
+pollStopwatch.Start();
+
+var pollRate = 0.0;
+var controllerException = null as Exception;
+var controllerSnapshot = new DualSenseSnapshot();
+
+var controllerThread = new Thread(() =>
+{
+    while (window.Exists)
+    {
+        SpinWait.SpinUntil(() => controller != null);
+        if (controller == null) continue;
+
+        try
+        {
+            pollStopwatch.Restart();
+            controllerSnapshot = controller.PollInput();
+            controller.UpdateStates();
+            pollRate = pollStopwatch.Elapsed.TotalMilliseconds;
+            controllerException = null;
+        }
+        catch (Exception ex)
+        {
+            controllerException = ex;
+        }
+    }
+});
+controllerThread.Start();
+
 while (window.Exists)
 {
     var snapshot = window.PumpEvents();
     if (!window.Exists) break;
+    SpinWait.SpinUntil(() => stopwatch.Elapsed.TotalSeconds >= 1f / 144);
     renderer.Update((float) stopwatch.Elapsed.TotalSeconds, snapshot);
     stopwatch.Restart();
 
@@ -125,19 +154,16 @@ Vector2 ApplyDeadzone(Vector2 raw, float threshold)
 
 void SubmitControllerUi()
 {
-    DualSenseSnapshot snapshot;
-    try
+    if (controller == null) return;
+    
+    if (controllerException != null) 
     {
-        snapshot = controller.PollInput();
-    }
-    catch (Exception ex)
-    {
-        ImGui.TextColored(new RgbaFloat(1, 0.33f, 0, 1).ToVector4(), $"Error! {ex}");
+        ImGui.TextColored(new RgbaFloat(1, 0.33f, 0, 1).ToVector4(), $"Error! {controllerException}");
         return;
     }
     
-    if (controller == null) return;
-
+    var snapshot = controllerSnapshot;
+    ImGui.Text($"Polling input via {controller.ConnectionType} took {pollRate}ms");
     ImGui.Checkbox("Fix stick vector bounds", ref fixVectorsBound);
     ImGui.Checkbox("Apply deadzone?", ref applyDeadzone);
     var lsVector = fixVectorsBound ? snapshot.LeftStick.GetFixedVector() : snapshot.LeftStick.Vector;
@@ -153,7 +179,6 @@ void SubmitControllerUi()
     var hue = Math.Atan2(vector.Y, vector.X) + Math.PI / 2;
     var color = Color.FromHsv(hue, vector.Length(), 1 - snapshot.RightTrigger);
     controller.TouchPad.LightBar = color;
-    controller.UpdateStates();
 
     var colorVec = new Vector3(color.R / 255f, color.G / 255f, color.B / 255f);
     ImGui.ColorEdit3("LightBar", ref colorVec);
