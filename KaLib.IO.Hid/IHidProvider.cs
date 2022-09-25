@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using KaLib.IO.Hid.Platform;
 using KaLib.IO.Hid.Platform.MacOs;
+using KaLib.IO.Hid.Platform.Windows;
 
 namespace KaLib.IO.Hid;
 
@@ -26,6 +27,9 @@ public static class HidProviders
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             _provider = new MacOsHidProvider();
+        } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            _provider = new WindowsHidProvider();
         }
 
         if (_provider == null) throw new PlatformNotSupportedException();
