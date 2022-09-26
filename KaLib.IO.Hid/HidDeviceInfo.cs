@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using KaLib.IO.Hid.Native;
+using KaLib.Utils;
 
 namespace KaLib.IO.Hid
 {
@@ -32,9 +33,9 @@ namespace KaLib.IO.Hid
         {
             unsafe
             {
-                var path = Marshal.PtrToStringAuto((IntPtr)handle.Path);
-                var manufacturer = Marshal.PtrToStringAuto((IntPtr)handle.ManufacturerString);
-                var product = Marshal.PtrToStringAuto((IntPtr)handle.ProductString);
+                var path = Marshal.PtrToStringAnsi((IntPtr)handle.Path);
+                var manufacturer = Common.GetNullTerminatedWideString((IntPtr)handle.ManufacturerString);
+                var product = Common.GetNullTerminatedWideString((IntPtr)handle.ProductString);
                 var vendorId = handle.VendorId;
                 var productId = handle.ProductId;
                 var serial = new string(handle.SerialNumber);

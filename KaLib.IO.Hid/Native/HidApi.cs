@@ -78,19 +78,11 @@ namespace KaLib.IO.Hid.Native
         [DllImport(DllName, EntryPoint = "hid_error")]
         public static extern IntPtr Error(NativeHidDevice* device);
     }
-
-    [StructLayout(LayoutKind.Sequential)]
+    
     internal struct NativeHidDevice
     {
-        public IntPtr DeviceHandle;
-        public bool IsBlocking;
-        public ushort OutputRecordLength;
-        public int InputRecordLength;
-        public IntPtr LastErrorStr;
-        public int LastErrorNum;
-        public bool ReadPending;
-        public IntPtr ReadBuf;
-        public NativeOverlapped Overlapped;
+        // This structure is platform-dependant,
+        // we should leave it empty here
     }
 
     [StructLayout(LayoutKind.Sequential)]

@@ -99,6 +99,8 @@ public static class Common
 
     public static string GetNullTerminatedWideString(IntPtr ptr)
     {
+        if (ptr == IntPtr.Zero) return null;
+        
         var charSize = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 2 : 4;
         var ofs = 0;
 
