@@ -1,10 +1,8 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
-using KaLib.IO.Controllers.IO;
 using KaLib.IO.Hid;
 using KaLib.IO.Hid.Native;
 using KaLib.Utils;
-using KaLib.Utils.Extensions;
 using ManagedBass;
 
 namespace KaLib.IO.Controllers.DualSense;
