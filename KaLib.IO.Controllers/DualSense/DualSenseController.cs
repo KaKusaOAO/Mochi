@@ -1,18 +1,22 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
+using KaLib.IO.Controllers.IO;
 using KaLib.IO.Hid;
 using KaLib.IO.Hid.Native;
 using KaLib.Utils;
 using KaLib.Utils.Extensions;
+using ManagedBass;
 
 namespace KaLib.IO.Controllers.DualSense;
 
 public class DualSenseController : IController<DualSenseSnapshot>, IHybridController
 {
+    public delegate void GenerateAudioHapticsDelegate(float[] leftRumble, float[] rightRumble);
+    
     private readonly HidDevice _device;
     private readonly ButtonDescription[] _buttons;
     public ConnectionType ConnectionType { get; }
-    
+
     public GenericStick LeftStick { get; } = new("L3");
     public GenericStick RightStick { get; } = new("R3");
     public DualSenseTrigger LeftTrigger { get; } = new();
@@ -49,16 +53,75 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
     public event Action<IControllerButton> ButtonPressed;
     public event Action<IControllerButton> ButtonReleased;
     public event Action<DualSenseSnapshot, DualSenseSnapshot> SnapshotUpdated;
+    public event GenerateAudioHapticsDelegate AudioHapticsDataRequested;
     public event Action Disconnected;
 
     private IOptional<DualSenseSnapshot> _lastSnapshot = Optional.Empty<DualSenseSnapshot>();
     private byte _sequenceTag;
+    private int _audioDeviceId = -1;
+    private int _audioStream;
+    private bool _audioDisposed;
 
     public DualSenseController(HidDevice device)
     {
         _device = device;
         ConnectionType = device.Info.BusType == BusType.Bluetooth ? ConnectionType.Bluetooth : ConnectionType.Usb;
+
+        Task.Run(async () =>
+        {
+            await Task.Delay(250);
+            var deviceCount = Bass.DeviceCount;
+            for (var i = 0; i <= deviceCount; i++)
+            {
+                // TODO: Well I think there's a better way to do this
+                var info = Bass.GetDeviceInfo(i);
+                if (!info.Name.Contains("Wireless Controller")) continue;
+            
+                _audioDeviceId = i;
+                break;
+            }
         
+            if (_audioDeviceId != -1)
+            {
+                Bass.Init(_audioDeviceId, 48000);
+                Bass.Configure(Configuration.PlaybackBufferLength, 6);
+                Bass.Configure(Configuration.UpdatePeriod, 0);
+            
+                _audioStream = Bass.CreateStream(48000, 2, BassFlags.SpeakerRear, (_, buffer, length, _) =>
+                {
+                    var len = length / 2;
+                    var sample = new short[len];
+                    var leftChannel = new float[len / 2];
+                    var rightChannel = new float[len / 2];
+                    AudioHapticsDataRequested?.Invoke(leftChannel, rightChannel);
+                
+                    for (var i = 0; i < len / 2; i++)
+                    {
+                        sample[i * 2 + 0] = (short) (Math.Clamp(leftChannel[i], -1, 1) * short.MaxValue);
+                        sample[i * 2 + 1] = (short) (Math.Clamp(rightChannel[i], -1, 1) * short.MaxValue);
+                    }
+                
+                    Marshal.Copy(sample, 0, buffer, sample.Length);
+                    return len * 2;
+                });
+            
+                Bass.ChannelPlay(_audioStream);
+
+                var audioThread = new Thread(() =>
+                {
+                    while (!_audioDisposed)
+                    {
+                        Bass.Update(5);
+                        Thread.Sleep(1);
+                    }
+                })
+                {
+                    Name = "DualSenseAudioThread"
+                };
+                audioThread.Start();
+            }
+        });
+
         _buttons = new ButtonDescription[]
         {
             new(LeftStick, s => s.LeftStick.Pressed),
@@ -227,20 +290,9 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
         var f = (byte) (TouchPad.TouchStates[0].Position.X * 255);
         var output = new DualSenseOutputState
         {
-            Flag1 = 0xff,
             ControlFlags = (DualSenseControlFlags) 0xf7,
-            LeftRumble = 0,
-            RightRumble = 0,
             MicLed = (byte) (Mic.IsLedEnabled ? 0x1 : 0x0),
             MicFlag = (byte) (Mic.IsLedEnabled ? 0x10 : 0x00),
-            RightAdaptiveTriggerState = new AdaptiveTriggerState
-            {
-                Mode = AdaptiveTriggerMode.Section,
-                Forces = new AdaptiveTriggerForces
-                {
-                    Force1 = f
-                }
-            },
             PlayerLed = TouchPad.PlayerLed,
             LightBarColorR = TouchPad.LightBar.R,
             LightBarColorG = TouchPad.LightBar.G,
@@ -295,6 +347,25 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
         }
     }
 
+    private void WriteAudio()
+    {
+        var channels = 4;
+        var sample = new byte[48000 * channels];
+
+        for (var i = 0; i < 48000; i += 2)
+        {
+            var now = i / 48000f * Math.PI;
+            var freq = (Math.Abs(Math.Sin(now)) + 2) * 440f;
+            var valF = Math.Sin(i / 48000f * freq / 2) * 0.2f;
+            var val = (short) (short.MaxValue * valF);
+            var buf = BitConverter.GetBytes(val);
+            for (var j = 0; j < channels; j++)
+            {
+                Array.Copy(buf, 0, sample, (i + j) * 2, 2);
+            }
+        }
+    }
+
     public static bool IsDualSense(HidDeviceInfo info)
     {
         return info.VendorId == 0x054c && info.ProductId == 0x0ce6;
@@ -310,13 +381,18 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
         {
             try
             {
-                device.Write(new byte[2]);
+                // TODO: Needs a way to test if the connection is alive
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    device.Write(new byte[2]);
+                }
+
                 return device;
             }
             catch (HidException)
             {
                 device.Close();
-                return null;
+                throw;
             }
         }
 
@@ -334,6 +410,13 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
 
     public void Dispose()
     {
+        _audioDisposed = true;
         _device.Dispose();
+        if (_audioStream != 0)
+        {
+            Bass.StreamFree(_audioStream);
+            Bass.CurrentDevice = _audioDeviceId;
+            Bass.Free();
+        }
     }
 }

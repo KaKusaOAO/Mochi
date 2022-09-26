@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using KaLib.IO.Controllers.DualSense;
+using KaLib.Structs;
 
 namespace KaLib.IO.Controllers.Test;
 
@@ -24,8 +25,8 @@ public static class ControllerGui
 
     public static void DrawStick(int id, Vector2 vector, bool pressed = false)
     {
-        var pos = ImGui.GetWindowPos() + ImGui.GetCursorPos();
-        var drawList = ImGui.GetForegroundDrawList();
+        var pos = ImGui.GetWindowPos() + ImGui.GetCursorPos() - new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY());
+        var drawList = ImGui.GetWindowDrawList();
         var center = new Vector2(20, 20);
         
         void DrawStickHistory(List<TimedRecord<Vector2>> history)
@@ -53,17 +54,18 @@ public static class ControllerGui
         
         drawList.AddCircle(pos + center, 20, pressed ? 0xffffffff : 0xff888888);
         DrawStickHistory(history);
-        drawList.AddCircleFilled(pos + center + history.Last().Entry * 20, 2, 0xffffffff);
+        drawList.AddCircleFilled(pos + center + vector * 20, 2, 0xffffffff);
         ImGui.Dummy(new Vector2(40, 40));
     }
 
-    public static void DrawTouchPad(DualSenseTouchPad.TouchPadState state)
+    public static void DrawTouchPad(DualSenseTouchPad.TouchPadState state, Color? color = null)
     {
-        var pos = ImGui.GetWindowPos() + ImGui.GetCursorPos();
-        var drawList = ImGui.GetForegroundDrawList();
+        var pos = ImGui.GetWindowPos() + ImGui.GetCursorPos() - new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY());
+        var drawList = ImGui.GetWindowDrawList();
         var tWidth = 120f / 9 * 16;
         var tHeight = 120f;
-        
+        color ??= Color.White;
+
         void DrawTouchHistory(List<TimedRecord<TouchState>> history)
         {
             var prevTouch = new TouchState();
@@ -92,8 +94,12 @@ public static class ControllerGui
             drawList.AddLine(pos + new Vector2(0, tPos.Y), pos + new Vector2(tWidth, tPos.Y), 0x88000000 | tColor);
             drawList.AddText(pos + tPos + new Vector2(5, 3), 0xff000000 | tColor, $"#{tState.Id}");
         }
+
+        var c = color.Value;
+        var border = (uint) (c.B << 16 | c.G << 8 | c.R);
+        var bAlpha = (uint) (state.Pressed ? 0xff : 0x88);
         
-        drawList.AddRect(pos, pos + new Vector2(tWidth, tHeight), state.Pressed ? 0xffffffff : 0xff888888);
+        drawList.AddRect(pos, pos + new Vector2(tWidth, tHeight), bAlpha << 24 | border);
         _touch1History.Add(new TimedRecord<TouchState>(state.TouchStates[0]));
         _touch2History.Add(new TimedRecord<TouchState>(state.TouchStates[1]));
         
@@ -107,8 +113,8 @@ public static class ControllerGui
     
     public static void DrawPlotFloat(int id, float value, float? maxValue = null)
     {
-        var pos = ImGui.GetWindowPos() + ImGui.GetCursorPos();
-        var drawList = ImGui.GetForegroundDrawList();
+        var pos = ImGui.GetWindowPos() + ImGui.GetCursorPos() - new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY());
+        var drawList = ImGui.GetWindowDrawList();
         var pWidth = 90f;
         var pHeight = 30f;
 
@@ -143,6 +149,26 @@ public static class ControllerGui
         history.Add(new TimedRecord<float>(value));
         
         DrawHistory(history);
+        ImGui.Dummy(new Vector2(pWidth, pHeight));
+    }
+
+    public static void DrawPlotFloatNormalized(float[] values)
+    {
+        var pos = ImGui.GetWindowPos() + ImGui.GetCursorPos() - new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY());
+        var drawList = ImGui.GetWindowDrawList();
+        var pWidth = 180f;
+        var pHeight = 30f;
+
+        var prevPoint = pos + new Vector2(0, pHeight / 2);
+        for (var i = 0f; i < values.Length; i += values.Length / pWidth / 2)
+        {
+            var col = 0xffffcc00;
+            var val = values[(int)i];
+            var v = pos + new Vector2(i * 1f / values.Length, 1 - (val / 2 + 0.5f)) * new Vector2(pWidth, pHeight);
+            drawList.AddLine(prevPoint, v, col);
+            prevPoint = v;
+        }
+        
         ImGui.Dummy(new Vector2(pWidth, pHeight));
     }
     
