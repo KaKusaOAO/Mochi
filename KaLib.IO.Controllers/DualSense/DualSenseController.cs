@@ -54,67 +54,13 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
     private byte _sequenceTag;
     private int _audioDeviceId = -1;
     private int _audioStream;
-    private bool _audioDisposed;
+    
+    public bool IsAudioHapticsAvailable { get; private set; }
 
     public DualSenseController(HidDevice device)
     {
         _device = device;
         ConnectionType = device.Info.BusType == BusType.Bluetooth ? ConnectionType.Bluetooth : ConnectionType.Usb;
-
-        Task.Run(async () =>
-        {
-            await Task.Delay(250);
-            var deviceCount = Bass.DeviceCount;
-            for (var i = 0; i <= deviceCount; i++)
-            {
-                // TODO: Well I think there's a better way to do this
-                var info = Bass.GetDeviceInfo(i);
-                if (!info.Name.Contains("Wireless Controller")) continue;
-            
-                _audioDeviceId = i;
-                break;
-            }
-        
-            if (_audioDeviceId != -1)
-            {
-                Bass.Init(_audioDeviceId, 48000);
-                Bass.Configure(Configuration.PlaybackBufferLength, 6);
-                Bass.Configure(Configuration.UpdatePeriod, 0);
-            
-                _audioStream = Bass.CreateStream(48000, 2, BassFlags.SpeakerRear, (_, buffer, length, _) =>
-                {
-                    var len = length / 2;
-                    var sample = new short[len];
-                    var leftChannel = new float[len / 2];
-                    var rightChannel = new float[len / 2];
-                    AudioHapticsDataRequested?.Invoke(leftChannel, rightChannel);
-                
-                    for (var i = 0; i < len / 2; i++)
-                    {
-                        sample[i * 2 + 0] = (short) (Math.Clamp(leftChannel[i], -1, 1) * short.MaxValue);
-                        sample[i * 2 + 1] = (short) (Math.Clamp(rightChannel[i], -1, 1) * short.MaxValue);
-                    }
-                
-                    Marshal.Copy(sample, 0, buffer, sample.Length);
-                    return len * 2;
-                });
-            
-                Bass.ChannelPlay(_audioStream);
-
-                var audioThread = new Thread(() =>
-                {
-                    while (!_audioDisposed)
-                    {
-                        Bass.Update(5);
-                        Thread.Sleep(1);
-                    }
-                })
-                {
-                    Name = "DualSenseAudioThread"
-                };
-                audioThread.Start();
-            }
-        });
 
         _buttons = new ButtonDescription[]
         {
@@ -138,6 +84,56 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
             new(PlayStationLogo, s => s.PlayStationLogo),
             new(Mic, s => s.Mic)
         };
+        
+        Task.Run(async () =>
+        {
+            var deviceCount = Bass.DeviceCount;
+            for (var i = 0; i <= deviceCount; i++)
+            {
+                // TODO: Well I think there's a better way to do this
+                var info = Bass.GetDeviceInfo(i);
+                if (!info.Name.Contains("Wireless Controller")) continue;
+            
+                _audioDeviceId = i;
+                break;
+            }
+        
+            if (_audioDeviceId != -1)
+            {
+                do
+                {
+                    Bass.Init(_audioDeviceId, 48000);
+                    Bass.Configure(Configuration.PlaybackBufferLength, 6);
+                    Bass.Configure(Configuration.UpdatePeriod, 5);
+                    
+                    _audioStream = Bass.CreateStream(48000, 2, BassFlags.SpeakerRear, (_, buffer, length, _) =>
+                    {
+                        var len = length / 2;
+                        var sample = new short[len];
+                        var leftChannel = new float[len / 2];
+                        var rightChannel = new float[len / 2];
+                        AudioHapticsDataRequested?.Invoke(leftChannel, rightChannel);
+
+                        for (var i = 0; i < len / 2; i++)
+                        {
+                            sample[i * 2 + 0] = (short) (Math.Clamp(leftChannel[i], -1, 1) * short.MaxValue);
+                            sample[i * 2 + 1] = (short) (Math.Clamp(rightChannel[i], -1, 1) * short.MaxValue);
+                        }
+
+                        Marshal.Copy(sample, 0, buffer, sample.Length);
+                        return len * 2;
+                    });
+
+                    if (_audioStream == 0)
+                    {
+                        await Task.Delay(100);
+                    }
+                } while (_audioStream == 0);
+            
+                Bass.ChannelPlay(_audioStream);
+                IsAudioHapticsAvailable = true;
+            }
+        });
     }
 
     private record ButtonDescription(IControllerButton Button, Func<DualSenseSnapshot, bool> StateFromSnapshot) { }
@@ -385,7 +381,6 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
 
     public void Dispose()
     {
-        _audioDisposed = true;
         _device.Dispose();
         if (_audioStream != 0)
         {

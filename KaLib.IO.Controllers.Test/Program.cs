@@ -67,6 +67,8 @@ var rumbleEmulator = new RumbleEmulator
                 return MathF.Abs(MathF.Sin(x / 2) * 2) - 1;
             case WaveformType.Square:
                 return x >= MathF.PI ? -1 : 1;
+            case WaveformType.Noise:
+                return new Random().NextSingle() * 2 - 1;
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -78,7 +80,6 @@ var rumblePreview = Bass.CreateStream(48000, 2, BassFlags.Default, StreamProcedu
 Bass.ChannelPlay(rumblePreview);
 
 var previewEnabled = false;
-var lastAudioUpdate = DateTime.Now;
 
 var controllerThread = new Thread(() =>
 {
@@ -96,6 +97,7 @@ var controllerThread = new Thread(() =>
 
                     controller.Disconnected += () =>
                     {
+                        controllerSnapshot = Optional.Empty<DualSenseSnapshot>();
                         controller.Dispose();
                         controllerLock.Wait();
                         controller = null;
@@ -141,7 +143,7 @@ var controllerThread = new Thread(() =>
                             var amount = append.Length;
                             if (amount >= original.Length)
                             {
-                                Array.Copy(append, original, original.Length);
+                                Array.Copy(append, amount - original.Length, original, 0, original.Length);
                                 return;
                             }
 
@@ -159,16 +161,14 @@ var controllerThread = new Thread(() =>
                             var buf = new short[left.Length * 2];
                             for (var i = 0; i < left.Length; i++)
                             {
-                                buf[i * 2 + 0] = (short) (short.MaxValue * left[i]);
-                                buf[i * 2 + 1] = (short) (short.MaxValue * right[i]);
+                                buf[i * 2 + 0] = (short) (short.MaxValue * Math.Clamp(left[i], -1, 1));
+                                buf[i * 2 + 1] = (short) (short.MaxValue * Math.Clamp(right[i], -1, 1));
                             }
 
                             Bass.StreamPutData(rumblePreview, buf, buf.Length * 2);
                         }
-                        lastAudioUpdate = DateTime.Now;
                     };
 
-                    lastAudioUpdate = DateTime.Now;
                     controller.UpdateStates();
                 }
                 else
@@ -224,10 +224,10 @@ void SubmitUi()
     {
         ImGui.Text("No DualSense connected");
     }
-    else
-    {
-        SubmitControllerUi();
-    }
+    
+    ImGui.BeginDisabled(controller == null);
+    SubmitControllerUi();
+    ImGui.EndDisabled();
     
     if (controllerException != null) 
     {
@@ -248,15 +248,19 @@ Vector2 ApplyDeadzone(Vector2 raw, float threshold)
 
 void SubmitControllerUi()
 {
-    if (controller == null) return;
-    if (controllerException != null) return;
-    if (controllerSnapshot.IsEmpty) return;
+    if (controllerSnapshot.IsEmpty)
+    {
+        controllerSnapshot = Optional.Of(new DualSenseSnapshot());
+    }
 
     Common.AcquireSemaphore(controllerLock, () =>
     {
         var snapshot = controllerSnapshot.Value;
-        ImGui.Text($"Polling input via {controller.ConnectionType} took {pollRate}ms");
-        
+        if (controller != null)
+        {
+            ImGui.Text($"Polling input via {controller.ConnectionType} took {pollRate}ms");
+        }
+
         var lsVector = fixVectorsBound ? snapshot.LeftStick.GetFixedVector() : snapshot.LeftStick.Vector;
         var rsVector = fixVectorsBound ? snapshot.RightStick.GetFixedVector() : snapshot.RightStick.Vector;
 
@@ -269,7 +273,10 @@ void SubmitControllerUi()
         var vector = lsVector;
         var hue = Math.Atan2(vector.Y, vector.X) + Math.PI / 2;
         var color = Color.FromHsv(hue, vector.Length(), 1 - snapshot.RightTrigger);
-        controller.TouchPad.LightBar = color;
+        if (controller != null)
+        {
+            controller.TouchPad.LightBar = color;
+        }
 
         if (ImGui.CollapsingHeader("Sticks (L3 / R3)", ImGuiTreeNodeFlags.DefaultOpen))
         {
@@ -292,8 +299,11 @@ void SubmitControllerUi()
             ControllerGui.DrawPlotFloat(1, snapshot.RightTrigger, 1);
         }
 
-        if (ImGui.CollapsingHeader("Audio Haptics / Rumble", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader(
+                "Audio Haptics / Rumble" + (!controller?.IsAudioHapticsAvailable ?? false ? " (unavailable)" : ""),
+                ImGuiTreeNodeFlags.DefaultOpen))
         {
+            ImGui.BeginDisabled(!controller?.IsAudioHapticsAvailable ?? true);
             ImGui.Checkbox("Monitor Audio Haptics", ref previewEnabled);
 
             var curr = (int) waveformType;
@@ -305,14 +315,10 @@ void SubmitControllerUi()
             ImGui.SameLine();
             ControllerGui.DrawPlotFloatNormalized(rightChanArr);
             
-            var leftFreq = (controller.LeftTrigger.Value + 1) * 110 / 2;
-            var rightFreq = (controller.RightTrigger.Value + 1) * 55 / 2;
+            var leftFreq = (snapshot.LeftTrigger + 1) * 110 / 2;
+            var rightFreq = (snapshot.RightTrigger + 1) * 55 / 2;
             ImGui.Text($"Frequencies: {leftFreq:F2} Hz / {rightFreq:F2} Hz");
-
-            if (DateTime.Now - lastAudioUpdate > TimeSpan.FromSeconds(1))
-            {
-                ImGui.TextColored(new RgbaFloat(1, 0.25f, 0, 1).ToVector4(), "The audio engine is not responding!");
-            }
+            ImGui.EndDisabled();
         }
     });
 }

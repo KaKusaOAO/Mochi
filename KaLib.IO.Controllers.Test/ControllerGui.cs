@@ -28,6 +28,7 @@ public static class ControllerGui
         var pos = ImGui.GetWindowPos() + ImGui.GetCursorPos() - new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY());
         var drawList = ImGui.GetWindowDrawList();
         var center = new Vector2(20, 20);
+        var ga = ImGui.GetStyle().Alpha;
         
         void DrawStickHistory(List<TimedRecord<Vector2>> history)
         {
@@ -35,6 +36,7 @@ public static class ControllerGui
             foreach (var t in history)
             {
                 var alpha = (uint)(Math.Clamp(1 - (DateTime.Now - t.Time).TotalSeconds / HistorySustainSec, 0, 1) * 255);
+                alpha = (uint) (alpha * ga);
                 var col = alpha << 24 | 0xffcc00;
                 var v = pos + center + t.Entry * 20;
                 drawList.AddLine(prevPoint, v, col);
@@ -51,10 +53,11 @@ public static class ControllerGui
 
         var history = _stickHistoryMap[id];
         history.Add(new TimedRecord<Vector2>(vector));
-        
-        drawList.AddCircle(pos + center, 20, pressed ? 0xffffffff : 0xff888888);
+
+        var ca = (uint) (0xff * ga) << 24;
+        drawList.AddCircle(pos + center, 20, pressed ? ca | 0xffffff : ca | 0x888888);
         DrawStickHistory(history);
-        drawList.AddCircleFilled(pos + center + vector * 20, 2, 0xffffffff);
+        drawList.AddCircleFilled(pos + center + vector * 20, 2, ca | 0xffffff);
         ImGui.Dummy(new Vector2(40, 40));
     }
 
@@ -66,6 +69,8 @@ public static class ControllerGui
         var tHeight = 120f;
         color ??= Color.White;
 
+        var ga = ImGui.GetStyle().Alpha;
+
         void DrawTouchHistory(List<TimedRecord<TouchState>> history)
         {
             var prevTouch = new TouchState();
@@ -75,6 +80,7 @@ public static class ControllerGui
             {
                 var t = r.Entry;
                 var alpha = t.IsActive && prevTouch.IsActive ? (uint)(Math.Clamp(1 - (DateTime.Now - r.Time).TotalSeconds / HistorySustainSec, 0, 1) * 255) : 0;
+                alpha = (uint) (alpha * ga);
                 var col = alpha << 24 | 0xffcc00;
                 var v = pos + t.Position * new Vector2(tWidth, tHeight);
                 drawList.AddLine(prevPoint, v, col);
@@ -90,24 +96,28 @@ public static class ControllerGui
             if (!tState.IsActive) return;
         
             var tPos = tState.Position * new Vector2(tWidth, tHeight);
-            drawList.AddLine(pos + new Vector2(tPos.X, 0), pos + new Vector2(tPos.X, tHeight), 0x88000000 | tColor);
-            drawList.AddLine(pos + new Vector2(0, tPos.Y), pos + new Vector2(tWidth, tPos.Y), 0x88000000 | tColor);
+            var alpha = (uint) (0x88 * ga) << 24;
+            drawList.AddLine(pos + tPos with { Y = 0 }, pos + tPos with { Y = tHeight }, alpha | tColor);
+            drawList.AddLine(pos + tPos with { X = 0 }, pos + tPos with { X = tWidth }, alpha | tColor);
             drawList.AddText(pos + tPos + new Vector2(5, 3), 0xff000000 | tColor, $"#{tState.Id}");
         }
 
         var c = color.Value;
         var border = (uint) (c.B << 16 | c.G << 8 | c.R);
-        var bAlpha = (uint) (state.Pressed ? 0xff : 0x88);
-        
+        var bAlpha = (uint) ((state.Pressed ? 0xff : 0x88) * ga);
+
         drawList.AddRect(pos, pos + new Vector2(tWidth, tHeight), bAlpha << 24 | border);
-        _touch1History.Add(new TimedRecord<TouchState>(state.TouchStates[0]));
-        _touch2History.Add(new TimedRecord<TouchState>(state.TouchStates[1]));
-        
-        DrawTouchHistory(_touch1History);
-        DrawTouchHistory(_touch2History);
-        DrawTouch(state.TouchStates[0], 0xaaaaff);
-        DrawTouch(state.TouchStates[1], 0xffffaa);
-        
+        if (state.TouchStates != null)
+        {
+            _touch1History.Add(new TimedRecord<TouchState>(state.TouchStates[0]));
+            _touch2History.Add(new TimedRecord<TouchState>(state.TouchStates[1]));
+
+            DrawTouchHistory(_touch1History);
+            DrawTouchHistory(_touch2History);
+            DrawTouch(state.TouchStates[0], 0xaaaaff);
+            DrawTouch(state.TouchStates[1], 0xffffaa);
+        }
+
         ImGui.Dummy(new Vector2(tWidth, tHeight));
     }
     
@@ -117,6 +127,7 @@ public static class ControllerGui
         var drawList = ImGui.GetWindowDrawList();
         var pWidth = 90f;
         var pHeight = 30f;
+        var alpha = (uint) (0xff * ImGui.GetStyle().Alpha) << 24;
 
         void DrawHistory(List<TimedRecord<float>> history)
         {
@@ -129,9 +140,10 @@ public static class ControllerGui
             }
             
             var prevPoint = pos + MakePoint(history.First()) * new Vector2(pWidth, pHeight);
+            var col = alpha | 0xffcc00;
+            
             foreach (var t in history)
             {
-                var col = 0xffffcc00;
                 var v = pos + MakePoint(t) * new Vector2(pWidth, pHeight);
                 drawList.AddLine(prevPoint, v, col);
                 prevPoint = v;
@@ -158,11 +170,12 @@ public static class ControllerGui
         var drawList = ImGui.GetWindowDrawList();
         var pWidth = 180f;
         var pHeight = 30f;
+        var alpha = (uint) (0xff * ImGui.GetStyle().Alpha) << 24;
+        var col = alpha | 0xffcc00;
 
         var prevPoint = pos + new Vector2(0, pHeight / 2);
         for (var i = 0f; i < values.Length; i += values.Length / pWidth / 2)
         {
-            var col = 0xffffcc00;
             var val = values[(int)i];
             var v = pos + new Vector2(i * 1f / values.Length, 1 - (val / 2 + 0.5f)) * new Vector2(pWidth, pHeight);
             drawList.AddLine(prevPoint, v, col);

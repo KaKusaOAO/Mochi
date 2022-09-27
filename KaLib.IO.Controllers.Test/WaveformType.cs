@@ -6,5 +6,6 @@ public enum WaveformType
     Triangle,
     Saw,
     AbsSine,
-    Square
+    Square,
+    Noise
 }

@@ -18,6 +18,8 @@ public class RumbleEmulator
         float rightStrength)
     {
         var len = left.Length;
+        leftStrength /= 2;
+        rightStrength /= 2;
 
         for (var i = 0; i < len; i++)
         {
@@ -31,7 +33,6 @@ public class RumbleEmulator
             left[i] = leftVal;
             right[i] = rightVal;
         }
-        
         _leftStrO = leftStrength;
         _rightStrO = rightStrength;
     }
