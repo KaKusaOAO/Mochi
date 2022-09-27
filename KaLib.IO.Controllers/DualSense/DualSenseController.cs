@@ -54,6 +54,7 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
     private byte _sequenceTag;
     private int _audioDeviceId = -1;
     private int _audioStream;
+    private bool _disposed;
     
     public bool IsAudioHapticsAvailable { get; private set; }
 
@@ -93,7 +94,7 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
                 // TODO: Well I think there's a better way to do this
                 var info = Bass.GetDeviceInfo(i);
                 if (!info.Name.Contains("Wireless Controller")) continue;
-            
+                if (!info.IsEnabled) continue;
                 _audioDeviceId = i;
                 break;
             }
@@ -102,7 +103,16 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
             {
                 do
                 {
-                    Bass.Init(_audioDeviceId, 48000);
+                    if (_disposed) return;
+                    if (!Bass.Init(_audioDeviceId, 48000))
+                    {
+                        if (Bass.LastError != Errors.Already)
+                        {
+                            await Task.Delay(1000);
+                            continue;
+                        }
+                    }
+                    
                     Bass.Configure(Configuration.PlaybackBufferLength, 6);
                     Bass.Configure(Configuration.UpdatePeriod, 5);
                     
@@ -381,6 +391,7 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
 
     public void Dispose()
     {
+        _disposed = true;
         _device.Dispose();
         if (_audioStream != 0)
         {
