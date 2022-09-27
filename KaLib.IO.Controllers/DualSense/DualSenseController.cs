@@ -32,14 +32,10 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
     public GeneralControllerButton PlayStationLogo { get; } = new();
     public DualSenseMicButton Mic { get; } = new();
     
-    /// <summary>
-    /// The accelerometer values in G.
-    /// </summary>
+    // TODO: The accelerometer values should be in G. Seems to need calibration
     public Vector3 Accelerometer { get; private set; }
     
-    /// <summary>
-    /// The gyroscope values in deg/s.
-    /// </summary>
+    // TODO: The gyroscope values should be in deg/s. Seems to need calibration
     public Vector3 Gyroscope { get; private set; }
 
     private const int AccResolutionPerG = 8192;
