@@ -144,7 +144,7 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
         };
     }
 
-    private record ButtonDescription(IControllerButton Button, Func<DualSenseSnapshot, bool> StateFromSnapshot);
+    private record ButtonDescription(IControllerButton Button, Func<DualSenseSnapshot, bool> StateFromSnapshot) { }
 
     public unsafe DualSenseSnapshot PollInput()
     {
@@ -342,25 +342,6 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
         catch (HidException)
         {
             Disconnected?.Invoke();
-        }
-    }
-
-    private void WriteAudio()
-    {
-        var channels = 4;
-        var sample = new byte[48000 * channels];
-
-        for (var i = 0; i < 48000; i += 2)
-        {
-            var now = i / 48000f * Math.PI;
-            var freq = (Math.Abs(Math.Sin(now)) + 2) * 440f;
-            var valF = Math.Sin(i / 48000f * freq / 2) * 0.2f;
-            var val = (short) (short.MaxValue * valF);
-            var buf = BitConverter.GetBytes(val);
-            for (var j = 0; j < channels; j++)
-            {
-                Array.Copy(buf, 0, sample, (i + j) * 2, 2);
-            }
         }
     }
 
