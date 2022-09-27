@@ -129,8 +129,8 @@ var controllerThread = new Thread(() =>
                     
                     controller.AudioHapticsDataRequested += (left, right) =>
                     {
-                        var leftFreq = (controller.LeftTrigger.Value + 1) * 110;
-                        var rightFreq = (controller.RightTrigger.Value + 1) * 55;
+                        var leftFreq = (controller.LeftTrigger.Value + 1) * 110 / 2;
+                        var rightFreq = (controller.RightTrigger.Value + 1) * 55 / 2;
                         
                         rumbleEmulator.Emulate(left, right, 
                             leftFreq, controller.LeftTrigger.Value,
@@ -305,8 +305,8 @@ void SubmitControllerUi()
             ImGui.SameLine();
             ControllerGui.DrawPlotFloatNormalized(rightChanArr);
             
-            var leftFreq = (controller.LeftTrigger.Value + 1) * 110;
-            var rightFreq = (controller.RightTrigger.Value + 1) * 55;
+            var leftFreq = (controller.LeftTrigger.Value + 1) * 110 / 2;
+            var rightFreq = (controller.RightTrigger.Value + 1) * 55 / 2;
             ImGui.Text($"Frequencies: {leftFreq:F2} Hz / {rightFreq:F2} Hz");
 
             if (DateTime.Now - lastAudioUpdate > TimeSpan.FromSeconds(1))
