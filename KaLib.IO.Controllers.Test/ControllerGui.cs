@@ -38,7 +38,7 @@ public static class ControllerGui
                 var alpha = (uint)(Math.Clamp(1 - (DateTime.Now - t.Time).TotalSeconds / HistorySustainSec, 0, 1) * 255);
                 alpha = (uint) (alpha * ga);
                 var col = alpha << 24 | 0xffcc00;
-                var v = pos + center + t.Entry * 20;
+                var v = pos + center + t.Entry * 20 * new Vector2(1, -1);
                 drawList.AddLine(prevPoint, v, col);
                 prevPoint = v;
             }
@@ -57,7 +57,7 @@ public static class ControllerGui
         var ca = (uint) (0xff * ga) << 24;
         drawList.AddCircle(pos + center, 20, pressed ? ca | 0xffffff : ca | 0x888888);
         DrawStickHistory(history);
-        drawList.AddCircleFilled(pos + center + vector * 20, 2, ca | 0xffffff);
+        drawList.AddCircleFilled(pos + center + vector * 20 * new Vector2(1, -1), 2, ca | 0xffffff);
         ImGui.Dummy(new Vector2(40, 40));
     }
 

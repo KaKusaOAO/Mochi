@@ -7,7 +7,7 @@ using ManagedBass;
 
 namespace KaLib.IO.Controllers.DualSense;
 
-public class DualSenseController : IController<DualSenseSnapshot>, IHybridController
+public class DualSenseController : IController<DualSenseSnapshot>, IHybridController, ITwoSideRumbleController<DualSenseRumble>
 {
     public delegate void GenerateAudioHapticsDelegate(float[] leftRumble, float[] rightRumble);
     
@@ -38,6 +38,16 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
     // TODO: The gyroscope values should be in deg/s. Seems to need calibration
     public Vector3 Gyroscope { get; private set; }
 
+    public DualSenseRumble LeftRumble { get; } = new()
+    {
+        Frequency = 110
+    };
+
+    public DualSenseRumble RightRumble { get; } = new()
+    {
+        Frequency = 55
+    };
+
     private const int AccResolutionPerG = 8192;
     private const int AccRange = 4 * AccResolutionPerG;
 
@@ -50,17 +60,52 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
     public event GenerateAudioHapticsDelegate AudioHapticsDataRequested;
     public event Action Disconnected;
 
-    private IOptional<DualSenseSnapshot> _lastSnapshot = Optional.Empty<DualSenseSnapshot>();
     private byte _sequenceTag;
     private int _audioDeviceId = -1;
     private int _audioStream;
     private bool _disposed;
-    
+
+    public bool Disposed => _disposed;
     public bool IsAudioHapticsAvailable { get; private set; }
 
+    private RumbleEmulator _rumbleEmulator = new();
+
+    private float[] _leftChanArr = new float[16380];
+    private float[] _rightChanArr = new float[16380];
+
+    public ushort AudioHapticsSampleLength
+    {
+        get => (ushort) _leftChanArr.Length;
+        set
+        {
+            _leftChanArr = new float[value];
+            _rightChanArr = new float[value];
+        }
+    }
+    
+    public float[] GetLastLeftChannelSamples()
+    {
+        var arr = new float[_leftChanArr.Length];
+        Array.Copy(_leftChanArr, arr, arr.Length);
+        return arr;
+    }
+    
+    public float[] GetLastRightChannelSamples()
+    {
+        var arr = new float[_rightChanArr.Length];
+        Array.Copy(_rightChanArr, arr, arr.Length);
+        return arr;
+    }
+    
+    /// <summary>
+    /// If enabled, the default rumble emulation will be disabled, and the audio data will be pulled from <see cref="AudioHapticsDataRequested"/>.
+    /// </summary>
+    public bool EnableAudioHaptics { get; set; }
+    
     public DualSenseController(HidDevice device)
     {
         _device = device;
+        
         ConnectionType = device.Info.BusType == BusType.Bluetooth ? ConnectionType.Bluetooth : ConnectionType.Usb;
 
         _buttons = new ButtonDescription[]
@@ -85,6 +130,13 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
             new(PlayStationLogo, s => s.PlayStationLogo),
             new(Mic, s => s.Mic)
         };
+    }
+
+    public IOptional<DualSenseSnapshot> LastSnapshot { get; private set; } = Optional.Empty<DualSenseSnapshot>();
+
+    public void Initialize()
+    {
+        _device.SetNonBlocking(true);
         
         Task.Run(async () =>
         {
@@ -94,7 +146,6 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
                 // TODO: Well I think there's a better way to do this
                 var info = Bass.GetDeviceInfo(i);
                 if (!info.Name.Contains("Wireless Controller")) continue;
-                if (!info.IsEnabled) continue;
                 _audioDeviceId = i;
                 break;
             }
@@ -106,15 +157,16 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
                     if (_disposed) return;
                     if (!Bass.Init(_audioDeviceId, 48000))
                     {
-                        if (Bass.LastError != Errors.Already)
+                        var err = Bass.LastError;
+                        if (err != Errors.Already)
                         {
-                            await Task.Delay(1000);
+                            await Task.Delay(100);
                             continue;
                         }
                     }
-                    
-                    Bass.Configure(Configuration.PlaybackBufferLength, 6);
-                    Bass.Configure(Configuration.UpdatePeriod, 5);
+
+                    Bass.PlaybackBufferLength = 6;
+                    Bass.UpdatePeriod = 0;
                     
                     _audioStream = Bass.CreateStream(48000, 2, BassFlags.SpeakerRear, (_, buffer, length, _) =>
                     {
@@ -122,13 +174,40 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
                         var sample = new short[len];
                         var leftChannel = new float[len / 2];
                         var rightChannel = new float[len / 2];
-                        AudioHapticsDataRequested?.Invoke(leftChannel, rightChannel);
+                        
+                        if (EnableAudioHaptics)
+                        {
+                            AudioHapticsDataRequested?.Invoke(leftChannel, rightChannel);
+                        }
+                        else
+                        {
+                            _rumbleEmulator.Emulate(leftChannel, rightChannel, LeftRumble.Frequency,
+                                LeftRumble.Amplitude, RightRumble.Frequency, RightRumble.Amplitude);
+                        }
 
                         for (var i = 0; i < len / 2; i++)
                         {
                             sample[i * 2 + 0] = (short) (Math.Clamp(leftChannel[i], -1, 1) * short.MaxValue);
                             sample[i * 2 + 1] = (short) (Math.Clamp(rightChannel[i], -1, 1) * short.MaxValue);
                         }
+                        
+                        void AppendArray(float[] original, float[] append)
+                        {
+                            var amount = append.Length;
+                            if (amount >= original.Length)
+                            {
+                                Array.Copy(append, amount - original.Length, original, 0, original.Length);
+                                return;
+                            }
+
+                            var tmp = new float[original.Length - amount];
+                            Array.Copy(original, original.Length - tmp.Length, tmp, 0, tmp.Length);
+                            Array.Copy(tmp, original, tmp.Length);
+                            Array.Copy(append, 0, original, tmp.Length, amount);
+                        }
+                        
+                        AppendArray(_leftChanArr, leftChannel);
+                        AppendArray(_rightChanArr, rightChannel);
 
                         Marshal.Copy(sample, 0, buffer, sample.Length);
                         return len * 2;
@@ -141,21 +220,45 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
                 } while (_audioStream == 0);
             
                 Bass.ChannelPlay(_audioStream);
+
+                var audioThread = new Thread(() =>
+                {
+                    while (!Disposed)
+                    {
+                        Bass.Update(5);
+                        Thread.Sleep(2);
+                    }
+                })
+                {
+                    Name = "DualSenseAudio",
+                    Priority = ThreadPriority.Highest
+                };
+                audioThread.Start();
                 IsAudioHapticsAvailable = true;
             }
         });
     }
 
-    private record ButtonDescription(IControllerButton Button, Func<DualSenseSnapshot, bool> StateFromSnapshot) { }
+    public override int GetHashCode()
+    {
+        return _device.Info.Path.GetHashCode();
+    }
 
+    public override bool Equals(object? obj)
+    {
+        if (obj is not DualSenseController c) return false;
+        return c.GetHashCode() == GetHashCode();
+    }
+
+    private record ButtonDescription(IControllerButton Button, Func<DualSenseSnapshot, bool> StateFromSnapshot) { }
+    
     public unsafe DualSenseSnapshot PollInput()
     {
         var size = ConnectionType == ConnectionType.Usb ? 64 : 78;
         var buf = new byte[size];
         try
         {
-            var read = _device.ReadTimeout(buf, 64);
-            if (read == 0) throw new Exception("Read timed out");
+            _device.FlushAndRead(buf);
         }
         catch (HidException)
         {
@@ -180,11 +283,11 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
 
         var x = packet.LeftStickX / 128f - 1;
         var y = packet.LeftStickY / 128f - 1;
-        LeftStick.Vector = new Vector2(x, y);
+        LeftStick.Vector = new Vector2(x, -y);
 
         x = packet.RightStickX / 128f - 1;
         y = packet.RightStickY / 128f - 1;
-        RightStick.Vector = new Vector2(x, y);
+        RightStick.Vector = new Vector2(x, -y);
 
         LeftTrigger.Value = packet.LeftTrigger / 255f;
         RightTrigger.Value = packet.RightTrigger / 255f;
@@ -256,7 +359,7 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
             BatteryStatus = status
         };
 
-        _lastSnapshot.IfPresent(last =>
+        LastSnapshot.IfPresent(last =>
         {
             SnapshotUpdated?.Invoke(last, current);
             
@@ -267,7 +370,7 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
             }
         });
 
-        _lastSnapshot = Optional.Of(current);
+        LastSnapshot = Optional.Of(current);
         return current;
     }
 
@@ -351,35 +454,39 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
     {
         return info.VendorId == 0x054c && info.ProductId == 0x0ce6;
     }
-
-    public static HidDevice? FindFirstDualSense()
+    
+    public static IEnumerable<HidDevice> FindAllDualSense()
     {
-        var info = HidDeviceBrowse.Browse().Find(IsDualSense);
-        if (info == null) return null;
-
-        var device = new HidDevice();
-        if (device.Open(info))
-        {
-            try
+        return HidDeviceBrowse.Browse()
+            .Where(IsDualSense)
+            .Select(info =>
             {
-                // TODO: Needs a way to test if the connection is alive
-                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                var device = new HidDevice();
+                if (device.Open(info))
                 {
-                    device.Write(new byte[2]);
+                    try
+                    {
+                        // TODO: Needs a way to test if the connection is alive
+                        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        {
+                            device.Write(new byte[2]);
+                        }
+
+                        return device;
+                    }
+                    catch (HidException)
+                    {
+                        device.Close();
+                        return null;
+                    }
                 }
 
-                return device;
-            }
-            catch (HidException)
-            {
+                Logger.Error($"Failed to open the device path, path = {info.Path}");
                 device.Close();
-                throw;
-            }
-        }
-
-        Logger.Error($"Failed to open the device path, path = {info.Path}");
-        device.Close();
-        return null;
+                return null;
+            })
+            .Where(n => n != null)
+            .Select(n => n!);
     }
 
     private static uint DoCrc32(byte[] buf, byte seed)

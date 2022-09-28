@@ -15,6 +15,12 @@ namespace KaLib.IO.Hid
             Close();
         }
 
+        public unsafe void SetNonBlocking(bool value)
+        {
+            if (Closed) return;
+            Wrap(() => HidApi.SetNonBlocking(handle, value));
+        }
+        
         public bool Open(HidDeviceInfo dev)
         {
             unsafe
@@ -33,17 +39,20 @@ namespace KaLib.IO.Hid
 
         public void Close()
         {
+            if (Closed) return;
             unsafe
             {
                 if (handle != null)
                 {
                     HidApi.Close(handle);
+                    handle = null;
                 }
             }
         }
 
         public int Write(byte[] data)
         {
+            if (Closed) return -1;
             unsafe
             { 
                 return Wrap(() => HidApi.Write(handle, data, data.Length));
@@ -52,14 +61,43 @@ namespace KaLib.IO.Hid
 
         public int Read(byte[] data)
         {
+            if (Closed) return -1;
             unsafe
             {
                 return Wrap(() => HidApi.Read(handle, data, data.Length));
             }
         }
+
+        public int FlushAndRead(byte[] data)
+        {
+            if (Closed) return -1;
+            var trunk = new byte[data.Length];
+            var hasRead = false;
+            while (true)
+            {
+                // Read the newest data, or loop if no data is available yet
+                var read = Read(trunk);
+                if (read > 0) hasRead = true;
+                if (read == 0 && hasRead)
+                {
+                    Array.Copy(trunk, data, data.Length);
+                    return read;
+                }
+            }
+        }
+
+        public int GetInputReport(byte[] data)
+        {
+            if (Closed) return -1;
+            unsafe
+            {
+                return Wrap(() => HidApi.GetInputReport(handle, data, data.Length));
+            }
+        }
         
         public int ReadTimeout(byte[] data, int millis)
         {
+            if (Closed) return -1;
             unsafe
             {
                 return Wrap(() => HidApi.ReadTimeout(handle, data, data.Length, millis));

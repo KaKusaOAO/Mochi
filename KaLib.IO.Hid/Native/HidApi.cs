@@ -77,6 +77,9 @@ namespace KaLib.IO.Hid.Native
 
         [DllImport(DllName, EntryPoint = "hid_error")]
         public static extern IntPtr Error(NativeHidDevice* device);
+
+        [DllImport(DllName, EntryPoint = "hid_get_input_report")]
+        public static extern int GetInputReport(NativeHidDevice* device, byte[] data, int length);
     }
     
     internal struct NativeHidDevice
