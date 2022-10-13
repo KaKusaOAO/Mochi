@@ -279,7 +279,7 @@ namespace KaLib.Utils
             var content = ascii ? text.ToAscii() : text.ToPlainText();
             var lines = content.Split('\n');
 
-            var remainPrefixPlain = "+ ->> ";
+            var remainPrefixPlain = "+ | ";
             var remainPrefix = (ascii ? AsciiColor.DarkGray.ToAsciiCode() : "") + remainPrefixPlain +
                                (ascii ? AsciiColor.Reset.ToAsciiCode() : "");
             return lines.Take(1).Select(c => pf + c)

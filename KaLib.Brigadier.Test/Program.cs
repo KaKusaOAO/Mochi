@@ -72,6 +72,11 @@ public static class Program
         );
         
         dispatcher.Register(Literal("foo")
+            .Then(Argument("test", StringArgumentType.GreedyString()).Executes(context =>
+            {
+                Logger.Info("FooBar: " + context.GetArgument<string>("test"), "/foo");
+                return 1;
+            }))
             .Then(Literal("bar").Executes(context =>
             {
                 Logger.Info("FooBar", "/foo");
