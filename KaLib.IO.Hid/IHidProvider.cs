@@ -10,7 +10,6 @@ namespace KaLib.IO.Hid;
 public interface IHidProvider : IDisposable
 {
     internal void Init();
-    internal HidDevice CreateDevice();
     IEnumerable<HidDeviceInfo> GetDevicesInfo();
     HidDevice OpenDevice(ushort vendorId, ushort productId, string serialNumber);
     HidDevice OpenDevice(string path);

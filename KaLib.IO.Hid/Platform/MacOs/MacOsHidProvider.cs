@@ -31,11 +31,6 @@ internal unsafe class MacOsHidProvider : IHidProvider
         IOKit.IOHIDManagerScheduleWithRunLoop(_hidManager, CoreFoundation.CFRunLoopGetCurrent(), _kCFRunLoopDefaultMode);
     }
 
-    HidDevice IHidProvider.CreateDevice()
-    {
-        throw new NotImplementedException();
-    }
-
     public IEnumerable<HidDeviceInfo> GetDevicesInfo()
     {
         throw new NotImplementedException();

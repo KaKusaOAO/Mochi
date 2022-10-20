@@ -21,6 +21,8 @@ internal static class CfgMgr32
 {
     private const string DllName = "cfgmgr32.dll";
 
+    public const uint GetDeviceInterfaceListPresent = 0;
+
     [DllImport(DllName, EntryPoint = "CM_Locate_DevNodeW")]
     public static extern ConfigRet LocateDevNode(out DeviceInstance result,
         [MarshalAs(UnmanagedType.LPWStr)] string deviceId, ulong flags);
@@ -42,6 +44,6 @@ internal static class CfgMgr32
 
     [DllImport(DllName, EntryPoint = "CM_Get_Device_Interface_ListW")]
     public static extern ConfigRet GetDeviceInterfaceList(ref Guid guid,
-        [MarshalAs(UnmanagedType.LPWStr)] string deviceId, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder buffer,
+        [MarshalAs(UnmanagedType.LPWStr)] string deviceId, IntPtr buffer,
         ulong bufferLen, ulong flags);
 }

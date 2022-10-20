@@ -3,52 +3,34 @@ using System.Runtime.InteropServices;
 using KaLib.IO.Hid.Native;
 using KaLib.Utils;
 
-namespace KaLib.IO.Hid
+namespace KaLib.IO.Hid;
+
+public class HidDeviceInfo
 {
-    public class HidDeviceInfo
+    /* device path */
+    public string Path { get; internal set; }
+        
+    /* vendor ID */
+    public ushort VendorId { get; internal set; }
+        
+    /* product id */
+    public ushort ProductId { get; internal set; }
+        
+    /* usb serial number string */
+    public string SerialNumber { get; internal set; }
+    public ushort ReleaseNumber { get; internal set; }
+        
+    /* usb manufacturer string */
+    public string Manufacturer { get; internal set; }
+        
+    /* usb product string */
+    public string Product { get; internal set; }
+    public ushort UsagePage { get; internal set; }
+    public ushort Usage { get; internal set; }
+        
+    public BusType BusType { get; internal set; }
+
+    internal HidDeviceInfo()
     {
-        /* device path */
-        public string Path { get; }
-        
-        /* vendor ID */
-        public ushort VendorId { get; }
-        
-        /* product id */
-        public ushort ProductId { get; }
-        
-        /* usb product string */
-        public string Product { get; }
-        
-        /* usb manufacturer string */
-        public string Manufacturer { get; }
-        
-        /* usb serial number string */
-        public string SerialNumber { get; }
-        
-        internal NativeHidDeviceInfo Handle { get; }
-        
-        public BusType BusType { get; }
-
-        internal HidDeviceInfo(NativeHidDeviceInfo handle)
-        {
-            unsafe
-            {
-                var path = Marshal.PtrToStringAnsi((IntPtr)handle.Path);
-                var manufacturer = Common.GetNullTerminatedWideString((IntPtr)handle.ManufacturerString);
-                var product = Common.GetNullTerminatedWideString((IntPtr)handle.ProductString);
-                var vendorId = handle.VendorId;
-                var productId = handle.ProductId;
-                var serial = new string(handle.SerialNumber);
-
-                Handle = handle;
-                Product = product;
-                SerialNumber = serial;
-                Manufacturer = manufacturer;
-                Path = path;
-                VendorId = vendorId;
-                ProductId = productId;
-                BusType = handle.BusType;
-            }
-        }
     }
 }
