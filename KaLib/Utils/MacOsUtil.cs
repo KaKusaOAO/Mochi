@@ -13,7 +13,7 @@ public static class MacOsUtil
     [DllImport(ApplicationServicesLib)]
     private static extern void GetCurrentProcess(out ProcessSerialNumber serialNumber);
     
-    [DllImport(ApplicationServicesLib, CharSet = CharSet.Unicode)]
+    [DllImport(ApplicationServicesLib, CharSet = CharSet.Auto)]
     private static extern void CPSSetProcessName(ref ProcessSerialNumber serialNumber, string name);
 
     public static void SetAppMenuName(string name)

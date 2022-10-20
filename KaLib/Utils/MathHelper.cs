@@ -25,5 +25,9 @@ namespace KaLib.Utils
         }
 
         public const double DegToRad = Math.PI / 180.0;
+        
+        public static float Lerp(float a, float b, float t) => a + (b - a) * t;
+        
+        public static double Lerp(double a, double b, double t) => a + (b - a) * t;
     }
 }

@@ -351,8 +351,6 @@ namespace KaLib.Procon
                     (b.pressed ? ButtonPressed : ButtonReleased)?.Invoke(b.button);
                 }
             }
-
-            // Logger.Info($"L = {States.LeftStick}, R = {States.RightStick}, Buttons = {States.GetPressedButtons().Select(x => x.ToString()).JoinToString(", ")}");
         }
 
         public delegate void ButtonDelegate(Button button);
