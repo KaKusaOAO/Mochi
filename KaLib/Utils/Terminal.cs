@@ -128,6 +128,19 @@ public static class Terminal
         // Console.Write(" ".PadRight(Console.BufferWidth - 1 - Console.CursorLeft));
         Console.Write("\u001b[J");
     }
+
+    private static int GetWidth(string text)
+    {
+        var result = 0;
+        foreach (var ch in text)
+        {
+            if (ch >= 0x4e00 && ch <= 0x9fa5) result += 2;
+            else if (ch >= 0xff00) result += 2;
+            else result += 1;
+        }
+
+        return result;
+    }
     
     public static void DrawPromptLine(string text = null, InputBufferRendererDelegate inputBufferRenderer = null)
     {
@@ -137,19 +150,21 @@ public static class Terminal
         try
         {
             Console.CursorTop = Console.WindowTop + Console.WindowHeight - 1;
-            Console.CursorLeft = 0;
+            ClearLine();
             if (_currentPrompt != null) Write(_currentPrompt);
             var c = Console.CursorLeft;
-
-            while (_inputBuffer.Count + c + 1 > Console.BufferWidth)
-            {
-                _inputBuffer.RemoveAt(_inputBuffer.Count - 1);
-                if (_inputIndex > _inputBuffer.Count) _inputIndex = _inputBuffer.Count;
-            }
 
             var line = text ?? (_browsingHistory && _historyIndex >= 0
                 ? _inputHistory[_inputHistory.Count - _historyIndex - 1]
                 : CurrentInput);
+
+            var ci = GetWidth(line.Substring(0, _inputIndex));
+            while (ci + c + 1 > Console.BufferWidth)
+            {
+                _inputBuffer.RemoveAt(_inputBuffer.Count - 1);
+                if (_inputIndex > _inputBuffer.Count) _inputIndex = _inputBuffer.Count;
+                ci = GetWidth(line.Substring(0, _inputIndex));
+            }
 
             inputBufferRenderer ??= (str, _, _) =>
             {
@@ -171,9 +186,9 @@ public static class Terminal
                 }
             }
 
+            var cc = GetWidth(line);
             inputBufferRenderer(line, suggesting, _inputIndex);
-
-            Console.CursorLeft = _browsingHistory ? c + line.Length : c + _inputIndex;
+            Console.CursorLeft = _browsingHistory ? c + cc : c + ci;
         }
         finally
         {
