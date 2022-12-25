@@ -479,7 +479,7 @@ public static class Program
                 {
                     if (controller == null)
                     {
-                        var device = DualSenseController.FindAllDualSense().FirstOrDefault();
+                        var device = DualSenseController.FindAllFreeDualSense().FirstOrDefault();
                         if (device != null)
                         {
                             controller = new DualSenseController(device);

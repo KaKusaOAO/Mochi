@@ -9,12 +9,12 @@ namespace KaLib.IO.Controllers.DualSense;
 
 public class DualSenseController : IController<DualSenseSnapshot>, IHybridController, ITwoSideRumbleController<DualSenseRumble>
 {
+    private static readonly List<DualSenseController> _controllers = new();
     public delegate void GenerateAudioHapticsDelegate(float[] leftRumble, float[] rightRumble);
     
     private readonly HidDevice _device;
     private readonly ButtonDescription[] _buttons;
     public ConnectionType ConnectionType { get; }
-
     public GenericStick LeftStick { get; } = new("L3");
     public GenericStick RightStick { get; } = new("R3");
     public DualSenseTrigger LeftTrigger { get; } = new();
@@ -105,6 +105,7 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
     public DualSenseController(HidDevice device)
     {
         _device = device;
+        _controllers.Add(this);
         
         ConnectionType = device.Info.BusType == BusType.Bluetooth ? ConnectionType.Bluetooth : ConnectionType.Usb;
 
@@ -455,10 +456,11 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
         return info.VendorId == 0x054c && info.ProductId == 0x0ce6;
     }
     
-    public static IEnumerable<HidDevice> FindAllDualSense()
+    public static IEnumerable<HidDevice> FindAllFreeDualSense()
     {
         return HidDeviceBrowse.Browse()
             .Where(IsDualSense)
+            .Where(d => _controllers.All(c => c._device.Info.Path != d.Path))
             .Select(info =>
             {
                 var device = new HidDevice();
@@ -481,7 +483,6 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
                     }
                 }
 
-                Logger.Error($"Failed to open the device path, path = {info.Path}");
                 device.Close();
                 return null;
             })
@@ -500,6 +501,7 @@ public class DualSenseController : IController<DualSenseSnapshot>, IHybridContro
     {
         _disposed = true;
         _device.Dispose();
+        _controllers.Remove(this);
         if (_audioStream != 0)
         {
             Bass.StreamFree(_audioStream);

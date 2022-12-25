@@ -13,14 +13,24 @@ public static class XInput
         {
             Logger.Verbose("Using built-in XInput API");
             _provider = new XInputWin32();
-            return;
         }
-
-        throw new PlatformNotSupportedException($"XInput is currently not supported on {RuntimeInformation.OSDescription}");
     }
 
-    public static XInputState GetState(PlayerIndex index) => _provider.GetState(index);
+    private static void EnsureHasProvider()
+    {
+        if (_provider == null)
+            throw new PlatformNotSupportedException($"XInput is currently not supported on {RuntimeInformation.OSDescription}");
+    }
 
-    public static void SetState(PlayerIndex index, float leftMotor, float rightMotor) =>
+    public static XInputState GetState(PlayerIndex index)
+    {
+        EnsureHasProvider();
+        return _provider.GetState(index);
+    }
+
+    public static void SetState(PlayerIndex index, float leftMotor, float rightMotor)
+    {
+        EnsureHasProvider();
         _provider.SetState(index, leftMotor, rightMotor);
+    }
 }

@@ -8,15 +8,6 @@ public interface ITwoSideRumbleController
     IControllerRumble RightRumble { get; }
 }
 
-public interface ITwoSideRumbleController<out T> : ITwoSideRumbleController where T : IControllerRumble
-{
-    new T LeftRumble { get; }
-    new T RightRumble { get; }
-
-    IControllerRumble ITwoSideRumbleController.LeftRumble => LeftRumble;
-    IControllerRumble ITwoSideRumbleController.RightRumble => RightRumble;
-}
-
 public interface ITwoSideRumbleController<out TLeft, out TRight> : ITwoSideRumbleController
     where TLeft : IControllerRumble where TRight : IControllerRumble
 {
@@ -25,4 +16,8 @@ public interface ITwoSideRumbleController<out TLeft, out TRight> : ITwoSideRumbl
 
     IControllerRumble ITwoSideRumbleController.LeftRumble => LeftRumble;
     IControllerRumble ITwoSideRumbleController.RightRumble => RightRumble;
+}
+
+public interface ITwoSideRumbleController<out T> : ITwoSideRumbleController<T, T> where T : IControllerRumble
+{
 }

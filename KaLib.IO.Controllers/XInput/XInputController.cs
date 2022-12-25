@@ -45,6 +45,10 @@ public class XInputController : IController<XInputSnapshot>, ITwoSideRumbleContr
                 {
                     return null;
                 }
+                catch (PlatformNotSupportedException)
+                {
+                    return null;
+                }
             })
             .Where(n => n != null)
             .Select(n => n!);

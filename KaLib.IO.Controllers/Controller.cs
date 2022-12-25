@@ -9,7 +9,7 @@ public static class Controller
 {
     public static IEnumerable<IController> FindAllControllers()
     {
-        foreach (var n in DualSenseController.FindAllDualSense())
+        foreach (var n in DualSenseController.FindAllFreeDualSense())
         {
             yield return new DualSenseController(n);
         }
