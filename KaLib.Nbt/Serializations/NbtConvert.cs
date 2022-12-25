@@ -65,8 +65,8 @@ namespace KaLib.Nbt.Serializations
             if (Reflections.IsInstanceOfGenericType(typeof(Nullable<>), obj))
             {
                 var t = obj.GetType();
-                var hasValue = (bool)t.GetProperty("HasValue").GetValue(obj);
-                if (hasValue) return ToNbt(t.GetProperty("Value").GetValue(obj));
+                var hasValue = (bool)t.GetProperty("HasValue")!.GetValue(obj);
+                if (hasValue) return ToNbt(t.GetProperty("Value")!.GetValue(obj));
             }
 
             return ToNbt(Reflections.ToSerializable(obj));
@@ -90,7 +90,7 @@ namespace KaLib.Nbt.Serializations
         {
             if (t == null) return null;
 
-            if (typeof(NbtCompound) == t) return t;
+            if (typeof(NbtCompound) == t) return tag;
 
             if (typeof(byte) == t)
             {
