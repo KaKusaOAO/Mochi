@@ -6,7 +6,7 @@ namespace KaLib.IO.Hid
 {
     public class HidDevice : IDisposable
     {
-        private HidDeviceInfo _info;
+        public HidDeviceInfo Info { get; private set; }
         internal unsafe NativeHidDevice* handle;
         public unsafe bool Closed => handle == null;
 
@@ -15,54 +15,104 @@ namespace KaLib.IO.Hid
             Close();
         }
 
+        public unsafe void SetNonBlocking(bool value)
+        {
+            if (Closed) return;
+            Wrap(() => HidApi.SetNonBlocking(handle, value));
+        }
+        
         public bool Open(HidDeviceInfo dev)
         {
             unsafe
             {
                 handle = HidApi.OpenPath(dev.Path);
-                return handle != null;
+                var result = handle != null;
+                
+                if (result)
+                {
+                    Info = dev;
+                }
+
+                return result;
             }
         }
 
         public void Close()
         {
+            if (Closed) return;
             unsafe
             {
-                if(handle != null)
+                if (handle != null)
+                {
                     HidApi.Close(handle);
+                    handle = null;
+                }
             }
         }
 
         public int Write(byte[] data)
         {
+            if (Closed) return -1;
             unsafe
-            {
-                return HidApi.Write(handle, data, data.Length);
+            { 
+                return Wrap(() => HidApi.Write(handle, data, data.Length));
             }
         }
 
         public int Read(byte[] data)
         {
+            if (Closed) return -1;
             unsafe
             {
-                return HidApi.Read(handle, data, data.Length);
+                return Wrap(() => HidApi.Read(handle, data, data.Length));
+            }
+        }
+
+        public int FlushAndRead(byte[] data)
+        {
+            if (Closed) return -1;
+            var trunk = new byte[data.Length];
+            var hasRead = false;
+            while (true)
+            {
+                // Read the newest data, or loop if no data is available yet
+                var read = Read(trunk);
+                if (read > 0) hasRead = true;
+                if (read == 0 && hasRead)
+                {
+                    Array.Copy(trunk, data, data.Length);
+                    return read;
+                }
+            }
+        }
+
+        public int GetInputReport(byte[] data)
+        {
+            if (Closed) return -1;
+            unsafe
+            {
+                return Wrap(() => HidApi.GetInputReport(handle, data, data.Length));
             }
         }
         
         public int ReadTimeout(byte[] data, int millis)
         {
+            if (Closed) return -1;
             unsafe
             {
-                return HidApi.ReadTimeout(handle, data, data.Length, millis);
+                return Wrap(() => HidApi.ReadTimeout(handle, data, data.Length, millis));
             }
         }
 
-        public string GetLastError()
+        private int Wrap(Func<int> result)
         {
-            unsafe
+            var r = result();
+            if (r < 0)
             {
-                return HidApi.Error(handle);
+                throw HidException.CreateFromLast(this);
             }
+
+            return r;
         }
     }
 }

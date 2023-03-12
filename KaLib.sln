@@ -24,6 +24,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaLib.Brigadier.Test", "KaL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaLib.Brigadier.TerminalHelper", "KaLib.Brigadier.TerminalHelper\KaLib.Brigadier.TerminalHelper.csproj", "{1A269FC2-3149-4EC0-B15A-515842ACAEF2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaLib.IO.Controllers", "KaLib.IO.Controllers\KaLib.IO.Controllers.csproj", "{9CC09B78-783D-4450-8658-FB9F61893FD2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaLib.IO.Controllers.Test", "KaLib.IO.Controllers.Test\KaLib.IO.Controllers.Test.csproj", "{DAA1CEB9-FAE3-4CB0-996C-650EB6D0507C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -78,5 +82,13 @@ Global
 		{1A269FC2-3149-4EC0-B15A-515842ACAEF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A269FC2-3149-4EC0-B15A-515842ACAEF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1A269FC2-3149-4EC0-B15A-515842ACAEF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CC09B78-783D-4450-8658-FB9F61893FD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CC09B78-783D-4450-8658-FB9F61893FD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CC09B78-783D-4450-8658-FB9F61893FD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CC09B78-783D-4450-8658-FB9F61893FD2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAA1CEB9-FAE3-4CB0-996C-650EB6D0507C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAA1CEB9-FAE3-4CB0-996C-650EB6D0507C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAA1CEB9-FAE3-4CB0-996C-650EB6D0507C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAA1CEB9-FAE3-4CB0-996C-650EB6D0507C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
