@@ -157,11 +157,11 @@ namespace KaLib.Texts
             return "0123456789abcdef".ToCharArray();
         }
         
-        public string ToAsciiCode() => AsciiColor.FromTextColor(this).ToAsciiCode();
+        public string ToAsciiCode() => AsciiColor.CreateRgb(this).ToAsciiCode();
     }
 
     internal static class TextColorEx
     {
-        public static string GetAsciiCode(this TextColor color) => color?.ToAsciiCode() ?? AsciiColor.Reset.ToAsciiCode();
+        public static string GetAsciiCode(this TextColor color) => color?.ToAsciiCode() ?? LegacyAsciiColor.Reset.ToAsciiCode();
     }
 }

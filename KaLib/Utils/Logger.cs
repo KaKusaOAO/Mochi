@@ -280,8 +280,8 @@ namespace KaLib.Utils
             var lines = content.Split('\n');
 
             var remainPrefixPlain = "+ ->> ";
-            var remainPrefix = (ascii ? AsciiColor.DarkGray.ToAsciiCode() : "") + remainPrefixPlain +
-                               (ascii ? AsciiColor.Reset.ToAsciiCode() : "");
+            var remainPrefix = (ascii ? TextColor.DarkGray.ToAsciiCode() : "") + remainPrefixPlain +
+                               (ascii ? LegacyAsciiColor.Reset.ToAsciiCode() : "");
             return lines.Take(1).Select(c => pf + c)
                 .Concat(lines.Skip(1).Select(c => (remainPrefix + c).PadLeft(c.Length + pPlain.Length + remainPrefix.Length - remainPrefixPlain.Length))).ToList();
         }
