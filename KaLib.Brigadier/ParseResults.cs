@@ -8,9 +8,9 @@ namespace KaLib.Brigadier
     public class ParseResults<TS> {
         private readonly CommandContextBuilder<TS> _context;
         private readonly Dictionary<CommandNode<TS>, CommandSyntaxException> _exceptions;
-        private readonly IMmutableStringReader _reader;
+        private readonly IMutableStringReader _reader;
 
-        public ParseResults(CommandContextBuilder<TS> context, IMmutableStringReader reader, Dictionary<CommandNode<TS>, CommandSyntaxException> exceptions) {
+        public ParseResults(CommandContextBuilder<TS> context, IMutableStringReader reader, Dictionary<CommandNode<TS>, CommandSyntaxException> exceptions) {
             this._context = context;
             this._reader = reader;
             this._exceptions = exceptions;
@@ -24,7 +24,7 @@ namespace KaLib.Brigadier
             return _context;
         }
 
-        public IMmutableStringReader GetReader() {
+        public IMutableStringReader GetReader() {
             return _reader;
         }
 

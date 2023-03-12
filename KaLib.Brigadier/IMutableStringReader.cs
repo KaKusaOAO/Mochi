@@ -1,6 +1,6 @@
 ﻿namespace KaLib.Brigadier
 {
-    public interface IMmutableStringReader
+    public interface IMutableStringReader
     {
         string GetString();
 

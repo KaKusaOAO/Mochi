@@ -11,7 +11,7 @@
             return new CommandSyntaxException(this, _function(args));
         }
 
-        public CommandSyntaxException CreateWithContext(IMmutableStringReader reader, params object[] args) {
+        public CommandSyntaxException CreateWithContext(IMutableStringReader reader, params object[] args) {
             return new CommandSyntaxException(this, _function(args), reader.GetString(), reader.GetCursor());
         }
 

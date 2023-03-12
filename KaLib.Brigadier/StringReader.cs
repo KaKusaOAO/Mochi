@@ -4,7 +4,7 @@ using KaLib.Brigadier.Exceptions;
 
 namespace KaLib.Brigadier
 {
-    public class StringReader : IMmutableStringReader
+    public class StringReader : IMutableStringReader
     {
         private const char SyntaxEscape = '\\';
         private const char SyntaxDoubleQuote = '"';

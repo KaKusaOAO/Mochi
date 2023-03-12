@@ -26,10 +26,10 @@ public static class Optional
 
     public static IOptional<T> OfNullable<T>(T? value) where T : struct =>
         value.HasValue ? new Optional<T>(value.Value) : new Optional<T>();
-    
-    // -- Extension
 
     public static IOptional<T> AsOptional<T>(T? value) where T : struct => OfNullable(value);
+    
+    // -- Extension
 
     public static IOptional<TOut> Select<TIn, TOut>(this IOptional<TIn> optional, Func<TIn, TOut> transform)
     {

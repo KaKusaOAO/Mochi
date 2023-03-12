@@ -94,7 +94,16 @@ public static class Program
                                     .Then(Literal("entity")
                                         .Then(Argument("source", StringArgumentType.Word())
                                             .Then(Argument("sourcePath", StringArgumentType.Word())
-                                                .Executes(_ => 1)))))))))));
+                                                .Executes(_ => 1))
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        );
 
         while (true)
         {
