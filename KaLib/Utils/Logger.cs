@@ -263,12 +263,12 @@ namespace KaLib.Utils
 
         public static List<string> GetDefaultFormattedLines(DateTimeOffset time, IText t, TextColor color, IText name, Thread thread, bool ascii = true)
         {
-            var _name = name.MutableCopy();
+            var nameClone = name.MutableCopy();
             var f = PrefixFormat;
-            _name.Color = color;
+            nameClone.Color = color;
             var tag = LiteralText.Of($"[{thread.Name}@{thread.ManagedThreadId}] ")
                 .SetColor(TextColor.DarkGray)
-                .AddExtra(TranslateText.Of("[%s]").AddWith(_name).SetColor(color));
+                .AddExtra(TranslateText.Of("[%s]").AddWith(nameClone).SetColor(color));
             var now = time.ToLocalTime().DateTime.ToString(CultureInfo.InvariantCulture);
 
             var text = t.Clone();
@@ -322,9 +322,9 @@ namespace KaLib.Utils
             });
         }
 
-        public static void Log(IText t, string name = DefaultName)
+        public static void Log(IText t, IText name = null)
         {
-            var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
+            var tag = name ?? Text.RepresentType(GetCallSourceType());
             Log(LogLevel.Log, t, TextColor.DarkGray, tag);
         }
 
@@ -334,9 +334,9 @@ namespace KaLib.Utils
             Log(LogLevel.Log, LiteralText.Of(msg), TextColor.DarkGray, tag);
         }
 
-        public static void Verbose(IText t, string name = DefaultName)
+        public static void Verbose(IText t, IText name = null)
         {
-            var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
+            var tag = name ?? Text.RepresentType(GetCallSourceType());
             Log(LogLevel.Verbose, t, TextColor.DarkGray, tag);
         }
 
@@ -346,9 +346,9 @@ namespace KaLib.Utils
             Log(LogLevel.Verbose, LiteralText.Of(msg), TextColor.DarkGray, tag);
         }
 
-        public static void Info(IText t, string name = DefaultName)
+        public static void Info(IText t, IText name = null)
         {
-            var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
+            var tag = name ?? Text.RepresentType(GetCallSourceType());
             Log(LogLevel.Info, t, TextColor.Green, tag);
         }
 
@@ -358,9 +358,9 @@ namespace KaLib.Utils
             Log(LogLevel.Info, LiteralText.Of(msg), TextColor.Green, tag);
         }
 
-        public static void Warn(IText t, string name = DefaultName)
+        public static void Warn(IText t, IText name = null)
         {
-            var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
+            var tag = name ?? Text.RepresentType(GetCallSourceType());
             Log(LogLevel.Warn, t, TextColor.Gold, tag);
         }
 
@@ -370,9 +370,9 @@ namespace KaLib.Utils
             Log(LogLevel.Warn, LiteralText.Of(msg), TextColor.Gold, tag);
         }
 
-        public static void Error(IText t, string name = DefaultName)
+        public static void Error(IText t, IText name = null)
         {
-            var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
+            var tag = name ?? Text.RepresentType(GetCallSourceType());
             Log(LogLevel.Error, t, TextColor.Red, tag);
         }
 
