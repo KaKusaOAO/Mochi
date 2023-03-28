@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace KaLib.Nbt.Serializations
+namespace KaLib.Nbt.Serializations;
+
+[AttributeUsage(AttributeTargets.Property)]
+public class NbtIgnoreAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Property)]
-    public class NbtIgnoreAttribute : Attribute
-    {
-    }
 }

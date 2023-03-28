@@ -1,6 +1,5 @@
-﻿namespace KaLib.Nbt
+﻿namespace KaLib.Nbt;
+
+public interface INbtTag
 {
-    public interface INbtTag
-    {
-    }
 }

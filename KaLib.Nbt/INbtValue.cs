@@ -1,7 +1,6 @@
-﻿namespace KaLib.Nbt
+﻿namespace KaLib.Nbt;
+
+public interface INbtValue<out T>
 {
-    public interface INbtValue<out T>
-    {
-        T Value { get; }
-    }
+    T Value { get; }
 }
