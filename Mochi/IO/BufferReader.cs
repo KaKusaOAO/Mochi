@@ -89,7 +89,7 @@ public class BufferReader
     
     public Guid ReadGuid() => new(ReadFixedByteArray(16));
     
-    public bool ReadBoolean() => ReadByte() > 0;
+    public bool ReadBool() => ReadByte() > 0;
     
     public short ReadInt16() => (short) ((ReadByte() << 8) | ReadByte());
     
@@ -116,13 +116,13 @@ public class BufferReader
 
     public T? ReadNullable<T>(Func<BufferReader, T> readFunc) where T : struct
     {
-        var isNull = ReadBoolean();
+        var isNull = ReadBool();
         return isNull ? null : readFunc(this);
     }
     
     public IOptional<T> ReadOptional<T>(Func<BufferReader, T> readFunc)
     {
-        var isNull = ReadBoolean();
+        var isNull = ReadBool();
         return isNull ? Optional.Empty<T>() : Optional.Of(readFunc(this));
     }
 }

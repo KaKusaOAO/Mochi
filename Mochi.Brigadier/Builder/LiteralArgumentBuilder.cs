@@ -28,7 +28,7 @@ public class LiteralArgumentBuilder<TS> : ArgumentBuilder<TS, LiteralArgumentBui
         var result =
             new LiteralCommandNode<TS>(GetLiteral(), Command, Requirement, GetRedirect(), RedirectModifier, IsFork);
 
-        foreach (var argument in GetArguments())
+        foreach (var argument in Arguments)
         {
             result.AddChild(argument);
         }

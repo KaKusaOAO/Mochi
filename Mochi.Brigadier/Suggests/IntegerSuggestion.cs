@@ -12,16 +12,13 @@ public class IntegerSuggestion : Suggestion
         ;
     }
 
-    public IntegerSuggestion(StringRange range, int value, IMessage tooltip) : base(range, value.ToString(),
+    public IntegerSuggestion(StringRange range, int value, IBrigadierMessage tooltip) : base(range, value.ToString(),
         tooltip)
     {
         _value = value;
     }
 
-    public int GetValue()
-    {
-        return _value;
-    }
+    public int Value => _value;
 
     public override bool Equals(object o)
     {
@@ -50,7 +47,7 @@ public class IntegerSuggestion : Suggestion
     public override string ToString()
     {
         return
-            $"IntegerSuggestion{{value={_value}, range={GetRange()}, text='{GetText()}', tooltip='{GetTooltip()}'}}";
+            $"IntegerSuggestion{{value={_value}, range={Range}, text='{Text}', tooltip='{Tooltip}'}}";
     }
 
     public override int CompareTo(Suggestion o)

@@ -25,42 +25,30 @@ public struct StringRange
 
     public static StringRange Encompassing(StringRange a, StringRange b)
     {
-        return new StringRange(Math.Min(a.GetStart(), b.GetStart()), Math.Max(a.GetEnd(), b.GetEnd()));
+        return new StringRange(Math.Min(a.Start, b.Start), Math.Max(a.End, b.End));
     }
 
     public static bool operator ==(StringRange a, StringRange b) => a.Equals(b);
 
     public static bool operator !=(StringRange a, StringRange b) => !(a == b);
 
-    public int GetStart()
-    {
-        return _start;
-    }
+    public int Start => _start;
 
-    public int GetEnd()
-    {
-        return _end;
-    }
+    public int End => _end;
 
     public string Get(IMutableStringReader reader)
     {
-        return reader.GetString().Substring(_start, GetLength());
+        return reader.GetString().Substring(_start, Length);
     }
 
     public string Get(string str)
     {
-        return str.Substring(_start, GetLength());
+        return str.Substring(_start, Length);
     }
 
-    public bool IsEmpty()
-    {
-        return _start == _end;
-    }
+    public bool IsEmpty => _start == _end;
 
-    public int GetLength()
-    {
-        return _end - _start;
-    }
+    public int Length => _end - _start;
 
     public override bool Equals(object o)
     {

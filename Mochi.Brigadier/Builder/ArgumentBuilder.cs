@@ -38,10 +38,7 @@ public abstract class ArgumentBuilder<TS>
         return this;
     }
 
-    public IEnumerable<CommandNode<TS>> GetArguments()
-    {
-        return _arguments.GetChildren();
-    }
+    public IEnumerable<CommandNode<TS>> Arguments => _arguments.Children;
 
     public ArgumentBuilder<TS> Executes(ICommand<TS> command)
     {
@@ -103,7 +100,7 @@ public abstract class ArgumentBuilder<TS>
 
     public ArgumentBuilder<TS> Forward(CommandNode<TS> target, RedirectModifier<TS> modifier, bool fork)
     {
-        if (_arguments.GetChildren().Any())
+        if (_arguments.Children.Any())
         {
             throw new Exception("Cannot forward a node with children");
         }

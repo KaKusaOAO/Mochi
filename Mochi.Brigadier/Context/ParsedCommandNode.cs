@@ -15,15 +15,9 @@ public class ParsedCommandNode<TS>
         _range = range;
     }
 
-    public CommandNode<TS> GetNode()
-    {
-        return _node;
-    }
+    public CommandNode<TS> Node => _node;
 
-    public StringRange GetRange()
-    {
-        return _range;
-    }
+    public StringRange Range => _range;
 
     public override string ToString()
     {

@@ -19,5 +19,5 @@ public class Dynamic4CommandExceptionType : ICommandExceptionType
         return new CommandSyntaxException(this, _function(a, b, c, d), reader.GetString(), reader.Cursor);
     }
 
-    public delegate IMessage Function(object a, object b, object c, object d);
+    public delegate IBrigadierMessage Function(object a, object b, object c, object d);
 }

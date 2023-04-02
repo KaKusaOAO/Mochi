@@ -13,6 +13,7 @@ public class NbtByte : NbtTag, INbtValue<byte>
     }
     
     public static implicit operator NbtByte(byte value) => new(value);
+    public static implicit operator NbtByte(bool flag) => new(flag);
 
     public byte Value { get; set; }
 

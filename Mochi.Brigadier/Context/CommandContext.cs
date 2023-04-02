@@ -105,38 +105,20 @@ public class CommandContext<TS>
         return result;
     }
 
-    public RedirectModifier<TS> GetRedirectModifier()
-    {
-        return _modifier;
-    }
+    public RedirectModifier<TS> RedirectModifier => _modifier;
 
-    public StringRange GetRange()
-    {
-        return _range;
-    }
+    public StringRange Range => _range;
 
-    public string GetInput()
-    {
-        return _input;
-    }
+    public string Input => _input;
 
-    public CommandNode<TS> GetRootNode()
-    {
-        return _rootNode;
-    }
+    public CommandNode<TS> RootNode => _rootNode;
 
-    public List<ParsedCommandNode<TS>> GetNodes()
-    {
-        return _nodes;
-    }
+    public List<ParsedCommandNode<TS>> Nodes => _nodes;
 
     public bool HasNodes()
     {
         return _nodes.Count > 0;
     }
 
-    public bool IsForked()
-    {
-        return _forks;
-    }
+    public bool IsForked => _forks;
 }

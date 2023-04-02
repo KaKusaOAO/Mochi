@@ -40,7 +40,7 @@ public class CommandDispatcher<TS>
 
     private readonly RootCommandNode<TS> _root;
 
-    // private static readonly Predicate<CommandNode<TS>?> HasCommand = input => input != null && (input.GetCommand() != null || input.GetChildren().Any(x => HasCommand(x)));
+    // private static readonly Predicate<CommandNode<TS>?> HasCommand = input => input != null && (input.GetCommand() != null || input.Children.Any(x => HasCommand(x)));
     private ResultConsumer<TS> _consumer = (a, b, c) => { };
 
     /// <summary>
@@ -252,7 +252,7 @@ public class CommandDispatcher<TS>
                 throw parse.Exceptions.Values.First();
             }
 
-            if (parse.Context.GetRange().IsEmpty())
+            if (parse.Context.Range.IsEmpty)
             {
                 throw CommandSyntaxException.BuiltInExceptions.DispatcherUnknownCommand()
                     .CreateWithContext(parse.Reader);
@@ -280,11 +280,11 @@ public class CommandDispatcher<TS>
                 var child = context.Child;
                 if (child != null)
                 {
-                    forked |= context.IsForked();
+                    forked |= context.IsForked;
                     if (child.HasNodes())
                     {
                         foundCommand = true;
-                        var modifier = context.GetRedirectModifier();
+                        var modifier = context.RedirectModifier;
                         if (modifier == null)
                         {
                             if (next == null)
@@ -405,7 +405,7 @@ public class CommandDispatcher<TS>
     private ParseResults<TS> ParseNodes(CommandNode<TS> node, StringReader originalReader,
         CommandContextBuilder<TS> contextSoFar)
     {
-        var source = contextSoFar.GetSource();
+        var source = contextSoFar.Source;
         Dictionary<CommandNode<TS>, CommandSyntaxException> errors = null;
         List<ParseResults<TS>> potentials = null;
         var cursor = originalReader.Cursor;
@@ -548,9 +548,9 @@ public class CommandDispatcher<TS>
                 ? node.GetUsageText() + ArgumentSeparator + redirect
                 : prefix + ArgumentSeparator + redirect);
         }
-        else if (node.GetChildren().Any())
+        else if (node.Children.Any())
         {
-            foreach (var child in node.GetChildren())
+            foreach (var child in node.Children)
             {
                 GetAllUsage(child, source, result,
                     string.IsNullOrEmpty(prefix)
@@ -581,7 +581,7 @@ public class CommandDispatcher<TS>
         var result = new Dictionary<CommandNode<TS>, string>();
 
         var optional = node.Command != null;
-        foreach (var child in node.GetChildren())
+        foreach (var child in node.Children)
         {
             var usage = GetSmartUsage(child, source, optional, false);
             if (usage != null)
@@ -614,7 +614,7 @@ public class CommandDispatcher<TS>
                 return self + ArgumentSeparator + redirect;
             }
 
-            var children = node.GetChildren().Where(c => c.CanUse(source)).ToList();
+            var children = node.Children.Where(c => c.CanUse(source)).ToList();
             if (children.Count == 1)
             {
                 var usage = GetSmartUsage(children.First(), source, childOptional, childOptional);
@@ -696,9 +696,9 @@ public class CommandDispatcher<TS>
         var fullInput = parse.Reader.GetString();
         var truncatedInput = fullInput.Substring(0, cursor);
         var truncatedInputLowerCase = truncatedInput.ToLowerInvariant();
-        var tasks = new Task<Suggestions>[parent.GetChildren().Count()];
+        var tasks = new Task<Suggestions>[parent.Children.Count()];
         var i = 0;
-        foreach (var node in parent.GetChildren())
+        foreach (var node in parent.Children)
         {
             var future = Suggestions.Empty();
             try
@@ -800,7 +800,7 @@ public class CommandDispatcher<TS>
         var current = new List<CommandNode<TS>>(parents) { node };
         result.Add(current);
 
-        foreach (var child in node.GetChildren())
+        foreach (var child in node.Children)
         {
             AddPaths(child, result, current);
         }

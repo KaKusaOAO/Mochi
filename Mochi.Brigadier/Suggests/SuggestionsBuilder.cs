@@ -73,7 +73,7 @@ public class SuggestionsBuilder
         return this;
     }
 
-    public SuggestionsBuilder Suggest(string text, IMessage tooltip)
+    public SuggestionsBuilder Suggest(string text, IBrigadierMessage tooltip)
     {
         if (text.Equals(_remaining))
         {
@@ -90,7 +90,7 @@ public class SuggestionsBuilder
         return this;
     }
 
-    public SuggestionsBuilder Suggest(int value, IMessage tooltip)
+    public SuggestionsBuilder Suggest(int value, IBrigadierMessage tooltip)
     {
         _result.Add(new IntegerSuggestion(StringRange.Between(_start, _input.Length), value, tooltip));
         return this;

@@ -29,6 +29,7 @@ public abstract class NbtTag : INbtTag
     
     public static implicit operator NbtTag(string s) => new NbtString(s);
     public static implicit operator NbtTag(byte b) => new NbtByte(b);
+    public static implicit operator NbtTag(bool b) => new NbtByte(b);
     public static implicit operator NbtTag(short s) => new NbtShort(s);
     public static implicit operator NbtTag(int i) => new NbtInt(i);
     public static implicit operator NbtTag(long l) => new NbtLong(l);

@@ -10,11 +10,11 @@ public class CommandSyntaxException : Exception
     public static IBuiltInExceptionProvider BuiltInExceptions = new BuiltInExceptions();
 
     private readonly ICommandExceptionType _type;
-    private readonly IMessage _message;
+    private readonly IBrigadierMessage _message;
     private readonly string _input;
     private readonly int _cursor;
 
-    public CommandSyntaxException(ICommandExceptionType type, IMessage message, Exception inner = null) : base(
+    public CommandSyntaxException(ICommandExceptionType type, IBrigadierMessage message, Exception inner = null) : base(
         message.GetString(), inner)
     {
         _type = type;
@@ -23,7 +23,7 @@ public class CommandSyntaxException : Exception
         _cursor = -1;
     }
 
-    public CommandSyntaxException(ICommandExceptionType type, IMessage message, string input, int cursor,
+    public CommandSyntaxException(ICommandExceptionType type, IBrigadierMessage message, string input, int cursor,
         Exception inner = null) : base(
         message.GetString(), inner)
     {
@@ -45,7 +45,7 @@ public class CommandSyntaxException : Exception
         return message;
     }
 
-    public IMessage GetRawMessage()
+    public IBrigadierMessage GetRawMessage()
     {
         return _message;
     }

@@ -108,8 +108,8 @@ public class Suggestions
         var end = int.MinValue;
         foreach (var suggestion in suggestions)
         {
-            start = Math.Min(suggestion.GetRange().GetStart(), start);
-            end = Math.Max(suggestion.GetRange().GetEnd(), end);
+            start = Math.Min(suggestion.Range.Start, start);
+            end = Math.Max(suggestion.Range.End, end);
         }
 
         var range = new StringRange(start, end);

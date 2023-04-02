@@ -1,6 +1,6 @@
 ﻿namespace Mochi.Brigadier;
 
-public interface IMessage
+public interface IBrigadierMessage
 {
     string GetString();
 }

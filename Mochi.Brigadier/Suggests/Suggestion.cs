@@ -8,47 +8,38 @@ public class Suggestion : IComparable<Suggestion>
 {
     private readonly StringRange _range;
     private readonly string _text;
-    private readonly IMessage _tooltip;
+    private readonly IBrigadierMessage _tooltip;
 
-    public Suggestion(StringRange range, string text, IMessage tooltip = null)
+    public Suggestion(StringRange range, string text, IBrigadierMessage tooltip = null)
     {
         _range = range;
         _text = text;
         _tooltip = tooltip;
     }
 
-    public StringRange GetRange()
-    {
-        return _range;
-    }
+    public StringRange Range => _range;
 
-    public string GetText()
-    {
-        return _text;
-    }
+    public string Text => _text;
 
-    public IMessage GetTooltip()
-    {
-        return _tooltip;
-    }
+    public IBrigadierMessage Tooltip => _tooltip;
 
     public string Apply(string input)
     {
-        if (_range.GetStart() == 0 && _range.GetEnd() == input.Length)
+        if (_range.Start == 0 && _range.End == input.Length)
         {
             return _text;
         }
 
         var result = new StringBuilder();
-        if (_range.GetStart() > 0)
+        if (_range.Start > 0)
         {
-            result.Append(input.Substring(0, _range.GetStart()));
+            result.Append(input.Substring(0, _range.Start));
         }
 
         result.Append(_text);
-        if (_range.GetEnd() < input.Length)
+        if (_range.End < input.Length)
         {
-            result.Append(input.Substring(_range.GetEnd()));
+            result.Append(input.Substring(_range.End));
         }
 
         return result.ToString();
@@ -102,15 +93,15 @@ public class Suggestion : IComparable<Suggestion>
         }
 
         var result = new StringBuilder();
-        if (range.GetStart() < _range.GetStart())
+        if (range.Start < _range.Start)
         {
-            result.Append(command.Substring(range.GetStart(), _range.GetStart()));
+            result.Append(command.Substring(range.Start, _range.Start));
         }
 
         result.Append(_text);
-        if (range.GetEnd() > _range.GetEnd())
+        if (range.End > _range.End)
         {
-            result.Append(command.Substring(_range.GetEnd(), range.GetEnd()));
+            result.Append(command.Substring(_range.End, range.End));
         }
 
         return new Suggestion(range, result.ToString(), _tooltip);

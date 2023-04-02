@@ -4,9 +4,9 @@ namespace Mochi.Brigadier.Exceptions;
 
 public class DynamicCommandExceptionType : ICommandExceptionType
 {
-    private readonly Func<object, IMessage> _function;
+    private readonly Func<object, IBrigadierMessage> _function;
 
-    public DynamicCommandExceptionType(Func<object, IMessage> function)
+    public DynamicCommandExceptionType(Func<object, IBrigadierMessage> function)
     {
         _function = function;
     }

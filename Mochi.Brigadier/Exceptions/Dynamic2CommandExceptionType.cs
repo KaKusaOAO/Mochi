@@ -20,5 +20,5 @@ public class Dynamic2CommandExceptionType : ICommandExceptionType
     }
 
 
-    public delegate IMessage Function(object a, object b);
+    public delegate IBrigadierMessage Function(object a, object b);
 }

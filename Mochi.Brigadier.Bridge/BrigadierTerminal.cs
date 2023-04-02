@@ -52,7 +52,7 @@ public static class BrigadierTerminal
         
         if (reader.CanRead())
         {
-            if (context.GetRange().IsEmpty())
+            if (context.Range.IsEmpty)
             {
                 WriteWithSuggestion(LiteralText.Of(input).SetColor(TextColor.Red));
                 var c2 = Console.CursorLeft;
@@ -79,7 +79,7 @@ public static class BrigadierTerminal
         ParsedCommandNode<T> lastProcessedNode = null;
         while (context != null)
         {
-            foreach (var node in context.GetNodes())
+            foreach (var node in context.Nodes)
             {
                 if (node == null)
                 {
@@ -90,10 +90,10 @@ public static class BrigadierTerminal
                 try
                 {
                     if (started) Terminal.Write(" ");
-                    startFrom = node.GetRange().GetEnd();
+                    startFrom = node.Range.End;
 
-                    var useColor = node.GetNode() is not LiteralCommandNode<T>;
-                    var range = node.GetRange();
+                    var useColor = node.Node is not LiteralCommandNode<T>;
+                    var range = node.Range;
                     var text = LiteralText.Of(range.Get(reader)).SetColor(useColor ? colors[colorIndex++] : null);
                     Terminal.Write(text);
 
@@ -103,8 +103,8 @@ public static class BrigadierTerminal
                 }
                 catch (Exception ex)
                 {
-                    var range = node.GetRange();
-                    WriteWithSuggestion(LiteralText.Of(input[range.GetStart()..range.GetEnd()])
+                    var range = node.Range;
+                    WriteWithSuggestion(LiteralText.Of(input[range.Start..range.End])
                         .SetColor(TextColor.Red));
 
                     var c2 = c + reader.Cursor;
@@ -115,11 +115,11 @@ public static class BrigadierTerminal
                 }
             }
 
-            var child = context.GetChild();
+            var child = context.Child;
             if (child == null && reader.CanRead())
             {
-                var last = context.GetNodes().LastOrDefault();
-                var nextNode = last?.GetNode()?.GetChildren()?.FirstOrDefault();
+                var last = context.Nodes.LastOrDefault();
+                var nextNode = last?.Node?.Children?.FirstOrDefault();
                 var usage = nextNode is ArgumentCommandNode<T> ? nextNode.GetUsageText() : null;
             
                 WriteWithSuggestion(LiteralText.Of(reader.GetString()[startFrom..]).SetColor(TextColor.Red), coLeft);
@@ -145,7 +145,7 @@ public static class BrigadierTerminal
         
         WriteWithSuggestion(LiteralText.Of(""), coLeft);
 
-        if (lastProcessedNode != null && lastProcessedNode.GetNode().Command == null)
+        if (lastProcessedNode != null && lastProcessedNode.Node.Command == null)
         {
             WriteError(" <- Incomplete Command");
         }

@@ -33,10 +33,7 @@ public abstract class CommandNode<TS> : IComparable<CommandNode<TS>>
 
     public ICommand<TS> Command => _command;
 
-    public IEnumerable<CommandNode<TS>> GetChildren()
-    {
-        return _children.Values;
-    }
+    public IEnumerable<CommandNode<TS>> Children => _children.Values;
 
     public CommandNode<TS> GetChild(string name)
     {
@@ -76,7 +73,7 @@ public abstract class CommandNode<TS> : IComparable<CommandNode<TS>>
                 child._command = node.Command;
             }
 
-            foreach (var grandchild in node.GetChildren())
+            foreach (var grandchild in node.Children)
             {
                 child.AddChild(grandchild);
             }

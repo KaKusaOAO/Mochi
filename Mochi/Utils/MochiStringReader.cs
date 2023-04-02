@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Mochi.Utils;
 
-public class StringReader
+public class MochiStringReader
 {
     public class StringReaderException : Exception
     {
@@ -39,15 +39,15 @@ public class StringReader
     private readonly string _str;
     private int _cursor;
 
-    public StringReader(StringReader other)
+    public MochiStringReader(MochiStringReader other)
     {
-        this._str = other._str;
-        this._cursor = other._cursor;
+        _str = other._str;
+        _cursor = other._cursor;
     }
 
-    public StringReader(string str)
+    public MochiStringReader(string str)
     {
-        this._str = str;
+        _str = str;
     }
 
     public string GetString()

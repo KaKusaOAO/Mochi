@@ -49,7 +49,7 @@ public class RequiredArgumentBuilder<TS, T> : ArgumentBuilder<TS, RequiredArgume
         var result = new ArgumentCommandNode<TS, T>(GetName(), Type, Command, Requirement, GetRedirect(),
             RedirectModifier, IsFork, GetSuggestionsProvider());
 
-        foreach (var argument in GetArguments())
+        foreach (var argument in Arguments)
         {
             result.AddChild(argument);
         }

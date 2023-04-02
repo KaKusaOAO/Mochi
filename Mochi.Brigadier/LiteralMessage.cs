@@ -1,6 +1,6 @@
 ﻿namespace Mochi.Brigadier;
 
-public class LiteralMessage : IMessage
+public class LiteralMessage : IBrigadierMessage
 {
     private readonly string _str;
 

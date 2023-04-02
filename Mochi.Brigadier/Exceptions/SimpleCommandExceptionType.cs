@@ -2,9 +2,9 @@
 
 public class SimpleCommandExceptionType : ICommandExceptionType
 {
-    private readonly IMessage _message;
+    private readonly IBrigadierMessage _message;
 
-    public SimpleCommandExceptionType(IMessage message)
+    public SimpleCommandExceptionType(IBrigadierMessage message)
     {
         _message = message;
     }
