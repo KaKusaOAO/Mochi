@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace KaLib.Nbt;
+namespace Mochi.Nbt;
 
 public class NbtList : NbtTag, IList<NbtTag>
 {

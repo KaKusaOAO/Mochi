@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KaLib.Nbt.Serializations.Converters;
+namespace Mochi.Nbt.Serializations.Converters;
 
 [AttributeUsage(AttributeTargets.Property)]
 public class NbtConverterAttribute : Attribute

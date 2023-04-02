@@ -1,4 +1,4 @@
-﻿namespace KaLib.Nbt;
+﻿namespace Mochi.Nbt;
 
 public class NbtByte : NbtTag, INbtValue<byte>
 {

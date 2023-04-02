@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace KaLib.Nbt;
+namespace Mochi.Nbt;
 
 public class NbtCompound : NbtTag, IDictionary<string, NbtTag>
 {

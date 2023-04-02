@@ -1,4 +1,4 @@
-﻿namespace KaLib.Nbt;
+﻿namespace Mochi.Nbt;
 
 public class NbtLong : NbtTag, INbtValue<long>
 {

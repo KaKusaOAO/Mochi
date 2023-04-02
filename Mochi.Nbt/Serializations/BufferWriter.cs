@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace KaLib.Nbt.Serializations;
+namespace Mochi.Nbt.Serializations;
 
 internal class BufferWriter
 {

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 
-namespace KaLib.Nbt;
+namespace Mochi.Nbt;
 
 public abstract class NbtTag : INbtTag
 {

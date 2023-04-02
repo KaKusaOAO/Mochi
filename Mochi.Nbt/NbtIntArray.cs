@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KaLib.Nbt;
+namespace Mochi.Nbt;
 
 public class NbtIntArray : NbtTag, INbtValue<int[]>
 {

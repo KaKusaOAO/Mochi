@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KaLib.Nbt.Serializations;
+namespace Mochi.Nbt.Serializations;
 
 [AttributeUsage(AttributeTargets.Property)]
 public class NbtPropertyAttribute : Attribute

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace KaLib.Nbt;
+namespace Mochi.Nbt;
 
 internal static class NbtIO
 {

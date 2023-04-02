@@ -2,9 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using KaLib.Nbt.Serializations.Converters;
+using Mochi.Nbt.Serializations.Converters;
 
-namespace KaLib.Nbt.Serializations;
+namespace Mochi.Nbt.Serializations;
 
 internal static class Reflections
 {

@@ -1,4 +1,4 @@
-﻿namespace KaLib.Nbt.Serializations;
+﻿namespace Mochi.Nbt.Serializations;
 
 internal interface INbtSerializer
 {
