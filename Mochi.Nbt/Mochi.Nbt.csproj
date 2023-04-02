@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageProjectUrl>https://github.com/KaKusaOAO/KaLib/blob/master/LICENSE</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/KaKusaOAO/KaLib</RepositoryUrl>
+        <RepositoryType>github</RepositoryType>
+        <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
+        <PackageVersion>1.0.3</PackageVersion>
+        <LangVersion>11</LangVersion>
+        <RootNamespace>KaLib.Nbt</RootNamespace>
+    </PropertyGroup>
+
+</Project>
