@@ -1,10 +1,9 @@
-﻿using Mochi.Brigadier;
-using Mochi.Brigadier.Context;
+﻿using Mochi.Brigadier.Context;
 using Mochi.Brigadier.Tree;
 using Mochi.Texts;
 using Mochi.Utils;
 
-namespace Mochi.Brigadier.TerminalHelper;
+namespace Mochi.Brigadier.Bridge;
 
 public static class BrigadierTerminal
 {
@@ -48,8 +47,8 @@ public static class BrigadierTerminal
         }
         
         var result = dispatcher.Parse(input, source);
-        var reader = result.GetReader();
-        var context = result.GetContext();
+        var reader = result.Reader;
+        var context = result.Context;
         
         if (reader.CanRead())
         {
@@ -108,7 +107,7 @@ public static class BrigadierTerminal
                     WriteWithSuggestion(LiteralText.Of(input[range.GetStart()..range.GetEnd()])
                         .SetColor(TextColor.Red));
 
-                    var c2 = c + reader.GetCursor();
+                    var c2 = c + reader.Cursor;
                     Console.CursorLeft = c2;
                     WriteError($" <- " + ex.Message);
                     Terminal.ClearRemaining();
@@ -130,7 +129,7 @@ public static class BrigadierTerminal
 
                 Console.CursorLeft = c1;
                 var errMsg = "Incorrect argument";
-                var err = result.GetExceptions();
+                var err = result.Exceptions;
                 if (err.Any())
                 {
                     errMsg = err.First().Value.Message;

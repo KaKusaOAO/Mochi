@@ -12,9 +12,9 @@ public class Suggestion : IComparable<Suggestion>
 
     public Suggestion(StringRange range, string text, IMessage tooltip = null)
     {
-        this._range = range;
-        this._text = text;
-        this._tooltip = tooltip;
+        _range = range;
+        _text = text;
+        _tooltip = tooltip;
     }
 
     public StringRange GetRange()
@@ -96,21 +96,21 @@ public class Suggestion : IComparable<Suggestion>
 
     public Suggestion Expand(string command, StringRange range)
     {
-        if (range.Equals(this._range))
+        if (range.Equals(_range))
         {
             return this;
         }
 
         var result = new StringBuilder();
-        if (range.GetStart() < this._range.GetStart())
+        if (range.GetStart() < _range.GetStart())
         {
-            result.Append(command.Substring(range.GetStart(), this._range.GetStart()));
+            result.Append(command.Substring(range.GetStart(), _range.GetStart()));
         }
 
         result.Append(_text);
-        if (range.GetEnd() > this._range.GetEnd())
+        if (range.GetEnd() > _range.GetEnd())
         {
-            result.Append(command.Substring(this._range.GetEnd(), range.GetEnd()));
+            result.Append(command.Substring(_range.GetEnd(), range.GetEnd()));
         }
 
         return new Suggestion(range, result.ToString(), _tooltip);

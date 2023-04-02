@@ -4,11 +4,13 @@ namespace Mochi.Nbt;
 
 public class NbtIntArray : NbtTag, INbtValue<int[]>
 {
-    public NbtIntArray() : base(11)
+    public NbtIntArray() : base(TagType.IntArray)
     {
     }
 
-    public NbtIntArray(int[] arr) : base(11) => Value = arr;
+    public NbtIntArray(int[] arr) : this() => Value = arr;
+    
+    public static implicit operator NbtIntArray(int[] arr) => new(arr);
 
     public static NbtIntArray FromGuid(Guid g)
     {

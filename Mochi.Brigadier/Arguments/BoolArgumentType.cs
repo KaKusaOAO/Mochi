@@ -7,7 +7,7 @@ namespace Mochi.Brigadier.Arguments;
 
 public class BoolArgumentType : IArgumentType<bool>
 {
-    private static IEnumerable<string> EXAMPLES = new List<string> { "true", "false" };
+    private static IEnumerable<string> _examples = new List<string> { "true", "false" };
 
     private BoolArgumentType()
     {
@@ -25,7 +25,7 @@ public class BoolArgumentType : IArgumentType<bool>
 
     public bool Parse(StringReader reader) => reader.ReadBoolean();
 
-    public Task<Suggestions> ListSuggestions<S>(CommandContext<S> context, SuggestionsBuilder builder)
+    public Task<Suggestions> ListSuggestions<TS>(CommandContext<TS> context, SuggestionsBuilder builder)
     {
         if ("true".StartsWith(builder.GetRemainingLowerCase()))
         {
@@ -42,6 +42,6 @@ public class BoolArgumentType : IArgumentType<bool>
 
     public IEnumerable<string> GetExamples()
     {
-        return EXAMPLES;
+        return _examples;
     }
 }

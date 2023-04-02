@@ -6,6 +6,8 @@ public abstract class NbtTag : INbtTag
 {
     public byte RawType { get; private set; }
 
+    public TagType Type => (TagType)RawType;
+
     public enum TagType : byte
     {
         End,
@@ -24,8 +26,19 @@ public abstract class NbtTag : INbtTag
     }
 
     public string Name { get; set; } = null;
+    
+    public static implicit operator NbtTag(string s) => new NbtString(s);
+    public static implicit operator NbtTag(byte b) => new NbtByte(b);
+    public static implicit operator NbtTag(short s) => new NbtShort(s);
+    public static implicit operator NbtTag(int i) => new NbtInt(i);
+    public static implicit operator NbtTag(long l) => new NbtLong(l);
+    public static implicit operator NbtTag(float f) => new NbtFloat(f);
+    public static implicit operator NbtTag(double d) => new NbtDouble(d);
+    public static implicit operator NbtTag(byte[] b) => new NbtByteArray(b);
+    public static implicit operator NbtTag(int[] i) => new NbtIntArray(i);
+    public static implicit operator NbtTag(long[] l) => new NbtLongArray(l);
 
-    protected NbtTag(byte b) => RawType = b;
+    protected NbtTag(TagType type) => RawType = (byte)type;
 
     public static NbtTag Deserialize(byte[] buffer, ref int index, bool named = false, TagType? type = null)
     {

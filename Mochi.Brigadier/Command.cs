@@ -12,4 +12,4 @@ public delegate int CommandDelegate<TS>(CommandContext<TS> context);
 
 public delegate Task<int> CommandDelegateAsync<TS>(CommandContext<TS> context);
 
-public delegate Task CommandDelegateResultless<TS>(CommandContext<TS> context);
+public delegate Task CommandDelegateNoResult<TS>(CommandContext<TS> context);

@@ -2,15 +2,17 @@
 
 public class NbtByte : NbtTag, INbtValue<byte>
 {
-    public NbtByte() : base(1)
+    public NbtByte() : base(TagType.Byte)
     {
     }
 
-    public NbtByte(byte value) : base(1) => Value = value;
+    public NbtByte(byte value) : this() => Value = value;
 
     public NbtByte(bool flag) : this((byte)(flag ? 1 : 0))
     {
     }
+    
+    public static implicit operator NbtByte(byte value) => new(value);
 
     public byte Value { get; set; }
 

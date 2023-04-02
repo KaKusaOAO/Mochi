@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Mochi.Brigadier.Context;
 using Mochi.Brigadier.Exceptions;
 
@@ -6,31 +7,18 @@ namespace Mochi.Brigadier.Arguments;
 
 public class IntegerArgumentType : IArgumentType<int>, IArgumentTypeWithExamples
 {
-    private static readonly IEnumerable<string> Examples = new[] { "0", "123", "-123" };
+    private static readonly IEnumerable<string> _examples = new[] { "0", "123", "-123" };
 
     private readonly int _minimum;
     private readonly int _maximum;
 
     private IntegerArgumentType(int minimum, int maximum)
     {
-        this._minimum = minimum;
-        this._maximum = maximum;
+        _minimum = minimum;
+        _maximum = maximum;
     }
 
-    public static IntegerArgumentType Integer()
-    {
-        return Integer(int.MinValue);
-    }
-
-    public static IntegerArgumentType Integer(int min)
-    {
-        return Integer(min, int.MaxValue);
-    }
-
-    public static IntegerArgumentType Integer(int min, int max)
-    {
-        return new IntegerArgumentType(min, max);
-    }
+    public static IntegerArgumentType Integer(int min = int.MinValue, int max = int.MaxValue) => new(min, max);
 
     public static int GetInteger<TS>(CommandContext<TS> context, string name)
     {
@@ -49,18 +37,18 @@ public class IntegerArgumentType : IArgumentType<int>, IArgumentTypeWithExamples
 
     public int Parse(StringReader reader)
     {
-        var start = reader.GetCursor();
+        var start = reader.Cursor;
         var result = reader.ReadInt();
         if (result < _minimum)
         {
-            reader.SetCursor(start);
+            reader.Cursor = start;
             throw CommandSyntaxException.BuiltInExceptions.IntegerTooLow()
                 .CreateWithContext(reader, result, _minimum);
         }
 
         if (result > _maximum)
         {
-            reader.SetCursor(start);
+            reader.Cursor = start;
             throw CommandSyntaxException.BuiltInExceptions.IntegerTooHigh()
                 .CreateWithContext(reader, result, _maximum);
         }
@@ -86,18 +74,17 @@ public class IntegerArgumentType : IArgumentType<int>, IArgumentTypeWithExamples
         {
             return "integer()";
         }
-        else if (_maximum == int.MaxValue)
+
+        if (_maximum == int.MaxValue)
         {
             return "integer(" + _minimum + ")";
         }
-        else
-        {
-            return "integer(" + _minimum + ", " + _maximum + ")";
-        }
+
+        return "integer(" + _minimum + ", " + _maximum + ")";
     }
 
     public IEnumerable<string> GetExamples()
     {
-        return Examples;
+        return _examples;
     }
 }

@@ -18,13 +18,14 @@ namespace Mochi.Brigadier;
 /// </summary>
 /// <typeparam name="TS">a custom "source" type, such as a user or originator of a command</typeparam>
 [SuppressMessage("ReSharper", "PossibleUnintendedReferenceComparison")]
-public class CommandDispatcher<TS> {
+public class CommandDispatcher<TS>
+{
     /// <summary>
     /// The string required to separate individual arguments in an input string
     /// </summary>
     /// <seealso cref="ArgumentSeparatorChar"/>
     public const string ArgumentSeparator = " ";
-    
+
     /// <summary>
     /// The char required to separate individual arguments in an input string
     /// </summary>
@@ -46,15 +47,16 @@ public class CommandDispatcher<TS> {
     /// Create a new <see cref="CommandDispatcher{TS}"/> with the specified root node.
     /// </summary>
     /// <param name="root">the existing <see cref="RootCommandNode{TS}"/> to use as the basis for this tree</param>
-    public CommandDispatcher(RootCommandNode<TS> root) {
-        this._root = root;
+    public CommandDispatcher(RootCommandNode<TS> root)
+    {
+        _root = root;
     }
 
     /// <summary>
     /// Create a new <see cref="CommandDispatcher{TS}"/> with an empty command tree.
     /// </summary>
-    public CommandDispatcher() : this(new RootCommandNode<TS>()) {
-        
+    public CommandDispatcher() : this(new RootCommandNode<TS>())
+    {
     }
 
     /// <summary>
@@ -63,8 +65,9 @@ public class CommandDispatcher<TS> {
     /// </summary>
     /// <param name="command">a literal argument builder to add to this command tree</param>
     /// <returns>the node added to this tree</returns>
-    public LiteralCommandNode<TS> Register(LiteralArgumentBuilder<TS> command) {
-        var build = (LiteralCommandNode<TS>) command.Build();
+    public LiteralCommandNode<TS> Register(LiteralArgumentBuilder<TS> command)
+    {
+        var build = (LiteralCommandNode<TS>)command.Build();
         _root.AddChild(build);
         return build;
     }
@@ -73,8 +76,9 @@ public class CommandDispatcher<TS> {
     /// Sets a callback to be informed of the result of every command.
     /// </summary>
     /// <param name="consumer">the new result consumer to be called</param>
-    public void SetConsumer(ResultConsumer<TS> consumer) {
-        this._consumer = consumer;
+    public void SetConsumer(ResultConsumer<TS> consumer)
+    {
+        _consumer = consumer;
     }
 
     /// <summary>
@@ -101,10 +105,11 @@ public class CommandDispatcher<TS> {
     /// <seealso cref="Parse(StringReader,TS)"/>
     /// <seealso cref="Execute(ParseResults{TS})"/>
     /// <seealso cref="Execute(StringReader,TS)"/>
-    public int Execute(string input, TS source) {
+    public int Execute(string input, TS source)
+    {
         return Execute(new StringReader(input), source);
     }
-    
+
     /// <summary>
     /// Parses and executes a given command asynchronously.
     /// <para>This is a shortcut to first <see cref="Parse(StringReader,TS)"/> and then <see cref="Execute(ParseResults{TS})"/></para>
@@ -129,7 +134,8 @@ public class CommandDispatcher<TS> {
     /// <seealso cref="Parse(StringReader,TS)"/>
     /// <seealso cref="Execute(ParseResults{TS})"/>
     /// <seealso cref="Execute(StringReader,TS)"/>
-    public Task<int> ExecuteAsync(string input, TS source) {
+    public Task<int> ExecuteAsync(string input, TS source)
+    {
         return ExecuteAsync(new StringReader(input), source);
     }
 
@@ -157,11 +163,12 @@ public class CommandDispatcher<TS> {
     /// <seealso cref="Parse(StringReader,TS)"/>
     /// <seealso cref="Execute(ParseResults{TS})"/>
     /// <seealso cref="Execute(StringReader,TS)"/>
-    public int Execute(StringReader input, TS source) {
-        var parse = this.Parse(input, source);
+    public int Execute(StringReader input, TS source)
+    {
+        var parse = Parse(input, source);
         return Execute(parse);
     }
-    
+
     /// <summary>
     /// Parses and executes a given command asynchronously.
     /// <para>This is a shortcut to first <see cref="Parse(StringReader,TS)"/> and then <see cref="Execute(ParseResults{TS})"/></para>
@@ -186,11 +193,12 @@ public class CommandDispatcher<TS> {
     /// <seealso cref="Parse(StringReader,TS)"/>
     /// <seealso cref="Execute(ParseResults{TS})"/>
     /// <seealso cref="Execute(StringReader,TS)"/>
-    public Task<int> ExecuteAsync(StringReader input, TS source) {
-        var parse = this.Parse(input, source);
+    public Task<int> ExecuteAsync(StringReader input, TS source)
+    {
+        var parse = Parse(input, source);
         return ExecuteAsync(parse);
     }
-    
+
     /// <summary>
     /// Executes a given pre-parsed command.
     /// <para>If this command returns a value, then it successfully executed something. If it could not parse the command, or the execution was a failure,
@@ -235,67 +243,94 @@ public class CommandDispatcher<TS> {
     /// <seealso cref="Parse(StringReader,TS)"/>
     /// <seealso cref="Execute(ParseResults{TS})"/>
     /// <seealso cref="Execute(StringReader,TS)"/>
-    public async Task<int> ExecuteAsync(ParseResults<TS> parse) {
-        if (parse.GetReader().CanRead()) {
-            if (parse.GetExceptions().Count == 1) {
-                throw parse.GetExceptions().Values.First();
-            } else if (parse.GetContext().GetRange().IsEmpty()) {
-                throw CommandSyntaxException.BuiltInExceptions.DispatcherUnknownCommand().CreateWithContext(parse.GetReader());
-            } else {
-                throw CommandSyntaxException.BuiltInExceptions.DispatcherUnknownArgument().CreateWithContext(parse.GetReader());
+    public async Task<int> ExecuteAsync(ParseResults<TS> parse)
+    {
+        if (parse.Reader.CanRead())
+        {
+            if (parse.Exceptions.Count == 1)
+            {
+                throw parse.Exceptions.Values.First();
             }
+
+            if (parse.Context.GetRange().IsEmpty())
+            {
+                throw CommandSyntaxException.BuiltInExceptions.DispatcherUnknownCommand()
+                    .CreateWithContext(parse.Reader);
+            }
+
+            throw CommandSyntaxException.BuiltInExceptions.DispatcherUnknownArgument()
+                .CreateWithContext(parse.Reader);
         }
 
         var result = 0;
         var successfulForks = 0;
         var forked = false;
         var foundCommand = false;
-        var command = parse.GetReader().GetString();
-        var original = parse.GetContext().Build(command);
+        var command = parse.Reader.GetString();
+        var original = parse.Context.Build(command);
         var contexts = new List<CommandContext<TS>> { original };
         List<CommandContext<TS>> next = null;
 
-        while (contexts != null) {
+        while (contexts != null)
+        {
             var size = contexts.Count;
-            for (var i = 0; i < size; i++) {
+            for (var i = 0; i < size; i++)
+            {
                 var context = contexts[i];
-                var child = context.GetChild();
-                if (child != null) {
+                var child = context.Child;
+                if (child != null)
+                {
                     forked |= context.IsForked();
-                    if (child.HasNodes()) {
+                    if (child.HasNodes())
+                    {
                         foundCommand = true;
                         var modifier = context.GetRedirectModifier();
-                        if (modifier == null) {
-                            if (next == null) {
+                        if (modifier == null)
+                        {
+                            if (next == null)
+                            {
                                 next = new List<CommandContext<TS>>(1);
                             }
-                            next.Add(child.CopyFor(context.GetSource()));
-                        } else {
-                            try {
+
+                            next.Add(child.CopyFor(context.Source));
+                        }
+                        else
+                        {
+                            try
+                            {
                                 var results = modifier(context).ToList();
                                 if (results.Any())
                                 {
-                                    if(next == null) next = new List<CommandContext<TS>>();
+                                    next ??= new List<CommandContext<TS>>();
                                     next.AddRange(results.Select(source => child.CopyFor(source)));
                                 }
-                            } catch (CommandSyntaxException) {
+                            }
+                            catch (CommandSyntaxException)
+                            {
                                 _consumer(context, false, 0);
-                                if (!forked) {
+                                if (!forked)
+                                {
                                     throw;
                                 }
                             }
                         }
                     }
-                } else if (context.GetCommand() != null) {
+                }
+                else if (context.Command != null)
+                {
                     foundCommand = true;
-                    try {
-                        var value = await context.GetCommand().Run(context);
+                    try
+                    {
+                        var value = await context.Command.Run(context);
                         result += value;
                         _consumer(context, true, value);
                         successfulForks++;
-                    } catch (CommandSyntaxException) {
+                    }
+                    catch (CommandSyntaxException)
+                    {
                         _consumer(context, false, 0);
-                        if (!forked) {
+                        if (!forked)
+                        {
                             throw;
                         }
                     }
@@ -306,9 +341,11 @@ public class CommandDispatcher<TS> {
             next = null;
         }
 
-        if (!foundCommand) {
+        if (!foundCommand)
+        {
             _consumer(original, false, 0);
-            throw CommandSyntaxException.BuiltInExceptions.DispatcherUnknownCommand().CreateWithContext(parse.GetReader());
+            throw CommandSyntaxException.BuiltInExceptions.DispatcherUnknownCommand()
+                .CreateWithContext(parse.Reader);
         }
 
         return forked ? successfulForks : result;
@@ -322,9 +359,9 @@ public class CommandDispatcher<TS> {
     /// Forked contexts may contain child contexts, which may be modified by the <see cref="RedirectModifier{S}"/> attached to the fork.</para>
     /// <para>Parsing a command can never fail, you will always be provided with a new <see cref="ParseResults{S}"/>.
     /// However, that does not mean that it will always parse into a valid command. You should inspect the returned results
-    /// to check for validity. If its <see cref="ParseResults{TS}.GetReader"/> <see cref="StringReader.CanRead()"/> then it did not finish
+    /// to check for validity. If its <see cref="ParseResults{TS}.Reader"/> <see cref="StringReader.CanRead()"/> then it did not finish
     /// parsing successfully. You can use that position as an indicator to the user where the command stopped being valid.
-    /// You may inspect <see cref="ParseResults{TS}.GetExceptions"/> if you know the parse failed, as it will explain why it could
+    /// You may inspect <see cref="ParseResults{TS}.Exceptions"/> if you know the parse failed, as it will explain why it could
     /// not find any valid commands. It may contain multiple exceptions, one for each "potential node" that it could have visited,
     /// explaining why it did not go down that node.</para>
     /// </summary>
@@ -334,9 +371,7 @@ public class CommandDispatcher<TS> {
     /// <seealso cref="Parse(StringReader,TS)"/>
     /// <seealso cref="Execute(ParseResults{TS})"/>
     /// <seealso cref="Execute(string,TS)"/>
-    public ParseResults<TS> Parse(string command, TS source) {
-        return Parse(new StringReader(command), source);
-    }
+    public ParseResults<TS> Parse(string command, TS source) => Parse(new StringReader(command), source);
 
     /// <summary>
     /// Parses a given command.
@@ -346,9 +381,9 @@ public class CommandDispatcher<TS> {
     /// Forked contexts may contain child contexts, which may be modified by the <see cref="RedirectModifier{S}"/> attached to the fork.</para>
     /// <para>Parsing a command can never fail, you will always be provided with a new <see cref="ParseResults{S}"/>.
     /// However, that does not mean that it will always parse into a valid command. You should inspect the returned results
-    /// to check for validity. If its <see cref="ParseResults{TS}.GetReader"/> <see cref="StringReader.CanRead()"/> then it did not finish
+    /// to check for validity. If its <see cref="ParseResults{TS}.Reader"/> <see cref="StringReader.CanRead()"/> then it did not finish
     /// parsing successfully. You can use that position as an indicator to the user where the command stopped being valid.
-    /// You may inspect <see cref="ParseResults{TS}.GetExceptions"/> if you know the parse failed, as it will explain why it could
+    /// You may inspect <see cref="ParseResults{TS}.Exceptions"/> if you know the parse failed, as it will explain why it could
     /// not find any valid commands. It may contain multiple exceptions, one for each "potential node" that it could have visited,
     /// explaining why it did not go down that node.</para>
     /// <para>When you eventually call <see cref="Execute(ParseResults{TS})"/> with the result of this method, the above error checking
@@ -360,89 +395,110 @@ public class CommandDispatcher<TS> {
     /// <seealso cref="Parse(string,TS)"/>
     /// <seealso cref="Execute(ParseResults{TS})"/>
     /// <seealso cref="Execute(string,TS)"/>
-    public ParseResults<TS> Parse(StringReader command, TS source) {
-        var context = new CommandContextBuilder<TS>(this, source, _root, command.GetCursor());
+    public ParseResults<TS> Parse(StringReader command, TS source)
+    {
+        var context = new CommandContextBuilder<TS>(this, source, _root, command.Cursor);
         return ParseNodes(_root, command, context);
     }
 
 #pragma warning disable CS8604
-    private ParseResults<TS> ParseNodes(CommandNode<TS> node, StringReader originalReader, CommandContextBuilder<TS> contextSoFar) {
+    private ParseResults<TS> ParseNodes(CommandNode<TS> node, StringReader originalReader,
+        CommandContextBuilder<TS> contextSoFar)
+    {
         var source = contextSoFar.GetSource();
         Dictionary<CommandNode<TS>, CommandSyntaxException> errors = null;
         List<ParseResults<TS>> potentials = null;
-        var cursor = originalReader.GetCursor();
+        var cursor = originalReader.Cursor;
 
-        foreach (var child in node.GetRelevantNodes(originalReader)) {
-            if (!child.CanUse(source)) {
-                continue;
-            }
+        foreach (var child in node.GetRelevantNodes(originalReader))
+        {
+            if (!child.CanUse(source)) continue;
+
             var context = contextSoFar.Copy();
             var reader = new StringReader(originalReader);
-            try {
-                try {
+            try
+            {
+                try
+                {
                     child.Parse(reader, context);
-                } catch (Exception ex) {
-                    throw CommandSyntaxException.BuiltInExceptions.DispatcherParseException().CreateWithContext(reader, ex.Message, ex);
                 }
-                if (reader.CanRead()) {
-                    if (reader.Peek() != ArgumentSeparatorChar) {
-                        throw CommandSyntaxException.BuiltInExceptions.DispatcherExpectedArgumentSeparator().CreateWithContext(reader);
+                catch (Exception ex)
+                {
+                    throw CommandSyntaxException.BuiltInExceptions.DispatcherParseException()
+                        .CreateWithContext(reader, ex.Message, ex);
+                }
+
+                if (reader.CanRead())
+                {
+                    if (reader.Peek() != ArgumentSeparatorChar)
+                    {
+                        throw CommandSyntaxException.BuiltInExceptions.DispatcherExpectedArgumentSeparator()
+                            .CreateWithContext(reader);
                     }
                 }
-            } catch (CommandSyntaxException ex) {
-                if (errors == null) {
-                    errors = new Dictionary<CommandNode<TS>, CommandSyntaxException>();
-                }
-                errors.Add(child, ex);
-                reader.SetCursor(cursor);
+            }
+            catch (CommandSyntaxException ex)
+            {
+                errors ??= new Dictionary<CommandNode<TS>, CommandSyntaxException>();
+                errors[child] = ex;
+                reader.Cursor = cursor;
                 continue;
             }
 
             context.WithCommand(child.Command);
-            if (reader.CanRead(child.Redirect == null ? 2 : 1)) {
+            if (reader.CanRead(child.Redirect == null ? 2 : 1))
+            {
                 reader.Skip();
-                if (child.Redirect != null) {
-                    var childContext = new CommandContextBuilder<TS>(this, source, child.Redirect, reader.GetCursor());
+                if (child.Redirect != null)
+                {
+                    var childContext = new CommandContextBuilder<TS>(this, source, child.Redirect, reader.Cursor);
                     var parse = ParseNodes(child.Redirect, reader, childContext);
-                    context.WithChild(parse.GetContext());
-                    return new ParseResults<TS>(context, parse.GetReader(), parse.GetExceptions());
-                } else {
+                    context.WithChild(parse.Context);
+                    return new ParseResults<TS>(context, parse.Reader, parse.Exceptions);
+                }
+                else
+                {
                     var parse = ParseNodes(child, reader, context);
-                    if (potentials == null) {
+                    if (potentials == null)
+                    {
                         potentials = new List<ParseResults<TS>>();
                     }
+
                     potentials.Add(parse);
                 }
-            } else {
-                if (potentials == null) {
+            }
+            else
+            {
+                if (potentials == null)
+                {
                     potentials = new List<ParseResults<TS>>();
                 }
-                potentials.Add(new ParseResults<TS>(context, reader, new Dictionary<CommandNode<TS>,CommandSyntaxException>()));
+
+                potentials.Add(new ParseResults<TS>(context, reader,
+                    new Dictionary<CommandNode<TS>, CommandSyntaxException>()));
             }
         }
 
-        if (potentials != null) {
-            if (potentials.Count > 1) {
-                potentials.Sort((a, b) => {
-                    if (!a.GetReader().CanRead() && b.GetReader().CanRead()) {
-                        return -1;
-                    }
-                    if (a.GetReader().CanRead() && !b.GetReader().CanRead()) {
-                        return 1;
-                    }
-                    if (a.GetExceptions().Count == 0 && b.GetExceptions().Count != 0) {
-                        return -1;
-                    }
-                    if (a.GetExceptions().Count != 0 && b.GetExceptions().Count == 0) {
-                        return 1;
-                    }
+        if (potentials != null)
+        {
+            if (potentials.Count > 1)
+            {
+                potentials.Sort((a, b) =>
+                {
+                    if (!a.Reader.CanRead() && b.Reader.CanRead()) return -1;
+                    if (a.Reader.CanRead() && !b.Reader.CanRead()) return 1;
+                    if (a.Exceptions.Count == 0 && b.Exceptions.Count != 0) return -1;
+                    if (a.Exceptions.Count != 0 && b.Exceptions.Count == 0) return 1;
+
                     return 0;
                 });
             }
+
             return potentials[0];
         }
 
-        return new ParseResults<TS>(contextSoFar, originalReader, errors ?? new Dictionary<CommandNode<TS>, CommandSyntaxException>());
+        return new ParseResults<TS>(contextSoFar, originalReader,
+            errors ?? new Dictionary<CommandNode<TS>, CommandSyntaxException>());
     }
 #pragma warning restore CS8604
 
@@ -465,33 +521,46 @@ public class CommandDispatcher<TS> {
     /// <param name="source">a custom "source" object, usually representing the originator of this command</param>
     /// <param name="restricted">if true, commands that the <paramref name="source"/> cannot access will not be mentioned</param>
     /// <returns>array of full usage strings under the target node</returns>
-    public string[] GetAllUsage(CommandNode<TS> node, TS source, bool restricted) {
-        List<string> result = new List<string>();
+    public string[] GetAllUsage(CommandNode<TS> node, TS source, bool restricted)
+    {
+        var result = new List<string>();
         GetAllUsage(node, source, result, "", restricted);
         return result.ToArray();
     }
 
 #pragma warning disable CS8602
-    private void GetAllUsage(CommandNode<TS> node, TS source, List<string> result, string prefix, bool restricted) {
-        if (restricted && !node.CanUse(source)) {
+    private void GetAllUsage(CommandNode<TS> node, TS source, List<string> result, string prefix, bool restricted)
+    {
+        if (restricted && !node.CanUse(source))
+        {
             return;
         }
 
-        if (node.Command != null) {
+        if (node.Command != null)
+        {
             result.Add(prefix);
         }
 
-        if (node.Redirect != null) {
+        if (node.Redirect != null)
+        {
             var redirect = node.Redirect == _root ? "..." : "-> " + node.Redirect.GetUsageText();
-            result.Add(string.IsNullOrEmpty(prefix) ? node.GetUsageText() + ArgumentSeparator + redirect : prefix + ArgumentSeparator + redirect);
-        } else if (node.GetChildren().Any()) {
-            foreach (var child in node.GetChildren()) {
-                GetAllUsage(child, source, result, string.IsNullOrEmpty(prefix) ? child.GetUsageText() : prefix + ArgumentSeparator + child.GetUsageText(), restricted);
+            result.Add(string.IsNullOrEmpty(prefix)
+                ? node.GetUsageText() + ArgumentSeparator + redirect
+                : prefix + ArgumentSeparator + redirect);
+        }
+        else if (node.GetChildren().Any())
+        {
+            foreach (var child in node.GetChildren())
+            {
+                GetAllUsage(child, source, result,
+                    string.IsNullOrEmpty(prefix)
+                        ? child.GetUsageText()
+                        : prefix + ArgumentSeparator + child.GetUsageText(), restricted);
             }
         }
     }
 #pragma warning restore CS8602
-    
+
     /// <summary>
     /// Gets the possible executable commands from a specified node.
     /// <para>You may use <see cref="GetRoot"/> as a target to get all usage data for the entire command tree.</para>
@@ -507,22 +576,28 @@ public class CommandDispatcher<TS> {
     /// <param name="node">target node to get child usage strings for</param>
     /// <param name="source">a custom "source" object, usually representing the originator of this command</param>
     /// <returns>array of full usage strings under the target node</returns>
-    public Dictionary<CommandNode<TS>, string> GetSmartUsage(CommandNode<TS> node, TS source) {
-        Dictionary<CommandNode<TS>, string> result = new Dictionary<CommandNode<TS>, string>();
+    public Dictionary<CommandNode<TS>, string> GetSmartUsage(CommandNode<TS> node, TS source)
+    {
+        var result = new Dictionary<CommandNode<TS>, string>();
 
         var optional = node.Command != null;
-        foreach (var child in node.GetChildren()) {
+        foreach (var child in node.GetChildren())
+        {
             var usage = GetSmartUsage(child, source, optional, false);
-            if (usage != null) {
+            if (usage != null)
+            {
                 result.Add(child, usage);
             }
         }
+
         return result;
     }
 
 #pragma warning disable CS8602
-    private string GetSmartUsage(CommandNode<TS> node, TS source, bool optional, bool deep) {
-        if (!node.CanUse(source)) {
+    private string GetSmartUsage(CommandNode<TS> node, TS source, bool optional, bool deep)
+    {
+        if (!node.CanUse(source))
+        {
             return null;
         }
 
@@ -531,42 +606,61 @@ public class CommandDispatcher<TS> {
         var open = childOptional ? UsageOptionalOpen : UsageRequiredOpen;
         var close = childOptional ? UsageOptionalClose : UsageRequiredClose;
 
-        if (!deep) {
-            if (node.Redirect != null) {
+        if (!deep)
+        {
+            if (node.Redirect != null)
+            {
                 var redirect = node.Redirect == _root ? "..." : "-> " + node.Redirect.GetUsageText();
                 return self + ArgumentSeparator + redirect;
-            } else {
-                var children = node.GetChildren().Where(c => c.CanUse(source)).ToList();
-                if (children.Count == 1) {
-                    var usage = GetSmartUsage(children.First(), source, childOptional, childOptional);
-                    if (usage != null) {
-                        return self + ArgumentSeparator + usage;
+            }
+
+            var children = node.GetChildren().Where(c => c.CanUse(source)).ToList();
+            if (children.Count == 1)
+            {
+                var usage = GetSmartUsage(children.First(), source, childOptional, childOptional);
+                if (usage != null)
+                {
+                    return self + ArgumentSeparator + usage;
+                }
+            }
+            else if (children.Count > 1)
+            {
+                var childUsage = new HashSet<string>();
+                foreach (var child in children)
+                {
+                    var usage = GetSmartUsage(child, source, childOptional, true);
+                    if (usage != null)
+                    {
+                        childUsage.Add(usage);
                     }
-                } else if (children.Count > 1) {
-                    HashSet<string> childUsage = new HashSet<string>();
-                    foreach (var child in children) {
-                        var usage = GetSmartUsage(child, source, childOptional, true);
-                        if (usage != null) {
-                            childUsage.Add(usage);
+                }
+
+                if (childUsage.Count == 1)
+                {
+                    var usage = childUsage.First();
+                    return self + ArgumentSeparator +
+                           (childOptional ? UsageOptionalOpen + usage + UsageOptionalClose : usage);
+                }
+
+                if (childUsage.Count > 1)
+                {
+                    var builder = new StringBuilder(open);
+                    var count = 0;
+                    foreach (var child in children)
+                    {
+                        if (count > 0)
+                        {
+                            builder.Append(UsageOr);
                         }
+
+                        builder.Append(child.GetUsageText());
+                        count++;
                     }
-                    if (childUsage.Count == 1) {
-                        var usage = childUsage.First();
-                        return self + ArgumentSeparator + (childOptional ? UsageOptionalOpen + usage + UsageOptionalClose : usage);
-                    } else if (childUsage.Count > 1) {
-                        var builder = new StringBuilder(open);
-                        var count = 0;
-                        foreach (var child in children) {
-                            if (count > 0) {
-                                builder.Append(UsageOr);
-                            }
-                            builder.Append(child.GetUsageText());
-                            count++;
-                        }
-                        if (count > 0) {
-                            builder.Append(close);
-                            return self + ArgumentSeparator + builder;
-                        }
+
+                    if (count > 0)
+                    {
+                        builder.Append(close);
+                        return self + ArgumentSeparator + builder;
                     }
                 }
             }
@@ -588,28 +682,34 @@ public class CommandDispatcher<TS> {
     /// </summary>
     /// <param name="parse">the result of a <see cref="Parse(StringReader,TS)"/></param>
     /// <returns>a future that will eventually resolve into a <see cref="Suggestions"/> object</returns>
-    public Task<Suggestions> GetCompletionSuggestions(ParseResults<TS> parse) {
-        return GetCompletionSuggestions(parse, parse.GetReader().GetTotalLength());
-    }
+    public Task<Suggestions> GetCompletionSuggestions(ParseResults<TS> parse) => 
+        GetCompletionSuggestions(parse, parse.Reader.TotalLength);
 
-    public Task<Suggestions> GetCompletionSuggestions(ParseResults<TS> parse, int cursor) {
-        var context = parse.GetContext();
+    public Task<Suggestions> GetCompletionSuggestions(ParseResults<TS> parse, int cursor)
+    {
+        var context = parse.Context;
 
         var nodeBeforeCursor = context.FindSuggestionContext(cursor);
         var parent = nodeBeforeCursor.Parent;
         var start = Math.Min(nodeBeforeCursor.StartPos, cursor);
 
-        var fullInput = parse.GetReader().GetString();
+        var fullInput = parse.Reader.GetString();
         var truncatedInput = fullInput.Substring(0, cursor);
         var truncatedInputLowerCase = truncatedInput.ToLowerInvariant();
         var tasks = new Task<Suggestions>[parent.GetChildren().Count()];
         var i = 0;
-        foreach (var node in parent.GetChildren()) {
+        foreach (var node in parent.GetChildren())
+        {
             var future = Suggestions.Empty();
-            try {
-                future = node.ListSuggestions(context.Build(truncatedInput), new SuggestionsBuilder(truncatedInput, truncatedInputLowerCase, start));
-            } catch (CommandSyntaxException) {
+            try
+            {
+                future = node.ListSuggestions(context.Build(truncatedInput),
+                    new SuggestionsBuilder(truncatedInput, truncatedInputLowerCase, start));
             }
+            catch (CommandSyntaxException)
+            {
+            }
+
             tasks[i++] = future;
         }
 
@@ -621,8 +721,9 @@ public class CommandDispatcher<TS> {
             while (!completed) await Task.Yield();
             return val;
         });
-        
-        Task.WhenAll(tasks).ContinueWith(_ => {
+
+        Task.WhenAll(tasks).ContinueWith(_ =>
+        {
             var suggestions = tasks.Select(task => task.Result).ToList();
             val = Suggestions.Merge(fullInput, suggestions);
             completed = true;
@@ -632,15 +733,12 @@ public class CommandDispatcher<TS> {
     }
 
     /// <summary>
-    /// Gets the root of this command tree.
+    /// The root node of this command tree.
     /// <para>This is often useful as a target of a <see cref="ArgumentBuilder{TS, T}.Redirect(CommandNode{TS})"/>,
     /// <see cref="GetAllUsage"/> or <see cref="GetSmartUsage"/>.
     /// You may also use it to clone the command tree via <see cref="CommandDispatcher{TS}(RootCommandNode{TS})"/>.</para>
     /// </summary>
-    /// <returns>root of the command tree</returns>
-    public RootCommandNode<TS> GetRoot() {
-        return _root;
-    }
+    public RootCommandNode<TS> Root => _root;
 
     /// <summary>
     /// Finds a valid path to a given node on the command tree.
@@ -653,10 +751,11 @@ public class CommandDispatcher<TS> {
     /// </summary>
     /// <param name="target">the target node you are finding a path for</param>
     /// <returns>a path to the resulting node, or an empty list if it was not found</returns>
-    public IEnumerable<string> GetPath(CommandNode<TS> target) {
-        List<List<CommandNode<TS>>> nodes = new List<List<CommandNode<TS>>>();
+    public IEnumerable<string> GetPath(CommandNode<TS> target)
+    {
+        var nodes = new List<List<CommandNode<TS>>>();
         AddPaths(_root, nodes, new List<CommandNode<TS>>());
-        foreach (var list in nodes.Where(list => list[list.Count-1] == target))
+        foreach (var list in nodes.Where(list => list[list.Count - 1] == target))
             return (from node in list where node != _root select node.Name).ToList();
         return Array.Empty<string>();
     }
@@ -669,17 +768,21 @@ public class CommandDispatcher<TS> {
     /// </summary>
     /// <param name="path">a generated path to a node</param>
     /// <returns>the node at the given path, or null if not found</returns>
-    public CommandNode<TS> FindNode(Collection<string> path) {
+    public CommandNode<TS> FindNode(Collection<string> path)
+    {
         CommandNode<TS> node = _root;
-        foreach (var name in path) {
+        foreach (var name in path)
+        {
             node = node.GetChild(name);
-            if (node == null) {
+            if (node == null)
+            {
                 return null;
             }
         }
+
         return node;
     }
-    
+
     /// <summary>
     /// Scans the command tree for potential ambiguous commands.
     /// <para>This is a shortcut for <see cref="CommandNode{TS}.FindAmbiguities"/> on <see cref="GetRoot"/>.</para>
@@ -687,16 +790,18 @@ public class CommandDispatcher<TS> {
     /// node. This is not fool proof, and relies a lot on the providers of the used argument types to give good examples.</para>
     /// </summary>
     /// <param name="consumer">a callback to be notified of potential ambiguities</param>
-    public void FindAmbiguities(AmbiguityConsumer<TS> consumer) {
+    public void FindAmbiguities(AmbiguityConsumer<TS> consumer)
+    {
         _root.FindAmbiguities(consumer);
     }
 
-    private void AddPaths(CommandNode<TS> node, List<List<CommandNode<TS>>> result, List<CommandNode<TS>> parents) {
-        List<CommandNode<TS>> current = new List<CommandNode<TS>>(parents);
-        current.Add(node);
+    private void AddPaths(CommandNode<TS> node, List<List<CommandNode<TS>>> result, List<CommandNode<TS>> parents)
+    {
+        var current = new List<CommandNode<TS>>(parents) { node };
         result.Add(current);
 
-        foreach (var child in node.GetChildren()) {
+        foreach (var child in node.GetChildren())
+        {
             AddPaths(child, result, current);
         }
     }

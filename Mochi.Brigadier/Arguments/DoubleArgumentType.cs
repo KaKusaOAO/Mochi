@@ -6,16 +6,16 @@ namespace Mochi.Brigadier.Arguments;
 
 public class DoubleArgumentType : IArgumentType<double>, IArgumentTypeWithExamples
 {
-    private static readonly IEnumerable<string> EXAMPLES = new List<string>
+    private static readonly IEnumerable<string> _examples = new List<string>
         { "0", "1.2", ".5", "-1", "-.5", "-1234.56" };
 
-    private readonly double minimum;
-    private readonly double maximum;
+    private readonly double _minimum;
+    private readonly double _maximum;
 
     private DoubleArgumentType(double minimum, double maximum)
     {
-        this.minimum = minimum;
-        this.maximum = maximum;
+        _minimum = minimum;
+        _maximum = maximum;
     }
 
     public static DoubleArgumentType DoubleArg()
@@ -40,30 +40,30 @@ public class DoubleArgumentType : IArgumentType<double>, IArgumentTypeWithExampl
 
     public double GetMinimum()
     {
-        return minimum;
+        return _minimum;
     }
 
     public double GetMaximum()
     {
-        return maximum;
+        return _maximum;
     }
 
     public double Parse(StringReader reader)
     {
-        int start = reader.GetCursor();
-        double result = reader.ReadDouble();
-        if (result < minimum)
+        var start = reader.Cursor;
+        var result = reader.ReadDouble();
+        if (result < _minimum)
         {
-            reader.SetCursor(start);
+            reader.Cursor = start;
             throw CommandSyntaxException.BuiltInExceptions.DoubleTooLow()
-                .CreateWithContext(reader, result, minimum);
+                .CreateWithContext(reader, result, _minimum);
         }
 
-        if (result > maximum)
+        if (result > _maximum)
         {
-            reader.SetCursor(start);
+            reader.Cursor = start;
             throw CommandSyntaxException.BuiltInExceptions.DoubleTooHigh()
-                .CreateWithContext(reader, result, maximum);
+                .CreateWithContext(reader, result, _maximum);
         }
 
         return result;
@@ -74,28 +74,28 @@ public class DoubleArgumentType : IArgumentType<double>, IArgumentTypeWithExampl
         if (this == o) return true;
         if (!(o is DoubleArgumentType that)) return false;
         // ReSharper disable CompareOfFloatsByEqualityOperator
-        return maximum == that.maximum && minimum == that.minimum;
+        return _maximum == that._maximum && _minimum == that._minimum;
     }
 
-    public override int GetHashCode() => (int)(31 * minimum + maximum);
+    public override int GetHashCode() => (int)(31 * _minimum + _maximum);
 
     public override string ToString()
     {
-        if (minimum == double.MinValue && maximum == double.MaxValue)
+        if (_minimum == double.MinValue && _maximum == double.MaxValue)
         {
             return "double()";
         }
 
-        if (maximum == double.MaxValue)
+        if (_maximum == double.MaxValue)
         {
-            return "double(" + minimum + ")";
+            return "double(" + _minimum + ")";
         }
 
-        return "double(" + minimum + ", " + maximum + ")";
+        return "double(" + _minimum + ", " + _maximum + ")";
     }
 
     public IEnumerable<string> GetExamples()
     {
-        return EXAMPLES;
+        return _examples;
     }
 }

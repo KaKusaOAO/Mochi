@@ -4,11 +4,11 @@ public interface IMutableStringReader
 {
     string GetString();
 
-    int GetRemainingLength();
+    int RemainingLength { get; }
 
-    int GetTotalLength();
+    int TotalLength { get; }
 
-    int GetCursor();
+    int Cursor { get; }
 
     string GetRead();
 

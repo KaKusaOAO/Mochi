@@ -101,7 +101,7 @@ public class NbtCompound : NbtTag, IDictionary<string, NbtTag>
 
     private List<NbtTag> children = new List<NbtTag>();
 
-    public NbtCompound() : base(10)
+    public NbtCompound() : base(TagType.Compound)
     {
     }
 

@@ -1,19 +1,30 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Mochi.Nbt;
 
 public class NbtList : NbtTag, IList<NbtTag>
 {
-    public NbtList() : base(9)
+    public NbtList() : base(TagType.List)
     {
     }
 
-    public NbtList(TagType type) : base(9) => ContentType = type;
+    public NbtList(TagType type) : this() => ContentType = type;
 
-    public NbtList(TagType type, List<NbtTag> list) : base(9)
+    public NbtList(TagType type, List<NbtTag> list) : this()
     {
         ContentType = type;
+        children = list;
+    }
+
+    public NbtList(List<NbtTag> list) : this()
+    {
+        if (list.Any())
+        {
+            ContentType = list.First().Type;
+        }
+
         children = list;
     }
 

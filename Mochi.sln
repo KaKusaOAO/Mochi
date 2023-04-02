@@ -14,7 +14,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mochi.Localizations.Test", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mochi.Brigadier.Test", "Mochi.Brigadier.Test\Mochi.Brigadier.Test.csproj", "{D079A98D-1DF1-4684-B50F-7E0F71447E3D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mochi.Brigadier.TerminalHelper", "Mochi.Brigadier.TerminalHelper\Mochi.Brigadier.TerminalHelper.csproj", "{1A269FC2-3149-4EC0-B15A-515842ACAEF2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mochi.Brigadier.Bridge", "Mochi.Brigadier.Bridge\Mochi.Brigadier.Bridge.csproj", "{1A269FC2-3149-4EC0-B15A-515842ACAEF2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mochi.IO.Controllers", "Mochi.IO.Controllers\Mochi.IO.Controllers.csproj", "{9CC09B78-783D-4450-8658-FB9F61893FD2}"
 EndProject

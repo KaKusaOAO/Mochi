@@ -1,17 +1,21 @@
 ﻿namespace Mochi.Brigadier;
 
-public class LiteralMessage : IMessage {
+public class LiteralMessage : IMessage
+{
     private readonly string _str;
 
-    public LiteralMessage(string str) {
-        this._str = str;
+    public LiteralMessage(string str)
+    {
+        _str = str;
     }
 
-    public string GetString() {
+    public string GetString()
+    {
         return _str;
     }
 
-    public override string ToString() {
+    public override string ToString()
+    {
         return _str;
     }
 }

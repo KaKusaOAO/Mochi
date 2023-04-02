@@ -2,13 +2,15 @@
 
 public class NbtByteArray : NbtTag, INbtValue<byte[]>
 {
-    public NbtByteArray() : base(7)
+    public NbtByteArray() : base(TagType.ByteArray)
     {
     }
 
-    public NbtByteArray(byte[] arr) : base(7) => Value = arr;
+    public NbtByteArray(byte[] arr) : this() => Value = arr;
 
     public byte[] Value { get; set; }
+    
+    public static implicit operator NbtByteArray(byte[] arr) => new(arr);
 
     public static NbtByteArray Deserialize(byte[] buffer, ref int index, bool named = false)
     {

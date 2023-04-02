@@ -27,7 +27,7 @@ public static class ArgumentTypeExtensions
 
         return Suggestions.Empty();
     }
-    
+
     public static IEnumerable<string> GetExamples(this IArgumentType type)
     {
         if (type is IArgumentTypeWithExamples typeWithExamples)

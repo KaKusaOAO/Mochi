@@ -2,13 +2,15 @@
 
 public class NbtShort : NbtTag, INbtValue<short>
 {
-    public NbtShort() : base(2)
+    public NbtShort() : base(TagType.Short)
     {
     }
 
-    public NbtShort(short n) : base(2) => Value = n;
+    public NbtShort(short n) : this() => Value = n;
 
     public short Value { get; set; }
+    
+    public static implicit operator NbtShort(short n) => new(n);
 
     public static NbtShort Deserialize(byte[] buffer, ref int index, bool named = false)
     {

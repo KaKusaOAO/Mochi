@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Mochi.Brigadier.TerminalHelper\Mochi.Brigadier.TerminalHelper.csproj" />
+      <ProjectReference Include="..\Mochi.Brigadier.Bridge\Mochi.Brigadier.Bridge.csproj" />
     </ItemGroup>
 
 </Project>

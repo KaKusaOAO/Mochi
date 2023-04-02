@@ -15,15 +15,15 @@ public class Suggestions
 
     public Suggestions(StringRange range, List<Suggestion> suggestions)
     {
-        this._range = range;
-        this._suggestions = suggestions;
+        _range = range;
+        _suggestions = suggestions;
     }
-        
+
     public StringRange GetRange()
     {
         return _range;
     }
-        
+
     public List<Suggestion> GetList()
     {
         return _suggestions;
@@ -79,12 +79,13 @@ public class Suggestions
         {
             return InternalEmpty;
         }
-        else if (input.Count == 1)
+
+        if (input.Count == 1)
         {
             return input.First();
         }
 
-        HashSet<Suggestion> texts = new HashSet<Suggestion>();
+        var texts = new HashSet<Suggestion>();
         foreach (var suggestions in input)
         {
             foreach (var item in suggestions.GetList())
@@ -112,13 +113,13 @@ public class Suggestions
         }
 
         var range = new StringRange(start, end);
-        HashSet<Suggestion> texts = new HashSet<Suggestion>();
+        var texts = new HashSet<Suggestion>();
         foreach (var suggestion in suggestions)
         {
             texts.Add(suggestion.Expand(command, range));
         }
 
-        List<Suggestion> sorted = new List<Suggestion>(texts);
+        var sorted = new List<Suggestion>(texts);
         sorted.Sort((a, b) => a.CompareToIgnoreCase(b));
         return new Suggestions(range, sorted);
     }

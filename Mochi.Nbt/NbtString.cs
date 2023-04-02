@@ -6,9 +6,11 @@ public class NbtString : NbtTag, INbtValue<string>
     {
     }
 
-    public NbtString(string s) : base(8) => Value = s;
+    public NbtString(string s) : base(TagType.String) => Value = s;
 
     public string Value { get; private set; }
+    
+    public static implicit operator NbtString(string s) => new(s);
 
     public static NbtString Deserialize(byte[] buffer, ref int index, bool named = false)
     {

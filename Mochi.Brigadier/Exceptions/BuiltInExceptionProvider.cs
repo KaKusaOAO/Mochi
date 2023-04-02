@@ -1,6 +1,7 @@
 ﻿namespace Mochi.Brigadier.Exceptions;
 
-public interface IBuiltInExceptionProvider {
+public interface IBuiltInExceptionProvider
+{
     Dynamic2CommandExceptionType DoubleTooLow();
 
     Dynamic2CommandExceptionType DoubleTooHigh();

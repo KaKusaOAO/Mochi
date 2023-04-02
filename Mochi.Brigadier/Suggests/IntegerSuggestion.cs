@@ -15,7 +15,7 @@ public class IntegerSuggestion : Suggestion
     public IntegerSuggestion(StringRange range, int value, IMessage tooltip) : base(range, value.ToString(),
         tooltip)
     {
-        this._value = value;
+        _value = value;
     }
 
     public int GetValue()

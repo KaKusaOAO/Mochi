@@ -2,13 +2,15 @@
 
 public class NbtFloat : NbtTag, INbtValue<float>
 {
-    public NbtFloat() : base(5)
+    public NbtFloat() : base(TagType.Float)
     {
     }
 
-    public NbtFloat(float f) : base(5) => Value = f;
+    public NbtFloat(float f) : this() => Value = f;
 
     public float Value { get; set; }
+    
+    public static implicit operator NbtFloat(float f) => new(f);
 
     public static NbtFloat Deserialize(byte[] buffer, ref int index, bool named = false)
     {

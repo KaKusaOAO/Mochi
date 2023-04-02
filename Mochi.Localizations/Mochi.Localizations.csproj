@@ -3,17 +3,17 @@
     <PropertyGroup>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Authors>Kaka</Authors>
-        <PackageLicenseUrl>https://github.com/KaKusaOAO/KaLib/blob/master/LICENSE</PackageLicenseUrl>
-        <RepositoryUrl>https://github.com/KaKusaOAO/KaLib</RepositoryUrl>
+        <PackageLicenseUrl>https://github.com/KaKusaOAO/Mochi/blob/master/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/KaKusaOAO/Mochi</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
-        <PackageVersion>1.0.6</PackageVersion>
-        <PackageProjectUrl>https://github.com/KaKusaOAO/KaLib</PackageProjectUrl>
-        <TargetFrameworks>net6.0;netstandard2.0;netstandard2.1</TargetFrameworks>
-        <LangVersion>7.3</LangVersion>
+        <PackageVersion>1.1</PackageVersion>
+        <PackageProjectUrl>https://github.com/KaKusaOAO/Mochi</PackageProjectUrl>
+        <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
+        <LangVersion>11</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+      <PackageReference Include="SmartFormat.NET" Version="3.2.1" />
     </ItemGroup>
 
 </Project>

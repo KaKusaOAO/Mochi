@@ -2,14 +2,14 @@
 
     <PropertyGroup>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <RepositoryUrl>https://github.com/KaKusaOAO/KaLib</RepositoryUrl>
+        <RepositoryUrl>https://github.com/KaKusaOAO/Mochi</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
-        <PackageVersion>1.1</PackageVersion>
-        <PackageLicenseUrl>https://github.com/KaKusaOAO/KaLib/blob/master/LICENSE</PackageLicenseUrl>
+        <PackageVersion>1.1.1</PackageVersion>
+        <PackageLicenseUrl>https://github.com/KaKusaOAO/Mochi/blob/master/LICENSE</PackageLicenseUrl>
         <LangVersion>11</LangVersion>
         <TargetFrameworks>net7.0;netstandard2.1</TargetFrameworks>
         <Authors>Kaka</Authors>
-        <PackageProjectUrl>https://github.com/KaKusaOAO/KaLib</PackageProjectUrl>
+        <PackageProjectUrl>https://github.com/KaKusaOAO/Mochi</PackageProjectUrl>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <AssemblyName>Mochi</AssemblyName>
         <RootNamespace>Mochi</RootNamespace>

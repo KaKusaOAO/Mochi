@@ -2,13 +2,15 @@
 
 public class NbtDouble : NbtTag, INbtValue<double>
 {
-    public NbtDouble() : base(6)
+    public NbtDouble() : base(TagType.Double)
     {
     }
 
-    public NbtDouble(double d) : base(6) => Value = d;
+    public NbtDouble(double d) : this() => Value = d;
 
     public double Value { get; set; }
+    
+    public static implicit operator NbtDouble(double d) => new(d);
 
     public static NbtDouble Deserialize(byte[] buffer, ref int index, bool named = false)
     {

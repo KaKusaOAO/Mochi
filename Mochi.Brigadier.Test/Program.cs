@@ -2,7 +2,7 @@
 using Mochi.Brigadier;
 using Mochi.Brigadier.Arguments;
 using Mochi.Brigadier.Builder;
-using Mochi.Brigadier.TerminalHelper;
+using Mochi.Brigadier.Bridge;
 using Mochi.Texts;
 using Mochi.Utils;
 using StringReader = Mochi.Brigadier.StringReader;
@@ -27,7 +27,7 @@ public class SpaceSeperatedArgument : IArgumentType<string>
             if (reader.CanRead())
             {
                 while (reader.CanRead() && reader.Peek() == ' ') reader.Skip();
-                reader.SetCursor(reader.GetCursor() - 1);
+                reader.Cursor--;
             }
             
             return sb.ToString();
@@ -65,11 +65,11 @@ public static class Program
         // Register some commands
         var rootNode = dispatcher.Register(Literal("execute"));
         dispatcher.Register(Literal("execute")
-            .Then(Literal("run").Redirect(dispatcher.GetRoot()))
+            .Then(Literal("run").Redirect(dispatcher.Root))
             .Then(Literal("at")
-                .Then(Argument("target", SpaceSeperatedArgument.String()).Fork(rootNode, context => new[] { context.GetSource() })))
+                .Then(Argument("target", SpaceSeperatedArgument.String()).Fork(rootNode, context => new[] { context.Source })))
             .Then(Literal("as")
-                .Then(Argument("target", SpaceSeperatedArgument.String()).Fork(rootNode, context => new[] { context.GetSource() })))
+                .Then(Argument("target", SpaceSeperatedArgument.String()).Fork(rootNode, context => new[] { context.Source })))
         );
         
         dispatcher.Register(Literal("foo")

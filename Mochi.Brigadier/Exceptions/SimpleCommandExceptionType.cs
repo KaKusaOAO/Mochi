@@ -1,21 +1,26 @@
 ﻿namespace Mochi.Brigadier.Exceptions;
 
-public class SimpleCommandExceptionType : ICommandExceptionType {
+public class SimpleCommandExceptionType : ICommandExceptionType
+{
     private readonly IMessage _message;
 
-    public SimpleCommandExceptionType( IMessage message) {
-        this._message = message;
+    public SimpleCommandExceptionType(IMessage message)
+    {
+        _message = message;
     }
 
-    public CommandSyntaxException Create() {
+    public CommandSyntaxException Create()
+    {
         return new CommandSyntaxException(this, _message);
     }
 
-    public CommandSyntaxException CreateWithContext( IMutableStringReader reader) {
-        return new CommandSyntaxException(this, _message, reader.GetString(), reader.GetCursor());
+    public CommandSyntaxException CreateWithContext(IMutableStringReader reader)
+    {
+        return new CommandSyntaxException(this, _message, reader.GetString(), reader.Cursor);
     }
 
-    public override string ToString() {
+    public override string ToString()
+    {
         return _message.GetString();
     }
 }

@@ -2,13 +2,15 @@
 
 public class NbtLongArray : NbtTag, INbtValue<long[]>
 {
-    public NbtLongArray() : base(12)
+    public NbtLongArray() : base(TagType.LongArray)
     {
     }
 
-    public NbtLongArray(long[] n) : base(12) => Value = n;
+    public NbtLongArray(long[] n) : this() => Value = n;
 
     public long[] Value { get; set; }
+    
+    public static implicit operator NbtLongArray(long[] n) => new(n);
 
     public static NbtLongArray Deserialize(byte[] buffer, ref int index, bool named = false)
     {

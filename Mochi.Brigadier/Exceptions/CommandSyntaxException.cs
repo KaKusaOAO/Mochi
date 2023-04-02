@@ -14,26 +14,28 @@ public class CommandSyntaxException : Exception
     private readonly string _input;
     private readonly int _cursor;
 
-    public CommandSyntaxException(ICommandExceptionType type, IMessage message, Exception inner = null) : base(message.GetString(), inner)
-    {
-        this._type = type;
-        this._message = message;
-        this._input = null;
-        this._cursor = -1;
-    }
-
-    public CommandSyntaxException(ICommandExceptionType type, IMessage message, string input, int cursor, Exception inner = null) : base(
+    public CommandSyntaxException(ICommandExceptionType type, IMessage message, Exception inner = null) : base(
         message.GetString(), inner)
     {
-        this._type = type;
-        this._message = message;
-        this._input = input;
-        this._cursor = cursor;
+        _type = type;
+        _message = message;
+        _input = null;
+        _cursor = -1;
+    }
+
+    public CommandSyntaxException(ICommandExceptionType type, IMessage message, string input, int cursor,
+        Exception inner = null) : base(
+        message.GetString(), inner)
+    {
+        _type = type;
+        _message = message;
+        _input = input;
+        _cursor = cursor;
     }
 
     public string GetMessage()
     {
-        var message = this._message.GetString();
+        var message = _message.GetString();
         var context = GetContext();
         if (context != null)
         {
@@ -50,13 +52,13 @@ public class CommandSyntaxException : Exception
 
     public string GetContext()
     {
-        if (_input == null || this._cursor < 0)
+        if (_input == null || _cursor < 0)
         {
             return null;
         }
 
         var builder = new StringBuilder();
-        var cursor = Math.Min(_input.Length, this._cursor);
+        var cursor = Math.Min(_input.Length, _cursor);
 
         if (cursor > ContextAmount)
         {

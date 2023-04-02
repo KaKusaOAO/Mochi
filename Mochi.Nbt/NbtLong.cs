@@ -2,13 +2,15 @@
 
 public class NbtLong : NbtTag, INbtValue<long>
 {
-    public NbtLong() : base(4)
+    public NbtLong() : base(TagType.Long)
     {
     }
 
-    public NbtLong(long n) : base(4) => Value = n;
+    public NbtLong(long n) : this() => Value = n;
 
     public long Value { get; set; }
+    
+    public static implicit operator NbtLong(long n) => new(n);
 
     public static NbtLong Deserialize(byte[] buffer, ref int index, bool named = false)
     {

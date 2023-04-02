@@ -1,4 +1,5 @@
 ﻿namespace Mochi.Brigadier.Exceptions;
 
-public interface ICommandExceptionType {
+public interface ICommandExceptionType
+{
 }

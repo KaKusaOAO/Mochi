@@ -11,8 +11,8 @@ public class ParsedCommandNode<TS>
 
     public ParsedCommandNode(CommandNode<TS> node, StringRange range)
     {
-        this._node = node;
-        this._range = range;
+        _node = node;
+        _range = range;
     }
 
     public CommandNode<TS> GetNode()

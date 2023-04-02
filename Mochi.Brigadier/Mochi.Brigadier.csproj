@@ -4,11 +4,11 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Authors>Kaka</Authors>
         <Description>A C# implementation of Mojang's Brigadier.</Description>
-        <PackageProjectUrl>https://github.com/KaKusaOAO/KaLib</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/KaKusaOAO/KaLib/blob/master/LICENSE</PackageLicenseUrl>
-        <RepositoryUrl>https://github.com/KaKusaOAO/KaLib</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/KaKusaOAO/Mochi</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/KaKusaOAO/Mochi/blob/master/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/KaKusaOAO/Mochi</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
-        <PackageVersion>1.0.13</PackageVersion>
+        <PackageVersion>1.1</PackageVersion>
         <LangVersion>11</LangVersion>
         <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
     </PropertyGroup>
