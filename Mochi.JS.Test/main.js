@@ -39,6 +39,14 @@ setModuleImports("utils.js", {
         });
         return func.apply(obj, r);
     },
+    getNew: (obj, prop, args) => {
+        let func = obj[prop];
+        let r = args.map(a => {
+            if (typeof a.func === "function") return a.func;
+            return a;
+        });
+        return new func(...r);
+    },
     convertToAny: (obj) => {
         if (typeof obj === "function") {
             return {func: obj};

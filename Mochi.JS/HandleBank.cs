@@ -21,4 +21,9 @@ public class HandlePool<T>
 
     private static HandlePool<T> _shared;
     public static HandlePool<T> Shared => _shared ??= new();
+    
+    public void Release(object handle)
+    {
+        _pool.Remove(handle);
+    }
 }

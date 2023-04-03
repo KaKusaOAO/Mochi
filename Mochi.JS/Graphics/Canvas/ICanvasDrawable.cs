@@ -1,6 +1,6 @@
 namespace Mochi.JS.Graphics.Canvas;
 
-public interface ICanvasDrawable
+public interface ICanvasDrawable : IJSObject
 {
-    public object Handle { get; }
+    
 }

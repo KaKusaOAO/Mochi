@@ -1,6 +1,6 @@
 namespace Mochi.JS.Dom;
 
-public class Document
+public class Document : IJSObject
 {
     private object _handle;
     private static Document _current;

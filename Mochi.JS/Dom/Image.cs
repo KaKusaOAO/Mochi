@@ -3,6 +3,7 @@ using Mochi.JS.Graphics.Canvas;
 
 namespace Mochi.JS.Dom;
 
+// Image is actually an alias for HTMLImageElement.
 public class Image : ICanvasDrawable
 {
     private readonly object _handle;

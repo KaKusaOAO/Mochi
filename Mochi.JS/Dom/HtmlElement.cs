@@ -1,6 +1,6 @@
 namespace Mochi.JS.Dom;
 
-public class HtmlElement
+public class HtmlElement : IJSObject
 {
     private object _handle;
     
