@@ -22,6 +22,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mochi.IO.Controllers.Test",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mochi.Test", "Mochi.Test\Mochi.Test.csproj", "{78231F9D-612C-4645-BE7D-AC823FAC98A0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mochi.JS", "Mochi.JS\Mochi.JS.csproj", "{D0CB2E1C-CA7F-4C9A-B4F3-E55D55ECA126}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mochi.JS.Test", "Mochi.JS.Test\Mochi.JS.Test.csproj", "{D1579C82-B406-418A-9424-6BE94A93207A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,5 +76,13 @@ Global
 		{78231F9D-612C-4645-BE7D-AC823FAC98A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78231F9D-612C-4645-BE7D-AC823FAC98A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78231F9D-612C-4645-BE7D-AC823FAC98A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0CB2E1C-CA7F-4C9A-B4F3-E55D55ECA126}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0CB2E1C-CA7F-4C9A-B4F3-E55D55ECA126}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0CB2E1C-CA7F-4C9A-B4F3-E55D55ECA126}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0CB2E1C-CA7F-4C9A-B4F3-E55D55ECA126}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1579C82-B406-418A-9424-6BE94A93207A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1579C82-B406-418A-9424-6BE94A93207A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1579C82-B406-418A-9424-6BE94A93207A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1579C82-B406-418A-9424-6BE94A93207A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
