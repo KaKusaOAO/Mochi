@@ -45,7 +45,7 @@ public class ArgumentCommandNode<TS> : CommandNode<TS>
         contextBuilder.WithNode(this, parsed.Range);
     }
 
-    public override Task<Suggestions> ListSuggestions(CommandContext<TS> context, SuggestionsBuilder builder)
+    public override Task<Suggestions> ListSuggestionsAsync(CommandContext<TS> context, SuggestionsBuilder builder)
     {
         if (CustomSuggestions == null)
         {

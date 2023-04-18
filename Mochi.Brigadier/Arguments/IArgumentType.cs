@@ -23,7 +23,7 @@ public static class ArgumentTypeExtensions
         SuggestionsBuilder builder)
     {
         if (type is ISuggestingArgumentType suggestingType)
-            return suggestingType.ListSuggestions(context, builder);
+            return suggestingType.ListSuggestionsAsync(context, builder);
 
         return Suggestions.Empty();
     }

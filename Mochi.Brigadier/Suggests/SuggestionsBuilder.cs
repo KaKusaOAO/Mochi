@@ -6,93 +6,48 @@ namespace Mochi.Brigadier.Suggests;
 
 public class SuggestionsBuilder
 {
-    private readonly string _input;
+    public string Input { get; }
     private readonly string _inputLowerCase;
-    private readonly int _start;
-    private readonly string _remaining;
-    private readonly string _remainingLowerCase;
-    private readonly List<Suggestion> _result = new List<Suggestion>();
+    public int Start { get; }
+    public string Remaining { get; }
+    public string RemainingLowerCase { get; }
+    private readonly List<Suggestion> _result = new();
 
     public SuggestionsBuilder(string input, string inputLowerCase, int start)
     {
-        _input = input;
+        Input = input;
         _inputLowerCase = inputLowerCase;
-        _start = start;
-#if NETCOREAPP
-            _remaining = input[start..];
-            _remainingLowerCase = inputLowerCase[start..];
-#else
-        _remaining = input.Substring(start);
-        _remainingLowerCase = inputLowerCase.Substring(start);
-#endif
+        Start = start;
+        Remaining = input[start..];
+        RemainingLowerCase = inputLowerCase[start..];
     }
 
     public SuggestionsBuilder(string input, int start) : this(input, input.ToLowerInvariant(), start)
     {
     }
 
-    public string GetInput()
-    {
-        return _input;
-    }
+    public Suggestions Build() => Suggestions.Create(Input, _result);
 
-    public int GetStart()
-    {
-        return _start;
-    }
-
-    public string GetRemaining()
-    {
-        return _remaining;
-    }
-
-    public string GetRemainingLowerCase()
-    {
-        return _remainingLowerCase;
-    }
-
-    public Suggestions Build()
-    {
-        return Suggestions.Create(_input, _result);
-    }
-
-    public async Task<Suggestions> BuildFuture()
+    public async Task<Suggestions> BuildAsync()
     {
         await Task.Yield();
         return Build();
     }
 
-    public SuggestionsBuilder Suggest(string text)
+    public SuggestionsBuilder Suggest(string text, IBrigadierMessage? tooltip = null)
     {
-        if (text.Equals(_remaining))
+        if (text.Equals(Remaining))
         {
             return this;
         }
 
-        _result.Add(new Suggestion(StringRange.Between(_start, _input.Length), text));
+        _result.Add(new Suggestion(StringRange.Between(Start, Input.Length), text, tooltip));
         return this;
     }
 
-    public SuggestionsBuilder Suggest(string text, IBrigadierMessage tooltip)
+    public SuggestionsBuilder Suggest(int value, IBrigadierMessage? tooltip = null)
     {
-        if (text.Equals(_remaining))
-        {
-            return this;
-        }
-
-        _result.Add(new Suggestion(StringRange.Between(_start, _input.Length), text, tooltip));
-        return this;
-    }
-
-    public SuggestionsBuilder Suggest(int value)
-    {
-        _result.Add(new IntegerSuggestion(StringRange.Between(_start, _input.Length), value));
-        return this;
-    }
-
-    public SuggestionsBuilder Suggest(int value, IBrigadierMessage tooltip)
-    {
-        _result.Add(new IntegerSuggestion(StringRange.Between(_start, _input.Length), value, tooltip));
+        _result.Add(new IntegerSuggestion(StringRange.Between(Start, Input.Length), value, tooltip));
         return this;
     }
 
@@ -102,13 +57,6 @@ public class SuggestionsBuilder
         return this;
     }
 
-    public SuggestionsBuilder CreateOffset(int start)
-    {
-        return new SuggestionsBuilder(_input, _inputLowerCase, start);
-    }
-
-    public SuggestionsBuilder Restart()
-    {
-        return CreateOffset(_start);
-    }
+    public SuggestionsBuilder CreateOffset(int start) => new(Input, _inputLowerCase, start);
+    public SuggestionsBuilder Restart() => CreateOffset(Start);
 }

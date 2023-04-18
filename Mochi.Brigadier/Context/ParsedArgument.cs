@@ -25,14 +25,7 @@ public class ParsedArgument<TS>
         return _result == that._result && _range == that._range;
     }
 
-    public override int GetHashCode()
-    {
-#if NETCOREAPP
-        return HashCode.Combine(_range, _result);
-#else
-        return _range.GetHashCode() * 31 + _result.GetHashCode();
-#endif
-    }
+    public override int GetHashCode() => HashCode.Combine(_range, _result);
 }
 
 public class ParsedArgument<TS, T> : ParsedArgument<TS>

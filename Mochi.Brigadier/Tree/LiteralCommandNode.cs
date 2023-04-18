@@ -63,34 +63,28 @@ public class LiteralCommandNode<TS> : CommandNode<TS>
         return -1;
     }
 
-    public override Task<Suggestions> ListSuggestions(CommandContext<TS> context, SuggestionsBuilder builder)
+    public override Task<Suggestions> ListSuggestionsAsync(CommandContext<TS> context, SuggestionsBuilder builder)
     {
-        if (_literalLowerCase.StartsWith(builder.GetRemainingLowerCase()))
+        if (_literalLowerCase.StartsWith(builder.RemainingLowerCase))
         {
-            return builder.Suggest(_literal).BuildFuture();
+            return builder.Suggest(_literal).BuildAsync();
         }
 
         return Suggestions.Empty();
     }
 
-    protected override bool IsValidInput(string input)
-    {
-        return Parse(new StringReader(input)) > -1;
-    }
+    protected override bool IsValidInput(string input) => Parse(new StringReader(input)) > -1;
 
     public override bool Equals(object o)
     {
         if (this == o) return true;
-        if (!(o is LiteralCommandNode<TS> that)) return false;
+        if (o is not LiteralCommandNode<TS> that) return false;
 
         if (!_literal.Equals(that._literal)) return false;
         return Equals(that);
     }
 
-    public override string GetUsageText()
-    {
-        return _literal;
-    }
+    public override string GetUsageText() => _literal;
 
     public override int GetHashCode()
     {

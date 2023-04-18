@@ -4,8 +4,8 @@ namespace Mochi.Brigadier.Context;
 
 public class SuggestionContext<TS>
 {
-    public readonly CommandNode<TS> Parent;
-    public readonly int StartPos;
+    public CommandNode<TS> Parent { get; }
+    public int StartPos { get; }
 
     public SuggestionContext(CommandNode<TS> parent, int startPos)
     {

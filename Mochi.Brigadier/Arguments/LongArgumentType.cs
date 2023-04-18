@@ -19,20 +19,11 @@ public class LongArgumentType : IArgumentType<long>, IArgumentTypeWithExamples
     
     public static LongArgumentType LongArg(long min = long.MinValue, long max = long.MaxValue) => new(min, max);
 
-    public static long GetLong<TS>(CommandContext<TS> context, string name)
-    {
-        return context.GetArgument<long>(name);
-    }
+    public static long GetLong<TS>(CommandContext<TS> context, string name) => context.GetArgument<long>(name);
 
-    public long GetMinimum()
-    {
-        return _minimum;
-    }
+    public long GetMinimum() => _minimum;
 
-    public long GetMaximum()
-    {
-        return _maximum;
-    }
+    public long GetMaximum() => _maximum;
 
     public long Parse(StringReader reader)
     {

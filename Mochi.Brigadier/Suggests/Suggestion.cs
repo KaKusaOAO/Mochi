@@ -8,9 +8,9 @@ public class Suggestion : IComparable<Suggestion>
 {
     private readonly StringRange _range;
     private readonly string _text;
-    private readonly IBrigadierMessage _tooltip;
+    private readonly IBrigadierMessage? _tooltip;
 
-    public Suggestion(StringRange range, string text, IBrigadierMessage tooltip = null)
+    public Suggestion(StringRange range, string text, IBrigadierMessage? tooltip = null)
     {
         _range = range;
         _text = text;
@@ -21,7 +21,7 @@ public class Suggestion : IComparable<Suggestion>
 
     public string Text => _text;
 
-    public IBrigadierMessage Tooltip => _tooltip;
+    public IBrigadierMessage? Tooltip => _tooltip;
 
     public string Apply(string input)
     {
@@ -61,29 +61,18 @@ public class Suggestion : IComparable<Suggestion>
         return _range == that._range && _text == that._text && _tooltip == that._tooltip;
     }
 
-    public override int GetHashCode()
-    {
-#if NETCOREAPP
-            return HashCode.Combine(_range, _text, _tooltip);
-#else
-        return (_range.GetHashCode() * 31 + _text.GetHashCode()) * 31 + _tooltip.GetHashCode();
-#endif
-    }
+    public override int GetHashCode() => HashCode.Combine(_range, _text, _tooltip);
 
     public override string ToString()
     {
         return $"Suggestion{{range={_range}, text='{_text}', tooltip='{_tooltip}'}}";
     }
 
-    public virtual int CompareTo(Suggestion o)
-    {
-        return string.Compare(_text, o?._text, StringComparison.Ordinal);
-    }
+    public virtual int CompareTo(Suggestion o) => 
+        string.Compare(_text, o._text, StringComparison.Ordinal);
 
-    public virtual int CompareToIgnoreCase(Suggestion b)
-    {
-        return string.Compare(_text.ToLowerInvariant(), b._text.ToLowerInvariant(), StringComparison.Ordinal);
-    }
+    public virtual int CompareToIgnoreCase(Suggestion b) => 
+        string.Compare(_text.ToLowerInvariant(), b._text.ToLowerInvariant(), StringComparison.Ordinal);
 
     public Suggestion Expand(string command, StringRange range)
     {

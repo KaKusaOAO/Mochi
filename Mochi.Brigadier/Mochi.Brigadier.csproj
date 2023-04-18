@@ -8,9 +8,10 @@
         <PackageLicenseUrl>https://github.com/KaKusaOAO/Mochi/blob/master/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/KaKusaOAO/Mochi</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
-        <PackageVersion>1.1.1</PackageVersion>
+        <PackageVersion>1.1.2</PackageVersion>
         <LangVersion>11</LangVersion>
         <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
 </Project>

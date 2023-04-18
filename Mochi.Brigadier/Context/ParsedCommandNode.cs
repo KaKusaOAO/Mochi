@@ -32,12 +32,5 @@ public class ParsedCommandNode<TS>
         return _node == that._node && _range == that._range;
     }
 
-    public override int GetHashCode()
-    {
-#if NETCOREAPP
-            return HashCode.Combine(_node, _range);
-#else
-        return _node.GetHashCode() * 31 + _range.GetHashCode();
-#endif
-    }
+    public override int GetHashCode() => HashCode.Combine(_node, _range);
 }

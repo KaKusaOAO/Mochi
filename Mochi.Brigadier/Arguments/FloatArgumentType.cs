@@ -21,20 +21,11 @@ public class FloatArgumentType : IArgumentType<float>, IArgumentTypeWithExamples
 
     public static FloatArgumentType FloatArg(float min = float.MinValue, float max = float.MaxValue) => new(min, max);
 
-    public static float GetFloat<T>(CommandContext<T> context, string name)
-    {
-        return context.GetArgument<float>(name);
-    }
+    public static float GetFloat<T>(CommandContext<T> context, string name) => context.GetArgument<float>(name);
 
-    public float GetMinimum()
-    {
-        return _minimum;
-    }
+    public float GetMinimum() => _minimum;
 
-    public float GetMaximum()
-    {
-        return _maximum;
-    }
+    public float GetMaximum() => _maximum;
 
     public float Parse(StringReader reader)
     {

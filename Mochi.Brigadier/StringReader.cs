@@ -46,63 +46,25 @@ public class StringReader : IMutableStringReader
 
     private int InternalGetCursor() => _cursor;
 
-    public string GetRead()
-    {
-#if NETCOREAPP
-        return _str[.._cursor];
-#else
-        return _str.Substring(0, _cursor);
-#endif
-    }
+    public string GetRead() => _str[.._cursor];
 
-    public string GetRemaining()
-    {
-#if NETCOREAPP
-        return _str[_cursor..];
-#else
-            return _str.Substring(_cursor);
-#endif
-    }
+    public string GetRemaining() => _str[_cursor..];
 
-    public bool CanRead(int length)
-    {
-        return _cursor + length <= _str.Length;
-    }
+    public bool CanRead(int length) => _cursor + length <= _str.Length;
 
-    public bool CanRead()
-    {
-        return CanRead(1);
-    }
+    public bool CanRead() => CanRead(1);
 
-    public char Peek()
-    {
-        return _str[_cursor];
-    }
+    public char Peek() => _str[_cursor];
 
-    public char Peek(int offset)
-    {
-        return _str[_cursor + offset];
-    }
+    public char Peek(int offset) => _str[_cursor + offset];
 
-    public char Read()
-    {
-        return _str[_cursor++];
-    }
+    public char Read() => _str[_cursor++];
 
-    public void Skip()
-    {
-        _cursor++;
-    }
+    public void Skip() => _cursor++;
 
-    public static bool IsAllowedNumber(char c)
-    {
-        return c >= '0' && c <= '9' || c == '.' || c == '-';
-    }
+    public static bool IsAllowedNumber(char c) => c is >= '0' and <= '9' or '.' or '-';
 
-    public static bool IsQuotedStringStart(char c)
-    {
-        return c is SyntaxDoubleQuote or SyntaxSingleQuote;
-    }
+    public static bool IsQuotedStringStart(char c) => c is SyntaxDoubleQuote or SyntaxSingleQuote;
 
     public void SkipWhitespace()
     {
@@ -339,5 +301,21 @@ public class StringReader : IMutableStringReader
         }
 
         Skip();
+    }
+
+    public void Expect(string str)
+    {
+        var cursor = Cursor;
+        
+        foreach (var c in str)
+        {
+            if (!CanRead() || Peek() != c)
+            {
+                Cursor = cursor;
+                throw CommandSyntaxException.BuiltInExceptions.ReaderExpectedSymbol().CreateWithContext(this, str);
+            }
+
+            Skip();
+        }
     }
 }

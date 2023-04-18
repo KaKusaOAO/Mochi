@@ -6,20 +6,14 @@ public class LiteralArgumentBuilder<TS> : ArgumentBuilder<TS, LiteralArgumentBui
 {
     private readonly string _literal;
 
-    protected LiteralArgumentBuilder(string literal)
+    private LiteralArgumentBuilder(string literal)
     {
         _literal = literal;
     }
 
-    public static LiteralArgumentBuilder<TS> Literal(string name)
-    {
-        return new LiteralArgumentBuilder<TS>(name);
-    }
+    public static LiteralArgumentBuilder<TS> Literal(string name) => new(name);
 
-    protected override LiteralArgumentBuilder<TS> GetThis()
-    {
-        return this;
-    }
+    protected override LiteralArgumentBuilder<TS> GetThis() => this;
 
     public string GetLiteral() => _literal;
 

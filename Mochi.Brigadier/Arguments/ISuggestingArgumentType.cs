@@ -6,5 +6,5 @@ namespace Mochi.Brigadier.Arguments;
 
 public interface ISuggestingArgumentType : IArgumentType
 {
-    Task<Suggestions> ListSuggestions<TS>(CommandContext<TS> context, SuggestionsBuilder builder);
+    Task<Suggestions> ListSuggestionsAsync<TS>(CommandContext<TS> context, SuggestionsBuilder builder);
 }

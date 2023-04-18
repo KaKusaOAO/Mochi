@@ -20,20 +20,12 @@ public class IntegerArgumentType : IArgumentType<int>, IArgumentTypeWithExamples
 
     public static IntegerArgumentType Integer(int min = int.MinValue, int max = int.MaxValue) => new(min, max);
 
-    public static int GetInteger<TS>(CommandContext<TS> context, string name)
-    {
-        return context.GetArgument<int>(name);
-    }
+    public static int GetInteger<TS>(CommandContext<TS> context, string name) => 
+        context.GetArgument<int>(name);
 
-    public int GetMinimum()
-    {
-        return _minimum;
-    }
+    public int GetMinimum() => _minimum;
 
-    public int GetMaximum()
-    {
-        return _maximum;
-    }
+    public int GetMaximum() => _maximum;
 
     public int Parse(StringReader reader)
     {

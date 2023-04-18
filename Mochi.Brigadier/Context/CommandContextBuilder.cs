@@ -7,11 +7,9 @@ namespace Mochi.Brigadier.Context;
 
 public class CommandContextBuilder<TS>
 {
-    private readonly Dictionary<string, ParsedArgument<TS>> _arguments =
-        new Dictionary<string, ParsedArgument<TS>>();
-
+    private readonly Dictionary<string, ParsedArgument<TS>> _arguments = new();
     private readonly CommandNode<TS> _rootNode;
-    private readonly List<ParsedCommandNode<TS>> _nodes = new List<ParsedCommandNode<TS>>();
+    private readonly List<ParsedCommandNode<TS>> _nodes = new();
     private readonly CommandDispatcher<TS> _dispatcher;
     private TS _source;
     private ICommand<TS> _command;

@@ -5,14 +5,9 @@ namespace Mochi.Brigadier.Suggests;
 
 public class IntegerSuggestion : Suggestion
 {
-    private int _value;
+    private readonly int _value;
 
-    public IntegerSuggestion(StringRange range, int value) : this(range, value, null)
-    {
-        ;
-    }
-
-    public IntegerSuggestion(StringRange range, int value, IBrigadierMessage tooltip) : base(range, value.ToString(),
+    public IntegerSuggestion(StringRange range, int value, IBrigadierMessage? tooltip = null) : base(range, value.ToString(),
         tooltip)
     {
         _value = value;
@@ -27,7 +22,7 @@ public class IntegerSuggestion : Suggestion
             return true;
         }
 
-        if (!(o is IntegerSuggestion that))
+        if (o is not IntegerSuggestion that)
         {
             return false;
         }
@@ -35,20 +30,10 @@ public class IntegerSuggestion : Suggestion
         return _value == that._value && base.Equals(o);
     }
 
-    public override int GetHashCode()
-    {
-#if NETCOREAPP
-            return HashCode.Combine(base.GetHashCode(), _value);
-#else
-        return GetHashCode() * 31 + _value;
-#endif
-    }
+    public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), _value);
 
-    public override string ToString()
-    {
-        return
-            $"IntegerSuggestion{{value={_value}, range={Range}, text='{Text}', tooltip='{Tooltip}'}}";
-    }
+    public override string ToString() => 
+        $"IntegerSuggestion{{value={_value}, range={Range}, text='{Text}', tooltip='{Tooltip}'}}";
 
     public override int CompareTo(Suggestion o)
     {

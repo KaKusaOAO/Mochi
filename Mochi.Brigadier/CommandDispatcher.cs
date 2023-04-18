@@ -703,7 +703,7 @@ public class CommandDispatcher<TS>
             var future = Suggestions.Empty();
             try
             {
-                future = node.ListSuggestions(context.Build(truncatedInput),
+                future = node.ListSuggestionsAsync(context.Build(truncatedInput),
                     new SuggestionsBuilder(truncatedInput, truncatedInputLowerCase, start));
             }
             catch (CommandSyntaxException)

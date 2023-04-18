@@ -25,7 +25,7 @@ public class RootCommandNode<TS> : CommandNode<TS>
     {
     }
 
-    public override Task<Suggestions> ListSuggestions(CommandContext<TS> context, SuggestionsBuilder builder)
+    public override Task<Suggestions> ListSuggestionsAsync(CommandContext<TS> context, SuggestionsBuilder builder)
     {
         return Suggestions.Empty();
     }

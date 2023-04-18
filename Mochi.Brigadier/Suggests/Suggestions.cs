@@ -8,7 +8,7 @@ namespace Mochi.Brigadier.Suggests;
 
 public class Suggestions
 {
-    private static readonly Suggestions InternalEmpty = new Suggestions(StringRange.At(0), new List<Suggestion>());
+    private static readonly Suggestions _internalEmpty = new(StringRange.At(0), new List<Suggestion>());
 
     private readonly StringRange _range;
     private readonly List<Suggestion> _suggestions;
@@ -70,14 +70,14 @@ public class Suggestions
     public static async Task<Suggestions> Empty()
     {
         await Task.CompletedTask;
-        return InternalEmpty;
+        return _internalEmpty;
     }
 
     public static Suggestions Merge(string command, ICollection<Suggestions> input)
     {
         if (input.Count == 0)
         {
-            return InternalEmpty;
+            return _internalEmpty;
         }
 
         if (input.Count == 1)
@@ -101,7 +101,7 @@ public class Suggestions
     {
         if (suggestions.Count == 0)
         {
-            return InternalEmpty;
+            return _internalEmpty;
         }
 
         var start = int.MaxValue;

@@ -24,25 +24,16 @@ public class RequiredArgumentBuilder<TS, T> : ArgumentBuilder<TS, RequiredArgume
     public RequiredArgumentBuilder<TS, T> Suggests(SuggestionProvider<TS> provider)
     {
         _suggestionsProvider = provider;
-        return GetThis();
-    }
-
-    public SuggestionProvider<TS> GetSuggestionsProvider()
-    {
-        return _suggestionsProvider;
-    }
-
-    protected override RequiredArgumentBuilder<TS, T> GetThis()
-    {
         return this;
     }
 
+    public SuggestionProvider<TS> GetSuggestionsProvider() => _suggestionsProvider;
+
+    protected override RequiredArgumentBuilder<TS, T> GetThis() => this;
+
     public IArgumentType<T> Type => _type;
 
-    public string GetName()
-    {
-        return _name;
-    }
+    public string GetName() => _name;
 
     public override CommandNode<TS> Build()
     {

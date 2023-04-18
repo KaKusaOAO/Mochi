@@ -5,7 +5,7 @@ using Mochi.Brigadier.Suggests;
 
 namespace Mochi.Brigadier.Arguments;
 
-public class BoolArgumentType : IArgumentType<bool>
+public class BoolArgumentType : IArgumentType<bool>, ISuggestingArgumentType, IArgumentTypeWithExamples
 {
     private static IEnumerable<string> _examples = new List<string> { "true", "false" };
 
@@ -13,35 +13,26 @@ public class BoolArgumentType : IArgumentType<bool>
     {
     }
 
-    public static BoolArgumentType Bool()
-    {
-        return new BoolArgumentType();
-    }
+    public static BoolArgumentType Bool() => new();
 
-    public static bool GetBool<T>(CommandContext<T> context, string name)
-    {
-        return context.GetArgument<bool>(name);
-    }
+    public static bool GetBool<T>(CommandContext<T> context, string name) => context.GetArgument<bool>(name);
 
     public bool Parse(StringReader reader) => reader.ReadBoolean();
 
-    public Task<Suggestions> ListSuggestions<TS>(CommandContext<TS> context, SuggestionsBuilder builder)
+    public Task<Suggestions> ListSuggestionsAsync<TS>(CommandContext<TS> context, SuggestionsBuilder builder)
     {
-        if ("true".StartsWith(builder.GetRemainingLowerCase()))
+        if ("true".StartsWith(builder.RemainingLowerCase))
         {
             builder.Suggest("true");
         }
 
-        if ("false".StartsWith(builder.GetRemainingLowerCase()))
+        if ("false".StartsWith(builder.RemainingLowerCase))
         {
             builder.Suggest("false");
         }
 
-        return builder.BuildFuture();
+        return builder.BuildAsync();
     }
 
-    public IEnumerable<string> GetExamples()
-    {
-        return _examples;
-    }
+    public IEnumerable<string> GetExamples() => _examples;
 }

@@ -9,12 +9,12 @@ namespace Mochi.Brigadier.Builder;
 
 public abstract class ArgumentBuilder<TS>
 {
-    protected readonly RootCommandNode<TS> _arguments = new RootCommandNode<TS>();
-    protected ICommand<TS> _command;
-    protected Predicate<TS> _requirement = _ => true;
-    protected CommandNode<TS> _target;
-    protected RedirectModifier<TS> _modifier;
-    protected bool _forks;
+    private readonly RootCommandNode<TS> _arguments = new();
+    private ICommand<TS> _command;
+    private Predicate<TS> _requirement = _ => true;
+    private CommandNode<TS> _target;
+    private RedirectModifier<TS> _modifier;
+    private bool _forks;
 
     public ArgumentBuilder<TS> Then(ArgumentBuilder<TS> argument)
     {
@@ -64,9 +64,9 @@ public abstract class ArgumentBuilder<TS>
     {
         private CommandDelegateAsync<TS> Del;
 
-        public CmdImpl(CommandDelegateAsync<TS> Del)
+        public CmdImpl(CommandDelegateAsync<TS> del)
         {
-            this.Del = Del;
+            Del = del;
         }
 
         public Task<int> Run(CommandContext<TS> context) => Del(context);
@@ -89,7 +89,7 @@ public abstract class ArgumentBuilder<TS>
 
     public ArgumentBuilder<TS> Redirect(CommandNode<TS> target, SingleRedirectModifier<TS> modifier)
     {
-        return Forward(target, modifier == null ? (RedirectModifier<TS>)null : o => new List<TS> { modifier(o) },
+        return Forward(target, modifier == null ? null : o => new List<TS> { modifier(o) },
             false);
     }
 

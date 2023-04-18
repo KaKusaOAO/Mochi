@@ -84,26 +84,18 @@ public class CommandContext<TS>
     public override bool Equals(object o)
     {
         if (this == o) return true;
-        if (!(o is CommandContext<TS> that)) return false;
+        if (o is not CommandContext<TS> that) return false;
 
         if (!_arguments.Equals(that._arguments)) return false;
-        if (!((object)_rootNode).Equals(that._rootNode)) return false;
+        if (!_rootNode.Equals(that._rootNode)) return false;
         if (_nodes.Count != that._nodes.Count || !_nodes.Equals(that._nodes)) return false;
         if (!_command.Equals(that._command)) return false;
         if (!_source.Equals(that._source)) return false;
         return _child.Equals(that._child);
     }
 
-    public override int GetHashCode()
-    {
-        var result = _source.GetHashCode();
-        result = 31 * result + _arguments.GetHashCode();
-        result = 31 * result + _command.GetHashCode();
-        result = 31 * result + _rootNode.GetHashCode();
-        result = 31 * result + _nodes.GetHashCode();
-        result = 31 * result + _child.GetHashCode();
-        return result;
-    }
+    public override int GetHashCode() => 
+        HashCode.Combine(_source, _arguments, _command, _rootNode, _nodes, _child);
 
     public RedirectModifier<TS> RedirectModifier => _modifier;
 

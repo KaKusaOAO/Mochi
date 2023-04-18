@@ -14,20 +14,9 @@ public class StringArgumentType : IArgumentType<string>, IArgumentTypeWithExampl
         _type = type;
     }
 
-    public static StringArgumentType Word()
-    {
-        return new StringArgumentType(StringType.SingleWord);
-    }
-
-    public static StringArgumentType String()
-    {
-        return new StringArgumentType(StringType.QuotablePhrase);
-    }
-
-    public static StringArgumentType GreedyString()
-    {
-        return new StringArgumentType(StringType.GreedyPhrase);
-    }
+    public static StringArgumentType Word() => new(StringType.SingleWord);
+    public static StringArgumentType String() => new(StringType.QuotablePhrase);
+    public static StringArgumentType GreedyString() => new(StringType.GreedyPhrase);
 
     public static string GetString<T>(CommandContext<T> context, string name)
     {

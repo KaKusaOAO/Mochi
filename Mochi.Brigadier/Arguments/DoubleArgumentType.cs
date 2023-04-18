@@ -18,25 +18,14 @@ public class DoubleArgumentType : IArgumentType<double>, IArgumentTypeWithExampl
         _maximum = maximum;
     }
 
-    public static DoubleArgumentType DoubleArg()
-    {
-        return DoubleArg(double.MinValue);
-    }
+    public static DoubleArgumentType DoubleArg() => DoubleArg(double.MinValue);
 
-    public static DoubleArgumentType DoubleArg(double min)
-    {
-        return DoubleArg(min, double.MaxValue);
-    }
+    public static DoubleArgumentType DoubleArg(double min) => DoubleArg(min, double.MaxValue);
 
-    public static DoubleArgumentType DoubleArg(double min, double max)
-    {
-        return new DoubleArgumentType(min, max);
-    }
+    public static DoubleArgumentType DoubleArg(double min, double max) => new(min, max);
 
-    public static double GetDouble<T>(CommandContext<T> context, string name)
-    {
-        return context.GetArgument<double>(name);
-    }
+    public static double GetDouble<T>(CommandContext<T> context, string name) => 
+        context.GetArgument<double>(name);
 
     public double GetMinimum()
     {
