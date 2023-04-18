@@ -7,6 +7,17 @@ namespace Mochi.Concurrent;
 public interface IPromise
 {
     public Task AsTask();
+
+    public IPromise Then(Action onResolve);
+    public IPromise<TOut> Then<TOut>(Func<IPromise<TOut>> onResolve);
+    public IPromise<TOut> Then<TOut>(Func<TOut> onResolve);
+    
+    public IPromise Then(Action onResolve, Action<Exception> onReject);
+    public IPromise<TOut> Then<TOut>(Func<IPromise<TOut>> onResolve, Func<Exception, IPromise<TOut>> onReject);
+    public IPromise<TOut> Then<TOut>(Func<TOut> onResolve, Func<Exception, TOut> onReject);
+    
+    public IPromise Catch(Action<Exception> onReject);
+    public IPromise<TOut> Catch<TOut>(Func<Exception, TOut> onReject);
     
     public static IPromise<T> Resolved<T>(T val) => 
         MochiLib.Platform.CreatePromise<T>((resolve, _) => resolve(val));
@@ -20,23 +31,25 @@ public interface IPromise<T> : IPromise
     public new Task<T> AsTask();
     Task IPromise.AsTask() => AsTask();
     
-    public IPromise<Unit> Then(Action<T> onResolve);
+    public IPromise Then(Action<T> onResolve);
+    IPromise IPromise.Then(Action onResolve) => Then(_ => onResolve());
+
+    public IPromise<TOut> Then<TOut>(Func<T, IPromise<TOut>> onResolve);
+    IPromise<TOut> IPromise.Then<TOut>(Func<IPromise<TOut>> onResolve) => Then(_ => onResolve());
+
     public IPromise<TOut> Then<TOut>(Func<T, TOut> onResolve);
-    
-    public IPromise<Unit> Then(Action<T> onResolve, Action<Exception> onReject);
+    IPromise<TOut> IPromise.Then<TOut>(Func<TOut> onResolve) => Then(_ => onResolve());
+
+    public IPromise Then(Action<T> onResolve, Action<Exception> onReject);
+    IPromise IPromise.Then(Action onResolve, Action<Exception> onReject) => Then(_ => onResolve(), onReject);
+
+    public IPromise<TOut> Then<TOut>(Func<T, IPromise<TOut>> onResolve, Func<Exception, IPromise<TOut>> onReject);
+    IPromise<TOut> IPromise.Then<TOut>(Func<IPromise<TOut>> onResolve, Func<Exception, IPromise<TOut>> onReject) =>
+        Then(_ => onResolve(), onReject);
+
     public IPromise<TOut> Then<TOut>(Func<T, TOut> onResolve, Func<Exception, TOut> onReject);
-    
-    public IPromise<Unit> Catch(Action<Exception> onReject);
-    public IPromise<TOut> Catch<TOut>(Func<Exception, TOut> onReject);
-}
-
-public static class PromiseExtension
-{
-    public static IPromise<Unit> Then(this IPromise<Unit> p, Action onResolve) => 
-        p.Then(_ => onResolve());
-
-    public static IPromise<TOut> Then<TOut>(this IPromise<Unit> p, Func<TOut> onResolve) =>
-        p.Then(_ => onResolve());
+    IPromise<TOut> IPromise.Then<TOut>(Func<TOut> onResolve, Func<Exception, TOut> onReject) =>
+        Then(_ => onResolve(), onReject);
 }
 
 public delegate void PromiseResolveHandler<in T>(T value);

@@ -76,7 +76,7 @@ public static class Terminal
         (_stdoutCursorX, _stdoutCursorY) = (Console.CursorLeft, Console.CursorTop);
     }
 
-    public static void WriteStdOut(IText text) => WriteStdOut(text.ToAscii());
+    public static void WriteStdOut(IText text) => WriteStdOut(text.ToAnsi());
 
     public static void WriteLineStdOut(string text)
     {
@@ -95,7 +95,7 @@ public static class Terminal
         DrawPromptLine(inputBufferRenderer: _inputRenderer);
     }
 
-    public static void WriteLineStdOut(IText text) => WriteLineStdOut(text.ToAscii());
+    public static void WriteLineStdOut(IText text) => WriteLineStdOut(text.ToAnsi());
     
     public static void Write(string text)
     {
@@ -104,7 +104,7 @@ public static class Terminal
         _writeLock.Release();
     }
 
-    public static void Write(IText text) => Write(text.ToAscii());
+    public static void Write(IText text) => Write(text.ToAnsi());
     
     public static void WriteLine(string text)
     {
@@ -115,7 +115,7 @@ public static class Terminal
 
     public static string CurrentInput => string.Join("", _inputBuffer);
 
-    public static void WriteLine(IText text) => WriteLine(text.ToAscii());
+    public static void WriteLine(IText text) => WriteLine(text.ToAnsi());
 
     public static void ClearLine()
     {

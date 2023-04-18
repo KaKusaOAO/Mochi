@@ -32,11 +32,7 @@ public static class Logger
     }
         
     public static LogLevel Level { get; set; }
-
-    private const string DefaultName = null;
-
     public static TranslateText PrefixFormat => TranslateText.Of("{2} - {0} {1}");
-
     private static readonly SemaphoreSlim _logLock = new(1, 1);
     private static readonly ConcurrentQueue<Action> _recordCall = new();
     private static Thread _thread;
@@ -47,7 +43,7 @@ public static class Logger
 #if DEBUG
         Level = LogLevel.Verbose;
 #else
-            Level = LogLevel.Info;
+        Level = LogLevel.Info;
 #endif
     }
 
@@ -81,7 +77,7 @@ public static class Logger
         _bootstrapped = true;
         _thread = Thread.CurrentThread;
     }
-        
+    
     public static void RunBlocking()
     {
         if (_bootstrapped) return;
@@ -218,25 +214,17 @@ public static class Logger
         }
     }
 
-    private static string GetCallSourceName()
-    {
-        string name;
-        var stack = new StackTrace();
-        var method = stack.GetFrame(2)?.GetMethod();
-        name = method == null ? "?" : GetRootType(method.DeclaringType).FullName;
-        return name;
-    }
-
     private static Type GetCallSourceType()
     {
         var stack = new StackTrace();
         var method = stack.GetFrame(2)?.GetMethod();
             
         // There are some rare case where the method is null.
-        // For example in an Unity WebGL build, the stack trace might be unavailable.
+        // For example in an Unity WebGL build where the stack trace is disabled,
+        // the method information might be unavailable.
         if (method == null) return typeof(Logger);
             
-        return GetRootType(method!.DeclaringType);
+        return GetRootType(method.DeclaringType!);
     }
 
     private static Type GetRootType(Type t)
@@ -244,7 +232,7 @@ public static class Logger
         while (true)
         {
             if (!t!.Name.StartsWith("<")) return t;
-            t = t.DeclaringType;
+            t = t.DeclaringType!;
         }
     }
 
@@ -278,13 +266,13 @@ public static class Logger
         var prefix = f.AddWith(tag, LiteralText.Of(""), LiteralText.Of(now));
             
         var pPlain = prefix.ToPlainText();
-        var pf = ascii ? prefix.ToAscii() : prefix.ToPlainText(); 
-        var content = ascii ? text.ToAscii() : text.ToPlainText();
+        var pf = ascii ? prefix.ToAnsi() : prefix.ToPlainText(); 
+        var content = ascii ? text.ToAnsi() : text.ToPlainText();
         var lines = content.Split('\n');
 
         var remainPrefixPlain = "+ ->> ";
-        var remainPrefix = (ascii ? TextColor.DarkGray.ToAsciiCode() : "") + remainPrefixPlain +
-                           (ascii ? LegacyAsciiColor.Reset.ToAsciiCode() : "");
+        var remainPrefix = (ascii ? TextColor.DarkGray.ToAnsiCode() : "") + remainPrefixPlain +
+                           (ascii ? LegacyAnsiColor.Reset.ToAnsiCode() : "");
         return lines.Take(1).Select(c => pf + c)
             .Concat(lines.Skip(1).Select(c => (remainPrefix + c).PadLeft(c.Length + pPlain.Length + remainPrefix.Length - remainPrefixPlain.Length))).ToList();
     }
@@ -325,63 +313,44 @@ public static class Logger
         });
     }
 
-    public static void Log(IText t, IText name = null)
+    private static IText CreateTextFromGeneric(object? obj)
     {
-        var tag = name ?? Text.RepresentType(GetCallSourceType());
-        Log(LogLevel.Log, t, TextColor.DarkGray, tag);
+        return obj switch
+        {
+            null => LiteralText.Of("<null>").SetColor(TextColor.Red),
+            IText text => text,
+            Type type => Text.RepresentType(type),
+            _ => LiteralText.Of(obj.ToString())
+        };
     }
 
-    public static void Log(string msg, string name = DefaultName)
+    public static void Log(object? content, object? name = null)
     {
-        var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
-        Log(LogLevel.Log, LiteralText.Of(msg), TextColor.DarkGray, tag);
+        var tag = name ?? GetCallSourceType();
+        Log(LogLevel.Log, CreateTextFromGeneric(content), TextColor.DarkGray, CreateTextFromGeneric(tag));
     }
 
-    public static void Verbose(IText t, IText name = null)
+    public static void Verbose(object? content, object? name = null)
     {
-        var tag = name ?? Text.RepresentType(GetCallSourceType());
-        Log(LogLevel.Verbose, t, TextColor.DarkGray, tag);
+        var tag = name ?? GetCallSourceType();
+        Log(LogLevel.Verbose, CreateTextFromGeneric(content), TextColor.DarkGray, CreateTextFromGeneric(tag));
     }
 
-    public static void Verbose(string msg, string name = DefaultName)
+    public static void Info(object? content, object? name = null)
     {
-        var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
-        Log(LogLevel.Verbose, LiteralText.Of(msg), TextColor.DarkGray, tag);
+        var tag = name ?? GetCallSourceType();
+        Log(LogLevel.Info, CreateTextFromGeneric(content), TextColor.Green, CreateTextFromGeneric(tag));
     }
 
-    public static void Info(IText t, IText name = null)
+    public static void Warn(object? content, object? name = null)
     {
-        var tag = name ?? Text.RepresentType(GetCallSourceType());
-        Log(LogLevel.Info, t, TextColor.Green, tag);
+        var tag = name ?? GetCallSourceType();
+        Log(LogLevel.Warn, CreateTextFromGeneric(content), TextColor.Gold, CreateTextFromGeneric(tag));
     }
 
-    public static void Info(string msg, string name = DefaultName)
+    public static void Error(object? content, object? name = null)
     {
-        var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
-        Log(LogLevel.Info, LiteralText.Of(msg), TextColor.Green, tag);
-    }
-
-    public static void Warn(IText t, IText name = null)
-    {
-        var tag = name ?? Text.RepresentType(GetCallSourceType());
-        Log(LogLevel.Warn, t, TextColor.Gold, tag);
-    }
-
-    public static void Warn(string msg, string name = DefaultName)
-    {
-        var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
-        Log(LogLevel.Warn, LiteralText.Of(msg), TextColor.Gold, tag);
-    }
-
-    public static void Error(IText t, IText name = null)
-    {
-        var tag = name ?? Text.RepresentType(GetCallSourceType());
-        Log(LogLevel.Error, t, TextColor.Red, tag);
-    }
-
-    public static void Error(string msg, string name = DefaultName)
-    {
-        var tag = name == null ? Text.RepresentType(GetCallSourceType()) : LiteralText.Of(name);
-        Log(LogLevel.Error, LiteralText.Of(msg), TextColor.Red, tag);
+        var tag = name ?? GetCallSourceType();
+        Log(LogLevel.Error, CreateTextFromGeneric(content), TextColor.Red, CreateTextFromGeneric(tag));
     }
 }

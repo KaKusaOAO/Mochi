@@ -4,7 +4,7 @@ namespace Mochi.Texts;
 
 public static class TextExtension
 {
-    public static T SetColor<T>(this T text, TextColor color) where T : IMutableText
+    public static T SetColor<T>(this T text, TextColor? color) where T : IMutableText
     {
         if (text is ITextGenericHelper<T> g) 
             return g.SetColor(color);

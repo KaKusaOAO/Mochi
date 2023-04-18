@@ -9,7 +9,15 @@ public abstract class TaskPromise : IPromise
     protected bool HasRejectHandler { get; set; }
     protected TaskPromise SourcePromise { get; set; }
     public abstract Task AsTask();
-    
+    public abstract IPromise Then(Action onResolve);
+    public abstract IPromise<TOut> Then<TOut>(Func<IPromise<TOut>> onResolve);
+    public abstract IPromise<TOut> Then<TOut>(Func<TOut> onResolve);
+    public abstract IPromise Then(Action onResolve, Action<Exception> onReject);
+    public abstract IPromise<TOut> Then<TOut>(Func<IPromise<TOut>> onResolve, Func<Exception, IPromise<TOut>> onReject);
+    public abstract IPromise<TOut> Then<TOut>(Func<TOut> onResolve, Func<Exception, TOut> onReject);
+    public abstract IPromise Catch(Action<Exception> onReject);
+    public abstract IPromise<TOut> Catch<TOut>(Func<Exception, TOut> onReject);
+
     protected void SetHasRejectHandler()
     {
         HasRejectHandler = true;
@@ -49,12 +57,29 @@ public class TaskPromise<T> : TaskPromise, IPromise<T>
 
     public Task<T> AsValueTask() => _tcs.Task;
     Task<T> IPromise<T>.AsTask() => AsValueTask();
+
+    public override IPromise Then(Action onResolve) => Then(_ => onResolve());
+
+    public override IPromise<TOut> Then<TOut>(Func<IPromise<TOut>> onResolve) => Then(_ => onResolve());
+
+    public override IPromise<TOut> Then<TOut>(Func<TOut> onResolve) => Then(_ => onResolve());
+
+    public override IPromise Then(Action onResolve, Action<Exception> onReject) => 
+        Then(_ => onResolve(), onReject);
+
+    public override IPromise<TOut> Then<TOut>(Func<IPromise<TOut>> onResolve, Func<Exception, IPromise<TOut>> onReject) => 
+        Then(_ => onResolve(), onReject);
+
+    public override IPromise<TOut> Then<TOut>(Func<TOut> onResolve, Func<Exception, TOut> onReject) => 
+        Then(_ => onResolve(), onReject);
+
     public override Task AsTask() => AsValueTask();
 
-    public IPromise<Unit> Then(Action<T> onResolve) => Then(onResolve, null);
+    public IPromise Then(Action<T> onResolve) => Then(onResolve, null);
+    public IPromise<TOut> Then<TOut>(Func<T, IPromise<TOut>> onResolve) => Then(onResolve, null);
     public IPromise<TOut> Then<TOut>(Func<T, TOut> onResolve) => Then(onResolve, null);
 
-    public IPromise<Unit> Then(Action<T> onResolve, Action<Exception> onReject)
+    public IPromise Then(Action<T> onResolve, Action<Exception> onReject)
     {
         if (onReject != null) SetHasRejectHandler();
         return new TaskPromise<Unit>((resolve, reject) =>
@@ -78,6 +103,71 @@ public class TaskPromise<T> : TaskPromise, IPromise<T>
                 {
                     onResolve?.Invoke(t.Result);
                     resolve(Unit.Instance);
+                }
+            });
+        })
+        {
+            SourcePromise = this
+        };
+    }
+
+    public IPromise<TOut> Then<TOut>(Func<T, IPromise<TOut>> onResolve, Func<Exception, IPromise<TOut>> onReject)
+    {
+        if (onResolve == null && onReject == null) 
+            throw new ArgumentException("onResolve and onReject cannot both be null");
+        
+        if (onReject != null) SetHasRejectHandler();
+        return new TaskPromise<TOut>((resolve, reject) =>
+        {
+            AsValueTask().ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    var ex = t.Exception!.InnerException;
+                    if (onReject != null)
+                    {
+                        // Run onReject and resolve with the result
+                        onReject(ex).AsTask().ContinueWith(t2 =>
+                        {
+                            if (t2.IsFaulted)
+                            {
+                                reject(t2.Exception!.InnerException);
+                            }
+                            else
+                            {
+                                resolve(t2.Result);
+                            }
+                        });
+                    }
+                    else
+                    {
+                        // Reject with the exception
+                        reject(ex);
+                    }
+                }
+                else
+                {
+                    // Resolved
+                    if (onResolve != null)
+                    {
+                        // Run onResolve and resolve with the result
+                        onResolve(t.Result).AsTask().ContinueWith(t2 =>
+                        {
+                            if (t2.IsFaulted)
+                            {
+                                reject(t2.Exception!.InnerException);
+                            }
+                            else
+                            {
+                                resolve(t2.Result);
+                            }
+                        });
+                    }
+                    else
+                    {
+                        // Can occur when calling Catch(Func<Exception, IPromise<TOut>>)
+                        resolve(default!);
+                    }
                 }
             });
         })
@@ -131,6 +221,6 @@ public class TaskPromise<T> : TaskPromise, IPromise<T>
         };
     }
 
-    public IPromise<Unit> Catch(Action<Exception> onReject) => Then(null, onReject);
-    public IPromise<TOut> Catch<TOut>(Func<Exception, TOut> onReject) => Then(null, onReject);
+    public override IPromise Catch(Action<Exception> onReject) => Then(null, onReject);
+    public override IPromise<TOut> Catch<TOut>(Func<Exception, TOut> onReject) => Then(null, onReject);
 }

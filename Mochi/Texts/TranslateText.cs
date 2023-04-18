@@ -42,9 +42,8 @@ public class TranslateText : Text<TranslateText>
 
     public override TranslateText Clone()
     {
-        TranslateText result = Of(Translate, With.ToArray());
-        result.AddExtra(result.Extra.ToArray());
-        return result;
+        var result = Of(Translate, With.ToArray());
+        return CloneToTarget(result);
     }
 
     private string Format(string fmt, params object[] obj)
@@ -72,11 +71,11 @@ public class TranslateText : Text<TranslateText>
         return string.Format(fmt, o.ToArray());
     }
 
-    public override string ToAscii()
+    public override string ToAnsi()
     {
-        var extra = base.ToAscii();
-        var color = (Color ?? ParentColor).GetAsciiCode();
-        var withAscii = With.Select(text => text.ToAscii() + color).ToArray();
+        var extra = base.ToAnsi();
+        var color = (Color ?? ParentColor).GetAnsiCode();
+        var withAscii = With.Select(text => text.ToAnsi() + color).ToArray();
         return color + Format(Translate, withAscii) + extra;
     }
 

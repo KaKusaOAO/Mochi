@@ -11,7 +11,7 @@ public class LiteralText : Text<LiteralText>
 
     protected override LiteralText ResolveThis() => this;
 
-    public static LiteralText Of(string text)
+    public static LiteralText Of(string? text)
     {
         return new LiteralText
         {
@@ -25,9 +25,9 @@ public class LiteralText : Text<LiteralText>
         StringBuilder sb = new();
         LiteralText t = new();
 
-        for (int i = 0; i < message.Length; i++)
+        for (var i = 0; i < message.Length; i++)
         {
-            char c = message[i];
+            var c = message[i];
             if (c == '\u00a7')
             {
                 if (++i >= message.Length) break;
@@ -40,7 +40,7 @@ public class LiteralText : Text<LiteralText>
                 if (c == 'x' && i + 12 < message.Length)
                 {
                     StringBuilder hex = new("#");
-                    for (int j = 0; j < 6; j++)
+                    for (var j = 0; j < 6; j++)
                     {
                         hex.Append(message[i + 2 + j * 2]);
                     }
@@ -94,26 +94,25 @@ public class LiteralText : Text<LiteralText>
 
     public override LiteralText Clone()
     {
-        LiteralText result = Of(Text);
-        result.AddExtra(result.Extra.ToArray());
-        return result;
+        var result = Of(Text);
+        return CloneToTarget(result);
     }
 
-    public override string ToAscii()
+    public override string ToAnsi()
     {
-        string extra = base.ToAscii();
-        string color = (Color ?? ParentColor).GetAsciiCode();
+        var extra = base.ToAnsi();
+        var color = (Color ?? ParentColor).GetAnsiCode();
         return color + Text + extra;
     }
 
     public override string ToPlainText()
     {
-        string extra = base.ToPlainText();
+        var extra = base.ToPlainText();
 
-        string result = "";
-        for (int i = 0; i < Text.Length; i++)
+        var result = "";
+        for (var i = 0; i < Text.Length; i++)
         {
-            string b = Text;
+            var b = Text;
             if (b[i] == TextColor.ColorChar && TextColor.McCodes().ToList().IndexOf(b[i + 1]) > -1)
             {
                 i += 2;

@@ -9,7 +9,7 @@ namespace Mochi.Texts;
 
 public static class Text
 {
-    public static IText RepresentType(Type t, TextColor color = null)
+    public static IText RepresentType(Type t, TextColor? color = null)
         => TranslateText.Of($"%s.{t.Name}")
             .SetColor(color ?? TextColor.Gold)
             .AddWith(
@@ -17,43 +17,43 @@ public static class Text
                     .SetColor(TextColor.DarkGray)
             );
             
-    private static IText RepresentInt(int val, TextColor color = null)
+    private static IText RepresentInt(int val, TextColor? color = null)
         => LiteralText.Of(val.ToString())
             .SetColor(color ?? TextColor.Gold);
 
-    private static IText RepresentDefGoldWithRedSuffix(string s, string suffix, TextColor color = null)
+    private static IText RepresentDefGoldWithRedSuffix(string s, string suffix, TextColor? color = null)
         => TranslateText.Of($"{s}%s")
             .SetColor(color ?? TextColor.Gold)
             .AddWith(LiteralText.Of(suffix).SetColor(TextColor.Red));
 
-    private static IText RepresentLong(long val, TextColor color = null)
+    private static IText RepresentLong(long val, TextColor? color = null)
         => RepresentDefGoldWithRedSuffix(val.ToString(), "L", color);
 
-    private static IText RepresentFloat(float val, TextColor color = null)
+    private static IText RepresentFloat(float val, TextColor? color = null)
         => RepresentDefGoldWithRedSuffix(val.ToString(CultureInfo.InvariantCulture), "f", color);
 
-    private static IText RepresentDouble(double val, TextColor color = null)
+    private static IText RepresentDouble(double val, TextColor? color = null)
         => RepresentDefGoldWithRedSuffix(val.ToString(CultureInfo.InvariantCulture), "d", color);
 
-    private static IText RepresentDecimal(decimal val, TextColor color = null)
+    private static IText RepresentDecimal(decimal val, TextColor? color = null)
         => RepresentDefGoldWithRedSuffix(val.ToString(CultureInfo.InvariantCulture), "m", color);
 
-    private static IText RepresentByte(byte val, TextColor color = null)
+    private static IText RepresentByte(byte val, TextColor? color = null)
         => RepresentDefGoldWithRedSuffix(val.ToString(), "b", color);
 
-    private static IText RepresentString(string val, TextColor color = null)
+    private static IText RepresentString(string val, TextColor? color = null)
         => TranslateText.Of(@"""%s""")
             .SetColor(color ?? TextColor.Green)
             .AddWith(LiteralText.Of(val));
 
-    private static IText RepresentShort(short val, TextColor color = null)
+    private static IText RepresentShort(short val, TextColor? color = null)
         => RepresentDefGoldWithRedSuffix(val.ToString(), "s", color);
         
-    private static IText RepresentBool(bool val, TextColor color = null)
+    private static IText RepresentBool(bool val, TextColor? color = null)
         => LiteralText.Of(val.ToString())
             .SetColor(color ?? (val ? TextColor.Green : TextColor.Red));
         
-    public static IText Represent(object obj, TextColor color = null)
+    public static IText Represent(object obj, TextColor? color = null)
     {
         switch (obj)
         {
@@ -87,7 +87,7 @@ public static class Text
 
     public static IText FromJson(string json) => FromJson(JsonSerializer.Deserialize<JsonNode>(json));
 
-    public static IText FromJson(JsonNode obj)
+    public static IText FromJson(JsonNode? obj)
     {
         if (obj is JsonValue val) return LiteralText.Of(val.GetValue<string>());
 
@@ -147,8 +147,8 @@ public static class Text
 public abstract class Text<T> : IText<T>, IMutableText where T : Text<T>
 {
     public ICollection<IText> Extra { get; set; } = new List<IText>();
-    public IText Parent { get; set; }
-    public TextColor Color { get; set; }
+    public IText? Parent { get; set; }
+    public TextColor? Color { get; set; }
     public bool Bold { get; set; }
     public bool Italic { get; set; }
     public bool Obfuscated { get; set; }
@@ -158,7 +158,7 @@ public abstract class Text<T> : IText<T>, IMutableText where T : Text<T>
 
     public bool ShouldSerializeExtra() => Extra.Count > 0;
         
-    public TextColor ParentColor
+    public TextColor? ParentColor
     {
         get
         {
@@ -167,14 +167,14 @@ public abstract class Text<T> : IText<T>, IMutableText where T : Text<T>
         }
     }
 
-    public virtual string ToAscii()
+    public virtual string ToAnsi()
     {
         var extra = "";
         foreach (var e in Extra)
         {
-            extra += e.ToAscii() + (Color ?? ParentColor).GetAsciiCode();
+            extra += e.ToAnsi() + (Color ?? ParentColor).GetAnsiCode();
         }
-        return extra + ParentColor.GetAsciiCode();
+        return extra + ParentColor.GetAnsiCode();
     }
 
     public virtual string ToPlainText()
@@ -190,6 +190,20 @@ public abstract class Text<T> : IText<T>, IMutableText where T : Text<T>
     protected abstract T ResolveThis();
 
     public abstract T Clone();
+
+    protected T CloneToTarget(T clone)
+    {
+        foreach (var extra in Extra) clone.Extra.Add(extra);
+        clone.Color = Color;
+        clone.Bold = Bold; 
+        clone.Italic = Italic; 
+        clone.Obfuscated = Obfuscated; 
+        clone.Strikethrough = Strikethrough; 
+        clone.Underline = Underline; 
+        clone.Reset = Reset;
+        return clone;
+    }
+    
     public IMutableText MutableCopy() => Clone();
 
     IText IText.Clone()
@@ -217,7 +231,7 @@ public abstract class Text<T> : IText<T>, IMutableText where T : Text<T>
         return t;
     }
 
-    public T SetColor(TextColor color)
+    public T SetColor(TextColor? color)
     {
         var t = ResolveThis();
         Color = color;

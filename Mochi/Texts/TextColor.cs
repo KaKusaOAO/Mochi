@@ -10,10 +10,10 @@ public class TextColor
 {
     public const char ColorChar = '\u00a7';
 
-    private string _name;
-    private int _ordinal;
-    private string _toString;
-    private Color _color;
+    private readonly string _name;
+    private readonly int _ordinal;
+    private readonly string _toString;
+    private readonly Color _color;
 
     private static readonly Dictionary<char, TextColor> _byChar = new();
     private static readonly Dictionary<string, TextColor> _byName = new();
@@ -39,10 +39,10 @@ public class TextColor
 
     private TextColor(char code, string name, Color color)
     {
-        this._name = name;
+        _name = name;
         _toString = ColorChar + "" + code;
         _ordinal = _count++;
-        this._color = color;
+        _color = color;
 
         _byChar.Add(code, this);
         _byName.Add(name, this);
@@ -50,8 +50,8 @@ public class TextColor
 
     private TextColor(string name, string toString, int rgb)
     {
-        this._name = name;
-        this._toString = toString;
+        _name = name;
+        _toString = toString;
         _ordinal = -1;
         _color = new Color(rgb);
     }
@@ -91,7 +91,7 @@ public class TextColor
         throw new ArgumentException("Could not parse TextColor " + name);
     }
 
-    public static TextColor Of(char code)
+    public static TextColor? Of(char code)
         => _byChar.ContainsKey(code) ? _byChar[code] : null;
 
     public override string ToString() => _toString;
@@ -127,7 +127,7 @@ public class TextColor
             return this;
         }
 
-        TextColor closest = null;
+        TextColor? closest = null;
         var cl = Color;
 
         var smallestDiff = 0;
@@ -149,6 +149,11 @@ public class TextColor
             }
         }
 
+        if (closest == null)
+        {
+            throw new Exception("No predefined colors!");
+        }
+        
         return closest;
     }
 
@@ -157,10 +162,10 @@ public class TextColor
         return "0123456789abcdef".ToCharArray();
     }
         
-    public string ToAsciiCode() => AsciiColor.CreateRgb(this).ToAsciiCode();
+    public string ToAnsiCode() => AnsiColor.CreateRgb(this).ToAnsiCode();
 }
 
 internal static class TextColorEx
 {
-    public static string GetAsciiCode(this TextColor color) => color?.ToAsciiCode() ?? LegacyAsciiColor.Reset.ToAsciiCode();
+    public static string GetAnsiCode(this TextColor? color) => color?.ToAnsiCode() ?? LegacyAnsiColor.Reset.ToAnsiCode();
 }
