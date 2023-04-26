@@ -116,13 +116,13 @@ public class BufferReader
 
     public T? ReadNullable<T>(Func<BufferReader, T> readFunc) where T : struct
     {
-        var isNull = ReadBool();
-        return isNull ? null : readFunc(this);
+        var isPresent = ReadBool();
+        return isPresent ? readFunc(this) : null;
     }
     
     public IOptional<T> ReadOptional<T>(Func<BufferReader, T> readFunc)
     {
-        var isNull = ReadBool();
-        return isNull ? Optional.Empty<T>() : Optional.Of(readFunc(this));
+        var isPresent = ReadBool();
+        return isPresent ? Optional.Of(readFunc(this)) : Optional.Empty<T>();
     }
 }

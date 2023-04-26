@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
@@ -401,13 +402,12 @@ public class CommandDispatcher<TS>
         return ParseNodes(_root, command, context);
     }
 
-#pragma warning disable CS8604
     private ParseResults<TS> ParseNodes(CommandNode<TS> node, StringReader originalReader,
         CommandContextBuilder<TS> contextSoFar)
     {
         var source = contextSoFar.Source;
-        Dictionary<CommandNode<TS>, CommandSyntaxException> errors = null;
-        List<ParseResults<TS>> potentials = null;
+        var errors = new Dictionary<CommandNode<TS>, CommandSyntaxException>();
+        var potentials = new List<ParseResults<TS>>();
         var cursor = originalReader.Cursor;
 
         foreach (var child in node.GetRelevantNodes(originalReader))
@@ -416,36 +416,35 @@ public class CommandDispatcher<TS>
 
             var context = contextSoFar.Copy();
             var reader = new StringReader(originalReader);
+            CommandSyntaxException? syntaxException = null;
+            
             try
             {
-                try
-                {
-                    child.Parse(reader, context);
-                }
-                catch (Exception ex)
-                {
-                    throw CommandSyntaxException.BuiltInExceptions.DispatcherParseException()
-                        .CreateWithContext(reader, ex.Message, ex);
-                }
+                child.Parse(reader, context);
+            }
+            catch (Exception ex)
+            {
+                syntaxException = CommandSyntaxException.BuiltInExceptions.DispatcherParseException()
+                    .CreateWithContext(reader, ex.Message, ex);
+            }
 
-                if (reader.CanRead())
+            if (syntaxException == null && reader.CanRead())
+            {
+                if (reader.Peek() != ArgumentSeparatorChar)
                 {
-                    if (reader.Peek() != ArgumentSeparatorChar)
-                    {
-                        throw CommandSyntaxException.BuiltInExceptions.DispatcherExpectedArgumentSeparator()
-                            .CreateWithContext(reader);
-                    }
+                    syntaxException = CommandSyntaxException.BuiltInExceptions.DispatcherExpectedArgumentSeparator()
+                        .CreateWithContext(reader);
                 }
             }
-            catch (CommandSyntaxException ex)
+            
+            if (syntaxException != null)
             {
-                errors ??= new Dictionary<CommandNode<TS>, CommandSyntaxException>();
-                errors[child] = ex;
+                errors[child] = syntaxException;
                 reader.Cursor = cursor;
                 continue;
             }
 
-            context.WithCommand(child.Command);
+            context.WithCommand(child.Command!);
             if (reader.CanRead(child.Redirect == null ? 2 : 1))
             {
                 reader.Skip();
@@ -459,48 +458,33 @@ public class CommandDispatcher<TS>
                 else
                 {
                     var parse = ParseNodes(child, reader, context);
-                    if (potentials == null)
-                    {
-                        potentials = new List<ParseResults<TS>>();
-                    }
-
                     potentials.Add(parse);
                 }
             }
             else
             {
-                if (potentials == null)
-                {
-                    potentials = new List<ParseResults<TS>>();
-                }
-
                 potentials.Add(new ParseResults<TS>(context, reader,
                     new Dictionary<CommandNode<TS>, CommandSyntaxException>()));
             }
         }
 
-        if (potentials != null)
+        if (!potentials.Any()) return new ParseResults<TS>(contextSoFar, originalReader, errors);
+        
+        if (potentials.Count > 1)
         {
-            if (potentials.Count > 1)
+            potentials.Sort((a, b) =>
             {
-                potentials.Sort((a, b) =>
-                {
-                    if (!a.Reader.CanRead() && b.Reader.CanRead()) return -1;
-                    if (a.Reader.CanRead() && !b.Reader.CanRead()) return 1;
-                    if (a.Exceptions.Count == 0 && b.Exceptions.Count != 0) return -1;
-                    if (a.Exceptions.Count != 0 && b.Exceptions.Count == 0) return 1;
+                if (!a.Reader.CanRead() && b.Reader.CanRead()) return -1;
+                if (a.Reader.CanRead() && !b.Reader.CanRead()) return 1;
+                if (a.Exceptions.Count == 0 && b.Exceptions.Count != 0) return -1;
+                if (a.Exceptions.Count != 0 && b.Exceptions.Count == 0) return 1;
 
-                    return 0;
-                });
-            }
-
-            return potentials[0];
+                return 0;
+            });
         }
 
-        return new ParseResults<TS>(contextSoFar, originalReader,
-            errors ?? new Dictionary<CommandNode<TS>, CommandSyntaxException>());
+        return potentials[0];
     }
-#pragma warning restore CS8604
 
     /// <summary>
     /// Gets all possible executable commands following the given node.

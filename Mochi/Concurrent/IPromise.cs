@@ -18,12 +18,13 @@ public interface IPromise
     
     public IPromise Catch(Action<Exception> onReject);
     public IPromise<TOut> Catch<TOut>(Func<Exception, TOut> onReject);
-    
+
+    public static IPromise Resolved() => Resolved(Unit.Instance);
     public static IPromise<T> Resolved<T>(T val) => 
         MochiLib.Platform.CreatePromise<T>((resolve, _) => resolve(val));
+    public static IPromise Rejected(Exception ex) => Rejected<Unit>(ex);
     public static IPromise<T> Rejected<T>(Exception ex) => 
         MochiLib.Platform.CreatePromise<T>((_, reject) => reject(ex));
-    public static IPromise<Unit> Rejected(Exception ex) => Rejected<Unit>(ex);
 }
 
 public interface IPromise<T> : IPromise

@@ -49,7 +49,7 @@ public static class Program
     {
         Logger.Logged += Logger.LogToEmulatedTerminalAsync;
 
-        _ = Task.Run((Func<Task?>)(async () =>
+        _ = Task.Run(async () =>
         {
             var rand = new Random();
             var i = 0;
@@ -58,7 +58,7 @@ public static class Program
                 await Task.Delay(1000);
                 Logger.Verbose($"Rand: {rand.Next(100)} (iteration: {i++})");
             }
-        }));
+        });
         
         var dispatcher = new CommandDispatcher<CommandSource>();
         
@@ -73,7 +73,7 @@ public static class Program
         );
         
         dispatcher.Register(Literal("foo")
-            .Then(Argument("test", StringArgumentType.GreedyString()).Executes(context =>
+            .Then(Argument("test", StringArgumentType.String()).Executes(context =>
             {
                 Logger.Info("FooBar: " + context.GetArgument<string>("test"), "/foo");
                 return 1;
