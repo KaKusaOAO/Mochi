@@ -38,7 +38,7 @@ public class BufferReader
             pos += 7;
             if (pos >= maxLen)
             {
-                throw new Exception($"Variable length value (${typeof(T)} is too big (maxLen: {maxLen})");
+                throw new Exception($"Variable length value ({typeof(T)} is too big (maxLen: {maxLen})");
             }
         }
 
