@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using Mochi.Utils;
 
@@ -21,36 +22,65 @@ public class BufferWriter
         Stream.WriteByte(value);
         return this;
     }
-
-    public BufferWriter WriteVarInt(int value)
+    
+#if NET7_0_OR_GREATER
+    private BufferWriter WriteVariableLengthValue<T>(T value, T byteMask, T segmentBits, T continueBit) where T : 
+        IConvertible, IBinaryInteger<T>
     {
         while (true)
         {
-            if ((value & ~VariableLengthValues.SegmentBits) == 0)
+            var segment = (value & byteMask).ToByte(null);
+            if ((value & ~segmentBits) == T.Zero)
             {
-                WriteByte((byte) value);
+                WriteByte(segment);
                 return this;
             }
             
-            WriteByte((byte) ((value & VariableLengthValues.SegmentBits) | VariableLengthValues.ContinueBit));
+            WriteByte(((value & segmentBits) | continueBit).ToByte(null));
             value >>>= 7;
         }
     }
     
-    public BufferWriter WriteVarLong(long value)
+    public BufferWriter WriteVarInt(int value) => WriteVariableLengthValue(value, 0xff, 
+        VariableLengthValues.SegmentBits, VariableLengthValues.ContinueBit);
+    public BufferWriter WriteVarLong(long value) => WriteVariableLengthValue(value, 0xff, 
+        VariableLengthValues.SegmentBits, VariableLengthValues.ContinueBit);
+#else
+    private BufferWriter WriteVariableLengthValue<T>(T value, Func<T, byte> getSegment, 
+        Func<T, int, T> andOperator,
+        Func<T, bool> isZero,
+        Func<T, int, T> orOperator,
+        Func<T, int, T> uRightShifter) where T : IConvertible
     {
         while (true)
         {
-            if ((value & ~VariableLengthValues.SegmentBits) == 0)
+            var segment = getSegment(value);
+            if (isZero(andOperator(value, ~VariableLengthValues.SegmentBits)))
             {
-                WriteByte((byte) value);
+                WriteByte(segment);
                 return this;
             }
             
-            WriteByte((byte) ((value & VariableLengthValues.SegmentBits) | VariableLengthValues.ContinueBit));
-            value >>>= 7;
+            WriteByte(Convert.ToByte(orOperator(andOperator(value, VariableLengthValues.SegmentBits),
+                VariableLengthValues.ContinueBit)));
+            value = uRightShifter(value, 7);
         }
     }
+
+    public BufferWriter WriteVarInt(int value) => 
+        WriteVariableLengthValue(value, v => (byte) v,
+            (v, i) => v & i,
+            v => v == 0,
+            (v, i) => v | i,
+            (v, i) => v >>> i);
+
+    public BufferWriter WriteVarLong(long value) => 
+        WriteVariableLengthValue(value, v => (byte) v, 
+            (v, i) => v & i,
+            v => v == 0,
+            (v, i) => v | (uint)i,
+            (v, i) => v >>> i);
+#endif
     
     public BufferWriter WriteList<T>(List<T> list, Action<BufferWriter, T> write)
     {

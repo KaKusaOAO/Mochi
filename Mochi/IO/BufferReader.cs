@@ -71,7 +71,7 @@ public class BufferReader
         var count = ReadVarInt();
         var bytes = new byte[count];
         var read = Stream.Read(bytes, 0, count);
-        if (read != count) throw new EndOfStreamException();
+        if (read != count) throw new EndOfStreamException("Could not read all bytes");
         return bytes;
     }
 
@@ -114,15 +114,20 @@ public class BufferReader
         throw new NotSupportedException();
     }
 
-    public T? ReadNullable<T>(Func<BufferReader, T> readFunc) where T : struct
+    private delegate T NullableFactory<out T, in TValue>(TValue value);
+
+    private delegate T EmptyNullableFactory<out T>();
+    
+    private T ReadGenericNullable<T, TValue>(NullableFactory<T, TValue> factory, EmptyNullableFactory<T> emptyFactory,
+        Func<BufferReader, TValue> readFunc)
     {
         var isPresent = ReadBool();
-        return isPresent ? readFunc(this) : null;
+        return isPresent ? factory(readFunc(this)) : emptyFactory();
     }
     
-    public IOptional<T> ReadOptional<T>(Func<BufferReader, T> readFunc)
-    {
-        var isPresent = ReadBool();
-        return isPresent ? Optional.Of(readFunc(this)) : Optional.Empty<T>();
-    }
+    public T? ReadNullable<T>(Func<BufferReader, T> readFunc) where T : struct => 
+        ReadGenericNullable<T?, T>(v => v, () => null, readFunc);
+
+    public IOptional<T> ReadOptional<T>(Func<BufferReader, T> readFunc) => 
+        ReadGenericNullable(Optional.Of, Optional.Empty<T>, readFunc);
 }
