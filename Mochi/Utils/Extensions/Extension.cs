@@ -14,24 +14,8 @@ namespace Mochi.Utils.Extensions;
 
 public static class Extension
 {
-#if HAS_CODEANALYSIS
-    [return: NotNull]
-#endif
-    public static string JoinStrings(
-#if HAS_CODEANALYSIS
-        [AllowNull]
-#endif
-        this IEnumerable<string> input, string separator)
-    {
-        var result = "";
-        if (input == null) return result;
-            
-        result = input.Aggregate(result, (current, entry) => current + separator + entry);
-        return result.Length == 0 ? "" : result.Substring(separator.Length);
-    }
-
     public static string Hexdump(this IEnumerable<byte> data) => 
-        data.Select(t => $"{t:x2}").JoinStrings(" ").Trim();
+        string.Join(' ', data.Select(t => $"{t:x2}")).Trim();
 
 
 #if HAS_ASYNC_ENUMERATOR
