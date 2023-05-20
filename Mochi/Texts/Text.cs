@@ -193,6 +193,7 @@ public abstract class Text<T> : IText<T>, IMutableText where T : Text<T>
 
     protected T CloneToTarget(T clone)
     {
+        clone.Extra.Clear();
         foreach (var extra in Extra) clone.Extra.Add(extra);
         clone.Color = Color;
         clone.Bold = Bold; 
@@ -209,15 +210,7 @@ public abstract class Text<T> : IText<T>, IMutableText where T : Text<T>
     IText IText.Clone()
     {
         var clone = Clone();
-        foreach (var extra in Extra) clone.Extra.Add(extra);
-        clone.Color = Color;
-        clone.Bold = Bold; 
-        clone.Italic = Italic; 
-        clone.Obfuscated = Obfuscated; 
-        clone.Strikethrough = Strikethrough; 
-        clone.Underline = Underline; 
-        clone.Reset = Reset; 
-        return clone;
+        return CloneToTarget(clone);
     }
 
     public T AddExtra(params IText[] texts)
