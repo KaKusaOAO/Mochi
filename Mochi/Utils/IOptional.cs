@@ -21,14 +21,12 @@ public static class Optional
     public static IOptional<T> Of<T>(T value) => new Optional<T>(value);
     public static IOptional<T> Empty<T>() => new Optional<T>();
 
-    public static IOptional<T> OfNullable<T>(T value) where T : class =>
+    public static IOptional<T> OfNullable<T>(T? value) where T : class =>
         value == null ? new Optional<T>() : new Optional<T>(value);
 
     public static IOptional<T> OfNullable<T>(T? value) where T : struct =>
         value.HasValue ? new Optional<T>(value.Value) : new Optional<T>();
 
-    public static IOptional<T> AsOptional<T>(T? value) where T : struct => OfNullable(value);
-    
     // -- Extension
 
     public static IOptional<TOut> Select<TIn, TOut>(this IOptional<TIn> optional, Func<TIn, TOut> transform)
@@ -92,126 +90,27 @@ public static class Optional
             where filter(v) 
             select v;
     }
-
-    // -- Async extension
-    public static async Task<IOptional<T>> IfPresentAsync<T>(this IOptional<T> optional, Func<T, Task> action)
-    {
-        if (optional.IsPresent)
-        {
-            await action(optional.Value);
-        }
-
-        return optional;
-    }
-    
-    public static async Task<IOptional<T>> IfPresentAsync<T>(this Task<IOptional<T>> optional, Func<T, Task> action)
-    {
-        var o = await optional;
-        if (o.IsPresent)
-        {
-            await action(o.Value);
-        }
-
-        return o;
-    }
-
-    public static Task<IOptional<T>> IfPresentAsync<T>(this Task<IOptional<T>> optional, Action<T> action)
-    {
-        return optional.IfPresentAsync(async v =>
-        {
-            await Task.Yield();
-            action(v);
-        });
-    }
-    
-    public static async Task<IOptional<T>> IfEmptyAsync<T>(this IOptional<T> optional, Func<T, Task> action)
-    {
-        if (optional.IsEmpty)
-        {
-            await action(optional.Value);
-        }
-
-        return optional;
-    }
-    
-    public static async Task<IOptional<T>> IfEmptyAsync<T>(this Task<IOptional<T>> optional, Func<T, Task> action)
-    {
-        var o = await optional;
-        if (o.IsEmpty)
-        {
-            await action(o.Value);
-        }
-
-        return o;
-    }
-
-    public static Task<IOptional<T>> IfEmptyAsync<T>(this Task<IOptional<T>> optional, Action<T> action)
-    {
-        return optional.IfEmptyAsync(async v =>
-        {
-            await Task.Yield();
-            action(v);
-        });
-    }
-
-    public static async Task<IOptional<TOut>> SelectAsync<TIn, TOut>(this IOptional<TIn> optional,
-        Func<TIn, Task<TOut>> transform)
-    {
-        return optional.IsPresent ? new Optional<TOut>(await transform(optional.Value)) : Empty<TOut>();
-    }
-
-    public static async Task<IOptional<TOut>> SelectAsync<TIn, TOut>(this Task<IOptional<TIn>> optional,
-        Func<TIn, Task<TOut>> transform)
-    {
-        var o = await optional;
-        return o.IsPresent ? new Optional<TOut>(await transform(o.Value)) : Empty<TOut>();
-    }
-    
-    public static Task<IOptional<TOut>> SelectAsync<TIn, TOut>(this Task<IOptional<TIn>> optional,
-        Func<TIn, TOut> transform)
-    {
-        return optional.SelectAsync(async v =>
-        {
-            await Task.Yield();
-            return transform(v);
-        });
-    }
-
-    public static async Task<T> OrElseAsync<T>(this Task<IOptional<T>> optional, T def)
-    {
-        var o = await optional;
-        return o.OrElse(def);
-    }
-    
-    public static async Task<T> OrElseAsync<T>(this Task<IOptional<T>> optional, Func<T> def)
-    {
-        var o = await optional;
-        return o.OrElse(def);
-    }
-
-    public static async Task<T> OrElseAsync<T>(this IOptional<T> optional, Func<Task<T>> def)
-    {
-        return optional.IsPresent ? optional.Value : await def();
-    }
 }
 
-internal class Optional<T> : IOptional<T>
+internal readonly struct Optional<T> : IOptional<T>
 {
     private readonly bool _hasValue;
-    private readonly T _value;
+    private readonly T? _value;
 
     public Optional()
     {
+        
     }
 
     public Optional(T value)
     {
-        _value = value;
+        if (value == null) throw new ArgumentException("Value not present");
         _hasValue = true;
+        _value = value;
     }
 
     public bool IsPresent => _hasValue;
     public bool IsEmpty => !_hasValue;
 
-    public T Value => _hasValue ? _value : throw new InvalidOperationException("No value present");
+    public T Value => _hasValue ? _value! : throw new InvalidOperationException("No value present");
 }
