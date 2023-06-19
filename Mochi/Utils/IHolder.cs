@@ -54,6 +54,7 @@ public static class Holder
     }
 
     public static IHolder<T> Or<T>(this IHolder<T> optional, IHolder<T> other) => optional.Or(() => other);
+    public static IHolder<T> AsHolder<T>(this IOptional<T> optional) => new Holder<T>(optional);
 }
 
 public class Holder<T> : IHolder<T>
