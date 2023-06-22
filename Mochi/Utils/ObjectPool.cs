@@ -10,7 +10,7 @@ public interface IObjectPool
     public void Return(object obj);
 }
 
-public interface IObjectPool<T> : IObjectPool
+public interface IObjectPool<T> : IObjectPool where T : notnull
 {
     public new T Rent();
     object IObjectPool.Rent() => Rent();
@@ -19,9 +19,13 @@ public interface IObjectPool<T> : IObjectPool
     void IObjectPool.Return(object obj) => Return((T) obj);
 }
 
-public class ObjectPool<T> : IObjectPool<T> where T : new()
+public class ObjectPool : ObjectPool<object>
 {
-    private static ObjectPool<T> _instance;
+}
+
+public class ObjectPool<T> : IObjectPool<T> where T : notnull, new()
+{
+    private static ObjectPool<T>? _instance;
     public static ObjectPool<T> Shared => _instance ??= new ObjectPool<T>();
 
     private readonly ConcurrentBag<T> _bag = new();

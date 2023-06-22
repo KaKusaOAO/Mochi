@@ -86,7 +86,7 @@ public static class Common
         }
     }
 
-    public static T BufferToStructure<T>(byte[] buf, int offset)
+    public static T BufferToStructure<T>(byte[] buf, int offset = 0)
     {
         var b = new byte[buf.Length - offset];
         Array.Copy(buf, offset, b, 0, b.Length);
@@ -97,7 +97,7 @@ public static class Common
         return result;
     }
 
-    public static string GetNullTerminatedWideString(IntPtr ptr)
+    public static string? GetNullTerminatedWideString(IntPtr ptr)
     {
         if (ptr == IntPtr.Zero) return null;
         

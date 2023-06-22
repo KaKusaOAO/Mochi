@@ -9,7 +9,7 @@ public class TaskQueue
 {
     private ConcurrentQueue<Func<Task>> Queue { get; } = new();
 
-    private SemaphoreSlim _loopLock = new SemaphoreSlim(1, 1);
+    private SemaphoreSlim _loopLock = new(1, 1);
 
     public int Count => Queue.Count;
         
@@ -17,12 +17,6 @@ public class TaskQueue
 
     public void Enqueue(Func<Task> task)
     {
-        if (task == null)
-        {
-            Logger.Warn("Are you queueing a null task?");
-            return;
-        }
-
         var doStart = Queue.IsEmpty;
         Queue.Enqueue(task);
         if (doStart)

@@ -18,11 +18,13 @@ public static class MacOsUtil
         "/System/Library/Frameworks/ApplicationServices.framework/ApplicationServices";
     
 #if USE_LIBRARY_IMPORT
+    // ReSharper disable InconsistentNaming
     [LibraryImport(ApplicationServicesLib)]
     private static partial void GetCurrentProcess(out ProcessSerialNumber serialNumber);
     
     [LibraryImport(ApplicationServicesLib, StringMarshalling = StringMarshalling.Utf8)]
     private static partial void CPSSetProcessName(ref ProcessSerialNumber serialNumber, string name);
+    // ReSharper restore InconsistentNaming
 #else
     [DllImport(ApplicationServicesLib)]
     private static extern void GetCurrentProcess(out ProcessSerialNumber serialNumber);
