@@ -9,11 +9,13 @@ public interface IOptional
 {
     public bool IsPresent { get; }
     public bool IsEmpty { get; }
+    public object Value { get; }
 }
 
 public interface IOptional<out T> : IOptional
 {
-    public T Value { get; }
+    public new T Value { get; }
+    object IOptional.Value => Value!;
 }
 
 public static class Optional
@@ -29,9 +31,24 @@ public static class Optional
 
     // -- Extension
 
-    public static IOptional<TOut> Select<TIn, TOut>(this IOptional<TIn> optional, Func<TIn, TOut> transform)
+    public static IOptional<T> Select<T>(this IOptional optional, Func<object, T> transform) => 
+        optional.IsEmpty ? Empty<T>() : new Optional<T>(transform(optional.Value));
+
+    public static IOptional<TOut> Select<TIn, TOut>(this IOptional<TIn> optional, Func<TIn, TOut> transform) => 
+        optional.IsEmpty ? Empty<TOut>() : new Optional<TOut>(transform(optional.Value));
+
+    public static IOptional<T> OfType<T>(this IOptional optional)
     {
-        return optional.IsEmpty ? Empty<TOut>() : new Optional<TOut>(transform(optional.Value));
+        if (optional.IsEmpty) return Empty<T>();
+        try
+        {
+            var val = (T)optional.Value;
+            return new Optional<T>(val);
+        }
+        catch
+        {
+            return new Optional<T>();
+        } 
     }
 
     public static IOptional<T> IfPresent<T>(this IOptional<T> optional, Action<T> action)
