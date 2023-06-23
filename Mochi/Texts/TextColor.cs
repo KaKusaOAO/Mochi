@@ -170,5 +170,6 @@ public class TextColor
 
 internal static class TextColorEx
 {
-    public static string GetAnsiCode(this TextColor? color) => color?.ToAnsiCode() ?? LegacyAnsiColor.Reset.ToAnsiCode();
+    public static string GetAnsiCode(this TextColor? color) => 
+        color?.ToAnsiCode() ?? LegacyAnsiColor.Reset.ToAnsiCode();
 }

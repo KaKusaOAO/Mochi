@@ -4,6 +4,7 @@ namespace Mochi.Texts;
 
 public interface IText
 {
+    IContent Content { get; }
     ICollection<IText> Extra { get; }
     IText? Parent { get; set; }
     TextColor? Color { get; }
@@ -17,30 +18,42 @@ public interface IText
     TextColor? ParentColor { get; }
     string ToPlainText();
     string ToAnsi();
-    IText Clone();
-    IMutableText MutableCopy();
+    IMutableText Clone();
 }
     
 public interface IMutableText : IText
 {
-    new ICollection<IText> Extra { set; }
-    new TextColor? Color { set; }
-    new bool Bold { set; }
-    new bool Italic { set; }
-    new bool Obfuscated { set; }
-    new bool Underline { set; }
-    new bool Strikethrough { set; }
-    new bool Reset { set; }
+    new IContent Content { get; set; }
+    IContent IText.Content => Content;
+    
+    new ICollection<IText> Extra { get; set; }
+    ICollection<IText> IText.Extra => Extra;
+    
+    new TextColor? Color { get; set; }
+    TextColor? IText.Color => Color;
+    
+    new bool Bold { get; set; }
+    bool IText.Bold => Bold;
+    
+    new bool Italic { get; set; }
+    bool IText.Italic => Italic;
+    
+    new bool Obfuscated { get; set; }
+    bool IText.Obfuscated => Obfuscated;
+    
+    new bool Underline { get; set; }
+    bool IText.Underline => Underline;
+    
+    new bool Strikethrough { get; set; }
+    bool IText.Strikethrough => Strikethrough;
+    
+    new bool Reset { get; set; }
+    bool IText.Reset => Reset;
 }
 
 public interface ITextGenericHelper<out T>
 {
     T AddExtra(params IText[] texts);
     T SetColor(TextColor? color);
-}
-
-public interface IText<out T> : IText, ITextGenericHelper<T> where T : IText<T>
-{
-    T Format(TextFormatFlag flags);
-    new T Clone();
+    T Clone();
 }

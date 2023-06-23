@@ -2,27 +2,55 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Nodes;
 
 namespace Mochi.Texts;
 
-public class LiteralText : Text<LiteralText>
+public class LiteralContent : IContent<LiteralContent>
 {
+    public IText? Parent { get; set; }
+    public IContentType<LiteralContent> Type => TextContentTypes.Literal;
+    
     public string Text { get; set; }
+    
+    public LiteralContent Clone()
+    {
+        return new LiteralContent(Text);
+    }
 
-    private LiteralText(string? text = null)
+    public LiteralContent(string? text = null)
     {
         Text = text ?? "";
     }
 
-    protected override LiteralText ResolveThis() => this;
+    public string ToAnsi() => Text;
 
-    public static LiteralText Of(string? text) => new(text);
+    public string ToPlainText() => Text;
+}
+
+public class LiteralContentType : IContentType<LiteralContent>
+{
+    public LiteralContent CreateContent(JsonObject payload)
+    {
+        var text = payload["text"]!.GetValue<string>();
+        return new LiteralContent(text);
+    }
+
+    public void InsertPayload(JsonObject target, LiteralContent content)
+    {
+        target["text"] = content.Text;
+    }
+}
+
+public static class LiteralText
+{
+    public static IMutableText Of(string? text) => new Text(new LiteralContent(text));
 
     public static IText FromLegacyText(string message)
     {
-        List<LiteralText> texts = new();
-        StringBuilder sb = new();
-        LiteralText t = new();
+        var texts = new List<IText>();
+        var sb = new StringBuilder();
+        var t = Of("");
 
         for (var i = 0; i < message.Length; i++)
         {
@@ -65,64 +93,28 @@ public class LiteralText : Text<LiteralText>
                 {
                     var old = t;
                     t = old.Clone();
-                    old.Text = sb.ToString();
+                    
+                    ((LiteralContent) old.Content).Text = sb.ToString();
                     sb.Clear();
                     texts.Add(old);
                 }
 
-                t = new LiteralText
-                {
-                    Color = color
-                };
+                t = Of("").SetColor(color);
                 continue;
             }
 
             sb.Append(c);
         }
 
-        t.Text = sb.ToString();
+        ((LiteralContent) t.Content).Text = sb.ToString();
         texts.Add(t);
 
-        var result = new LiteralText();
+        var result = Of("");
         foreach (var text in texts)
         {
             result.AddExtra(text);
         }
 
         return result;
-    }
-
-    public override LiteralText Clone()
-    {
-        var result = Of(Text);
-        return CloneToTarget(result);
-    }
-
-    public override string ToAnsi()
-    {
-        var extra = base.ToAnsi();
-        var color = (Color ?? ParentColor).GetAnsiCode();
-        return color + Text + extra;
-    }
-
-    public override string ToPlainText()
-    {
-        var extra = base.ToPlainText();
-
-        var result = "";
-        for (var i = 0; i < Text.Length; i++)
-        {
-            var b = Text;
-            if (b[i] == TextColor.ColorChar && TextColor.McCodes().ToList().IndexOf(b[i + 1]) > -1)
-            {
-                i += 2;
-            }
-            else
-            {
-                result += b[i];
-            }
-        }
-
-        return result + extra;
     }
 }

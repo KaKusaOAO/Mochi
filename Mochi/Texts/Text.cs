@@ -7,8 +7,93 @@ using System.Text.Json.Nodes;
 
 namespace Mochi.Texts;
 
-public static class Text
+public class Text : IMutableText, ITextGenericHelper<Text>
 {
+    public IContent Content { get; set; } = TextContentTypes.EmptyContent.Shared;
+    public ICollection<IText> Extra { get; set; } = new List<IText>();
+    public IText? Parent { get; set; }
+    public TextColor? Color { get; set; }
+    public bool Bold { get; set; }
+    public bool Italic { get; set; }
+    public bool Obfuscated { get; set; }
+    public bool Underline { get; set; }
+    public bool Strikethrough { get; set; }
+    public bool Reset { get; set; }
+
+    private Text() {}
+
+    public Text(IContent content)
+    {
+        Content = content;
+        content.BindParent(this);
+    }
+
+    public bool ShouldSerializeExtra() => Extra.Count > 0;
+        
+    public TextColor? ParentColor
+    {
+        get
+        {
+            if (Parent == null) return null;
+            return Parent.Color ?? Parent.ParentColor;
+        }
+    }
+
+    public virtual string ToAnsi()
+    {
+        var color = (Color ?? ParentColor).GetAnsiCode();
+        var extra = Extra.Aggregate("", (current, e) => 
+            current + e.ToAnsi() + (Color ?? ParentColor).GetAnsiCode());
+        return color + Content.ToAnsi() + extra + ParentColor.GetAnsiCode();
+    }
+
+    public virtual string ToPlainText()
+    {
+        var extra = Extra.Aggregate("", (current, e) => current + e.ToPlainText());
+        return Content.ToPlainText() + extra;
+    }
+
+    public Text AddExtra(params IText[] texts)
+    {
+        foreach (var t in texts)
+        {
+            Extra.Add(t);
+        }
+
+        return this;
+    }
+
+    public Text SetColor(TextColor? color)
+    {
+        Color = color;
+        return this;
+    }
+
+    public Text Clone()
+    {
+        var content = Content.Clone();
+        var clone = new Text(content);
+        
+        clone.Extra.Clear();
+        foreach (var extra in Extra)
+        {
+            clone.Extra.Add(extra);
+        }
+        
+        clone.Color = Color;
+        clone.Bold = Bold; 
+        clone.Italic = Italic; 
+        clone.Obfuscated = Obfuscated; 
+        clone.Strikethrough = Strikethrough; 
+        clone.Underline = Underline; 
+        clone.Reset = Reset;
+        return clone;
+    }
+    IMutableText IText.Clone() => Clone();
+
+    public static IText Literal(string text) => LiteralText.Of(text);
+    public static IText Translatable(string translate, params IText[] texts) => TranslateText.Of(translate, texts);
+
     public static IText RepresentType(Type t, TextColor? color = null)
         => TranslateText.Of($"%s.{t.Name}")
             .SetColor(color ?? TextColor.Gold)
@@ -102,27 +187,11 @@ public static class Text
         
         if (obj is JsonObject o)
         {
-            var t = LiteralText.Of("") as IMutableText;
-            
-            if (o.TryGetPropertyValue("text", out var textNode))
-            {
-                var text = textNode!.GetValue<string>();
-                t = LiteralText.Of(text);
-            }
+            var t = new Text();
 
-            if (o.TryGetPropertyValue("translate", out var translateNode))
-            {
-                var key = translateNode!.GetValue<string>();
-                var with = o.TryGetPropertyValue("with", out var withNode) ? withNode!.AsArray() : new JsonArray();
-                var tt = TranslateText.Of(key);
-
-                foreach (var w in with.Select(FromJson))
-                {
-                    tt.AddWith(w);
-                }
-
-                t = tt;
-            }
+            var content = TextContentTypes.CreateContent(o);
+            t.Content = content;
+            content.BindParent(t);
             
             var color = o.TryGetPropertyValue("color", out var colorNode) ? TextColor.Of(colorNode!.GetValue<string>()) : null;
             var bold = o.TryGetPropertyValue("bold", out var boldNode) && boldNode!.GetValue<bool>();
@@ -145,105 +214,5 @@ public static class Text
         }
         
         throw new ArgumentException("Invalid JSON");
-    }
-}
-
-public abstract class Text<T> : IText<T>, IMutableText where T : Text<T>
-{
-    public ICollection<IText> Extra { get; set; } = new List<IText>();
-    public IText? Parent { get; set; }
-    public TextColor? Color { get; set; }
-    public bool Bold { get; set; }
-    public bool Italic { get; set; }
-    public bool Obfuscated { get; set; }
-    public bool Underline { get; set; }
-    public bool Strikethrough { get; set; }
-    public bool Reset { get; set; }
-
-    public bool ShouldSerializeExtra() => Extra.Count > 0;
-        
-    public TextColor? ParentColor
-    {
-        get
-        {
-            if (Parent == null) return null;
-            return Parent.Color ?? Parent.ParentColor;
-        }
-    }
-
-    public virtual string ToAnsi()
-    {
-        var extra = "";
-        foreach (var e in Extra)
-        {
-            extra += e.ToAnsi() + (Color ?? ParentColor).GetAnsiCode();
-        }
-        return extra + ParentColor.GetAnsiCode();
-    }
-
-    public virtual string ToPlainText()
-    {
-        var extra = "";
-        foreach (var e in Extra)
-        {
-            extra += e.ToPlainText();
-        }
-        return extra;
-    }
-        
-    protected abstract T ResolveThis();
-
-    public abstract T Clone();
-
-    protected T CloneToTarget(T clone)
-    {
-        clone.Extra.Clear();
-        foreach (var extra in Extra) clone.Extra.Add(extra);
-        clone.Color = Color;
-        clone.Bold = Bold; 
-        clone.Italic = Italic; 
-        clone.Obfuscated = Obfuscated; 
-        clone.Strikethrough = Strikethrough; 
-        clone.Underline = Underline; 
-        clone.Reset = Reset;
-        return clone;
-    }
-    
-    public IMutableText MutableCopy() => Clone();
-
-    IText IText.Clone()
-    {
-        var clone = Clone();
-        return CloneToTarget(clone);
-    }
-
-    public T AddExtra(params IText[] texts)
-    {
-        var t = ResolveThis();
-        foreach (var text in texts)
-        {
-            Extra.Add(text);
-            text.Parent = this;
-        }
-        return t;
-    }
-
-    public T SetColor(TextColor? color)
-    {
-        var t = ResolveThis();
-        Color = color;
-        return t;
-    }
-
-    public T Format(TextFormatFlag flags)
-    {
-        var t = ResolveThis();
-        Bold = flags.HasFlag(TextFormatFlag.Bold);
-        Italic = flags.HasFlag(TextFormatFlag.Italic);
-        Obfuscated = flags.HasFlag(TextFormatFlag.Obfuscated);
-        Strikethrough = flags.HasFlag(TextFormatFlag.Strikethrough);
-        Underline = flags.HasFlag(TextFormatFlag.Underline);
-        Reset = flags.HasFlag(TextFormatFlag.Reset);
-        return t;
     }
 }

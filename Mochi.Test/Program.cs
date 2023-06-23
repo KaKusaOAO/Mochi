@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using Mochi.Structs;
+using Mochi.Texts;
 using Mochi.Utils;
 
 Logger.Level = LogLevel.Verbose;
@@ -14,5 +15,6 @@ var size = DataSize.MaxValue;
 var elapsed = stopwatch.Elapsed;
 var str = size.ToString();
 var elapsed2 = stopwatch.Elapsed;
+
 Logger.Info($"{str} ({size.TotalBytes:N0} bytes, {elapsed.TotalMilliseconds}ms, {elapsed2.TotalMilliseconds}ms)");
 Logger.Flush();

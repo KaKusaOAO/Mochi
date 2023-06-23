@@ -32,7 +32,7 @@ public static class Logger
     }
         
     public static LogLevel Level { get; set; }
-    public static TranslateText PrefixFormat => TranslateText.Of("{2} - {0} {1}");
+    public static IText PrefixFormat => TranslateText.Of("{2} - {0} {1}");
     private static readonly SemaphoreSlim _logLock = new(1, 1);
     private static readonly ConcurrentQueue<Action> _recordCall = new();
     private static Thread _thread;
@@ -254,7 +254,7 @@ public static class Logger
 
     public static List<string> GetDefaultFormattedLines(DateTimeOffset time, IText t, TextColor color, IText name, Thread thread, bool ascii = true)
     {
-        var nameClone = name.MutableCopy();
+        var nameClone = name.Clone();
         var f = PrefixFormat;
         nameClone.Color = color;
         var tag = LiteralText.Of($"[{thread.Name}@{thread.ManagedThreadId}] ")

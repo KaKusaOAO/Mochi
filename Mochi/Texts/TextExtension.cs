@@ -26,6 +26,18 @@ public static class TextExtension
         return text;
     }
     
+    public static T AddWith<T>(this T text, params IText[] texts) where T : IText
+    {
+        var content = text.Content;
+        if (content is not TranslateContent t) return text;
+        
+        foreach (var w in texts)
+        {
+            t.AddWith(w);
+        }
+        return text;
+    }
+    
     public static T SetBold<T>(this T text, bool val) where T : IMutableText
     {
         text.Bold = val;
@@ -78,25 +90,7 @@ public static class TextExtension
             obj["color"] = "#" + text.Color.Color.RGB.ToString("x6");
         }
 
-        switch (text)
-        {
-            case LiteralText literal:
-                obj["text"] = literal.Text;
-                break;
-            case TranslateText translate:
-            {
-                var withs = new JsonArray();
-                foreach (var w in translate.With)
-                {
-                    withs.Add(w.ToJson());
-                }
-
-                obj["translate"] = translate.Translate;
-                obj["with"] = withs;
-                break;
-            }
-        }
-
+        text.Content.InsertPayload(obj);
         return obj;
     }
 }

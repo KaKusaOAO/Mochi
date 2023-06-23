@@ -1,49 +1,69 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
 namespace Mochi.Texts;
 
-public class TranslateText : Text<TranslateText>
+public class TranslateContent : IContent<TranslateContent>
 {
+    public IText? Parent { get; set; }
+    public IContentType<TranslateContent> Type => TextContentTypes.Translate;
     public string Translate { get; set; }
     public ICollection<IText> With { get; set; } = new List<IText>();
 
-    public TranslateText(string translate, params IText[] texts)
+    public TranslateContent(string translate, params IText[] texts)
     {
         Translate = translate;
-        foreach (IText t in texts)
+        foreach (var t in texts)
         {
             With.Add(t);
-            t.Parent = this;
         }
     }
 
-    public TranslateText AddWith(params IText[] texts)
+    public TranslateContent AddWith(IText text)
     {
-        foreach (IText text in texts)
+        With.Add(text);
+        text.Parent = Parent;
+        return this;
+    }
+
+    public void BindParent(IText? parent)
+    {
+        Parent = parent;
+        foreach (var text in With)
         {
-            With.Add(text);
-            text.Parent = this;
+            text.Parent = Parent;
+        }
+    }
+
+    public TranslateContent Clone() => new(Translate, With.Select(t => t.Clone()).ToArray());
+
+    public string ToAnsi()
+    {
+        var color = (Parent?.Color ?? Parent?.ParentColor).GetAnsiCode();
+        var withAscii = With.Select(text => (object) (text.ToAnsi() + color)).ToArray();
+        return Format(Translate, withAscii);
+    }
+
+    public string ToPlainText()
+    {
+        var result = "";
+        for (var i = 0; i < Translate.Length; i++)
+        {
+            var b = Translate;
+            if (b[i] == TextColor.ColorChar && TextColor.McCodes().ToList().IndexOf(b[i + 1]) > -1)
+            {
+                i += 2;
+            }
+            else
+            {
+                result += b[i];
+            }
         }
 
-        return this;
-    }
-
-    public static TranslateText Of(string format, params IText[] texts)
-    {
-        return new TranslateText(format, texts);
-    }
-
-    protected override TranslateText ResolveThis()
-    {
-        return this;
-    }
-
-    public override TranslateText Clone()
-    {
-        var result = Of(Translate, With.ToArray());
-        return CloneToTarget(result);
+        var withAscii = With.Select(text => (object) text.ToPlainText()).ToArray();
+        return Format(result, withAscii);
     }
 
     private string Format(string fmt, params object[] obj)
@@ -70,35 +90,37 @@ public class TranslateText : Text<TranslateText>
         for (var i = 0; i < counter; i++) o.Add("");
         return string.Format(fmt, o.ToArray());
     }
+}
 
-    public override string ToAnsi()
+public class TranslateContentType : IContentType<TranslateContent>
+{
+    public TranslateContent CreateContent(JsonObject payload)
     {
-        var extra = base.ToAnsi();
-        var color = (Color ?? ParentColor).GetAnsiCode();
-        var withAscii = With.Select(text => text.ToAnsi() + color).ToArray();
-        return color + Format(Translate, withAscii) + extra;
+        var key = payload["translate"]!.GetValue<string>();
+        var with = payload.TryGetPropertyValue("with", out var withNode) ? withNode!.AsArray() : new JsonArray();
+        return new TranslateContent(key, with.Select(Text.FromJson).ToArray());
     }
 
-    public override string ToPlainText()
+    public void InsertPayload(JsonObject target, TranslateContent content)
     {
-        string extra = base.ToPlainText();
-
-        string result = "";
-        for (int i = 0; i < Translate.Length; i++)
+        target["translate"] = content.Translate;
+        if (!content.With.Any()) return;
+        
+        var arr = new JsonArray();
+        foreach (var text in content.With.Select(t => t.ToJson()))
         {
-            string b = Translate;
-            if (b[i] == TextColor.ColorChar && TextColor.McCodes().ToList().IndexOf(b[i + 1]) > -1)
-            {
-                i += 2;
-            }
-            else
-            {
-                result += b[i];
-            }
+            arr.Add(text);
         }
 
-        string[] withAscii = With.Select(text => { return text.ToPlainText(); }).ToArray();
+        target["with"] = arr;
+    }
+}
 
-        return Format(result, withAscii) + extra;
+public static class TranslateText
+{
+    public static IMutableText Of(string format, params IText[] texts)
+    {
+        var content = new TranslateContent(format, texts);
+        return new Text(content);
     }
 }
