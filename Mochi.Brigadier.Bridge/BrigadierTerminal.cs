@@ -72,7 +72,7 @@ public static class BrigadierTerminal
 
         var colors = new[]
         {
-            TextColor.Aqua, TextColor.Yellow, TextColor.Green, TextColor.Purple
+            TextColor.Aqua, TextColor.Yellow, TextColor.Green, TextColor.LightPurple
         };
         var colorIndex = 0;
 

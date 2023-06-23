@@ -20,22 +20,43 @@ public interface IOptional<out T> : IOptional
 
 public static class Optional
 {
-    public static IOptional<T> Of<T>(T value) => new Optional<T>(value);
-    public static IOptional<T> Empty<T>() => new Optional<T>();
+    public static IOptional<T> Of<T>(T value) => new Some<T>(value);
+    public static IOptional<T> Empty<T>() => new None<T>();
+    
+    private readonly struct Some<T> : IOptional<T>
+    {
+        private readonly T _value;
+
+        public Some(T value)
+        {
+            _value = value;
+        }
+
+        bool IOptional.IsPresent => true;
+        bool IOptional.IsEmpty => false;
+        T IOptional<T>.Value => _value;
+    }
+
+    private readonly struct None<T> : IOptional<T>
+    {
+        bool IOptional.IsPresent => false;
+        bool IOptional.IsEmpty => true;
+        T IOptional<T>.Value => throw new InvalidOperationException("No value present");
+    }
 
     public static IOptional<T> OfNullable<T>(T? value) where T : class =>
-        value == null ? new Optional<T>() : new Optional<T>(value);
+        value == null ? Empty<T>() : Of(value);
 
     public static IOptional<T> OfNullable<T>(T? value) where T : struct =>
-        value.HasValue ? new Optional<T>(value.Value) : new Optional<T>();
+        value.HasValue ? Of(value.Value) : Empty<T>();
 
     // -- Extension
 
     public static IOptional<T> Select<T>(this IOptional optional, Func<object, T> transform) => 
-        optional.IsEmpty ? Empty<T>() : new Optional<T>(transform(optional.Value));
+        optional.IsEmpty ? Empty<T>() : Of(transform(optional.Value));
 
     public static IOptional<TOut> Select<TIn, TOut>(this IOptional<TIn> optional, Func<TIn, TOut> transform) => 
-        optional.IsEmpty ? Empty<TOut>() : new Optional<TOut>(transform(optional.Value));
+        optional.IsEmpty ? Empty<TOut>() : Of(transform(optional.Value));
 
     public static IOptional<T> OfType<T>(this IOptional optional)
     {
@@ -43,11 +64,11 @@ public static class Optional
         try
         {
             var val = (T)optional.Value;
-            return new Optional<T>(val);
+            return Of(val);
         }
         catch
         {
-            return new Optional<T>();
+            return Empty<T>();
         } 
     }
 
@@ -107,27 +128,4 @@ public static class Optional
             where filter(v) 
             select v;
     }
-}
-
-internal readonly struct Optional<T> : IOptional<T>
-{
-    private readonly bool _hasValue;
-    private readonly T? _value;
-
-    public Optional()
-    {
-        
-    }
-
-    public Optional(T value)
-    {
-        if (value == null) throw new ArgumentException("Value not present");
-        _hasValue = true;
-        _value = value;
-    }
-
-    public bool IsPresent => _hasValue;
-    public bool IsEmpty => !_hasValue;
-
-    public T Value => _hasValue ? _value! : throw new InvalidOperationException("No value present");
 }

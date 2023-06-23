@@ -9,15 +9,14 @@ public class LiteralText : Text<LiteralText>
 {
     public string Text { get; set; }
 
+    private LiteralText(string? text = null)
+    {
+        Text = text ?? "";
+    }
+
     protected override LiteralText ResolveThis() => this;
 
-    public static LiteralText Of(string? text)
-    {
-        return new LiteralText
-        {
-            Text = text ?? ""
-        };
-    }
+    public static LiteralText Of(string? text) => new(text);
 
     public static IText FromLegacyText(string message)
     {
@@ -36,7 +35,7 @@ public class LiteralText : Text<LiteralText>
                 // lower case
                 if (c >= 'A' && c <= 'Z') c += (char)32;
 
-                TextColor color;
+                TextColor? color;
                 if (c == 'x' && i + 12 < message.Length)
                 {
                     StringBuilder hex = new("#");
@@ -58,6 +57,7 @@ public class LiteralText : Text<LiteralText>
                 {
                     color = TextColor.Of(c);
                 }
+                
                 if (color == null) continue;
                     
                 // push old text to the list

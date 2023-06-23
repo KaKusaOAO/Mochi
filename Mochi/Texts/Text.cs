@@ -89,22 +89,31 @@ public static class Text
 
     public static IText FromJson(JsonNode? obj)
     {
-        if (obj is JsonValue val) return LiteralText.Of(val.GetValue<string>());
+        if (obj is JsonValue val)
+        {
+            return LiteralText.FromLegacyText(val.GetValue<string>());
+        }
 
+        if (obj is JsonArray arr)
+        {
+            return LiteralText.Of("")
+                .AddExtra(arr.Select(FromJson).ToArray());
+        }
+        
         if (obj is JsonObject o)
         {
             var t = LiteralText.Of("") as IMutableText;
             
-            if (o.ContainsKey("text"))
+            if (o.TryGetPropertyValue("text", out var textNode))
             {
-                var text = o["text"]!.GetValue<string>();
+                var text = textNode!.GetValue<string>();
                 t = LiteralText.Of(text);
             }
 
-            if (o.ContainsKey("translate"))
+            if (o.TryGetPropertyValue("translate", out var translateNode))
             {
-                var key = o["translate"]!.GetValue<string>();
-                var with = o.ContainsKey("with") ? o["with"]!.AsArray() : new JsonArray();
+                var key = translateNode!.GetValue<string>();
+                var with = o.TryGetPropertyValue("with", out var withNode) ? withNode!.AsArray() : new JsonArray();
                 var tt = TranslateText.Of(key);
 
                 foreach (var w in with.Select(FromJson))
@@ -115,14 +124,15 @@ public static class Text
                 t = tt;
             }
             
-            var color = o.ContainsKey("color") ? TextColor.Of(o["color"]!.GetValue<string>()) : null;
-            var bold = o.ContainsKey("bold") && o["bold"]!.GetValue<bool>();
-            var italic = o.ContainsKey("italic") && o["italic"]!.GetValue<bool>();
-            var obfuscated = o.ContainsKey("obfuscated") && o["obfuscated"]!.GetValue<bool>();
-            var underline = o.ContainsKey("underline") && o["underline"]!.GetValue<bool>();
-            var strikethrough = o.ContainsKey("strikethrough") && o["strikethrough"]!.GetValue<bool>();
-            var reset = o.ContainsKey("reset") && o["reset"]!.GetValue<bool>();
-            var extra = o.ContainsKey("extra") ? o["extra"]!.AsArray() : new JsonArray();
+            var color = o.TryGetPropertyValue("color", out var colorNode) ? TextColor.Of(colorNode!.GetValue<string>()) : null;
+            var bold = o.TryGetPropertyValue("bold", out var boldNode) && boldNode!.GetValue<bool>();
+            var italic = o.TryGetPropertyValue("italic", out var italicNode) && italicNode!.GetValue<bool>();
+            var obfuscated = o.TryGetPropertyValue("obfuscated", out var obfuscatedNode) && obfuscatedNode!.GetValue<bool>();
+            var underline = o.TryGetPropertyValue("underline", out var underlineNode) && underlineNode!.GetValue<bool>();
+            var strikethrough = o.TryGetPropertyValue("strikethrough", out var strikethroughNode) && strikethroughNode!.GetValue<bool>();
+            var reset = o.TryGetPropertyValue("reset", out var resetNode) && resetNode!.GetValue<bool>();
+            var extra = o.TryGetPropertyValue("extra", out var extraNode) ? extraNode!.AsArray() : new JsonArray();
+            
             return t
                 .SetColor(color)
                 .SetBold(bold)
@@ -132,12 +142,6 @@ public static class Text
                 .SetStrikethrough(strikethrough)
                 .SetReset(reset)
                 .AddExtra(extra.Select(FromJson).ToArray());
-        }
-
-        if (obj is JsonArray arr)
-        {
-            return LiteralText.Of("")
-                .AddExtra(arr.Select(FromJson).ToArray());
         }
         
         throw new ArgumentException("Invalid JSON");

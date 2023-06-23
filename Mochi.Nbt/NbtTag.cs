@@ -25,7 +25,7 @@ public abstract class NbtTag : INbtTag
         LongArray
     }
 
-    public string Name { get; set; } = null;
+    public string? Name { get; set; } = null;
     
     public static implicit operator NbtTag(string s) => new NbtString(s);
     public static implicit operator NbtTag(byte b) => new NbtByte(b);
@@ -46,7 +46,7 @@ public abstract class NbtTag : INbtTag
         switch (type ?? (TagType)NbtIO.ReadByte(buffer, ref index))
         {
             case TagType.End:
-                return null;
+                return NbtEnd.Shared;
             case TagType.Byte:
                 return NbtByte.Deserialize(buffer, ref index, named);
             case TagType.Short:
@@ -99,12 +99,13 @@ public static class NbtExtension
 {
     public static T Copy<T>(this T self) where T : NbtTag
     {
-        if (self is NbtByte b) return new NbtByte(b.Value) { Name = self.Name } as T;
+        if (self is NbtEnd) return self;
+        if (self is NbtByte b) return (new NbtByte(b.Value) { Name = self.Name } as T)!;
         if (self is NbtByteArray bArr)
         {
             var arr = new byte[bArr.Value.Length];
             Array.Copy(bArr.Value, arr, arr.Length);
-            return new NbtByteArray(arr) { Name = self.Name } as T;
+            return (new NbtByteArray(arr) { Name = self.Name } as T)!;
         }
 
         if (self is NbtCompound c)
@@ -112,17 +113,17 @@ public static class NbtExtension
             var result = new NbtCompound() { Name = self.Name };
             foreach (var entry in c) result.Add(entry.Key, entry.Value.Copy());
 
-            return result as T;
+            return (result as T)!;
         }
 
-        if (self is NbtDouble d) return new NbtDouble(d.Value) { Name = self.Name } as T;
-        if (self is NbtFloat f) return new NbtFloat(f.Value) { Name = self.Name } as T;
-        if (self is NbtInt i) return new NbtInt(i.Value) { Name = self.Name } as T;
+        if (self is NbtDouble d) return (new NbtDouble(d.Value) { Name = self.Name } as T)!;
+        if (self is NbtFloat f) return (new NbtFloat(f.Value) { Name = self.Name } as T)!;
+        if (self is NbtInt i) return (new NbtInt(i.Value) { Name = self.Name } as T)!;
         if (self is NbtIntArray iArr)
         {
             var arr = new int[iArr.Value.Length];
             Array.Copy(iArr.Value, arr, arr.Length);
-            return new NbtIntArray(arr) { Name = self.Name } as T;
+            return (new NbtIntArray(arr) { Name = self.Name } as T)!;
         }
 
         if (self is NbtList list)
@@ -130,20 +131,20 @@ public static class NbtExtension
             var result = new NbtList(list.ContentType) { Name = self.Name };
             foreach (var tag in list) result.Add(tag.Copy());
 
-            return result as T;
+            return (result as T)!;
         }
 
-        if (self is NbtLong l) return new NbtLong(l.Value) { Name = self.Name } as T;
+        if (self is NbtLong l) return (new NbtLong(l.Value) { Name = self.Name } as T)!;
         if (self is NbtLongArray lArr)
         {
             var arr = new long[lArr.Value.Length];
             Array.Copy(lArr.Value, arr, arr.Length);
-            return new NbtLongArray(arr) { Name = self.Name } as T;
+            return (new NbtLongArray(arr) { Name = self.Name } as T)!;
         }
 
-        if (self is NbtShort s) return new NbtShort(s.Value) { Name = self.Name } as T;
-        if (self is NbtString str) return new NbtString(str.Value) { Name = self.Name } as T;
+        if (self is NbtShort s) return (new NbtShort(s.Value) { Name = self.Name } as T)!;
+        if (self is NbtString str) return (new NbtString(str.Value) { Name = self.Name } as T)!;
 
-        throw new ArgumentException($"Unknown tag: {self}");
+        throw new ArgumentException($"Don't know how to copy tag: {self}");
     }
 }
