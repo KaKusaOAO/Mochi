@@ -37,7 +37,7 @@ public class TranslateContent : IContent<TranslateContent>
         }
     }
 
-    public TranslateContent Clone() => new(Translate, With.Select(t => t.Clone()).ToArray());
+    public TranslateContent Clone() => new(Translate, With.Select(t => (IText) t.Clone()).ToArray());
 
     public string ToAnsi()
     {
