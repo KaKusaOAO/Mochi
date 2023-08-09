@@ -23,7 +23,7 @@ public static class BrigadierTerminal
         Console.CursorLeft = c;
         Console.CursorTop++;
 
-        void WriteWithSuggestion(IText text, int? co = null)
+        void WriteWithSuggestion(IComponent text, int? co = null)
         {
             co ??= Console.CursorLeft;
             Terminal.Write(text);
@@ -72,7 +72,7 @@ public static class BrigadierTerminal
 
         var colors = new[]
         {
-            TextColor.Aqua, TextColor.Yellow, TextColor.Green, TextColor.LightPurple
+            TextColor.Aqua, TextColor.Yellow, TextColor.Green, TextColor.Purple
         };
         var colorIndex = 0;
 

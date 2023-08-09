@@ -7,12 +7,11 @@ namespace Mochi.Texts;
 
 public class TranslateContent : IContent<TranslateContent>
 {
-    public IText? Parent { get; set; }
     public IContentType<TranslateContent> Type => TextContentTypes.Translate;
     public string Translate { get; set; }
-    public ICollection<IText> With { get; set; } = new List<IText>();
+    public ICollection<IComponent> With { get; set; } = new List<IComponent>();
 
-    public TranslateContent(string translate, params IText[] texts)
+    public TranslateContent(string translate, params IComponent[] texts)
     {
         Translate = translate;
         foreach (var t in texts)
@@ -21,74 +20,83 @@ public class TranslateContent : IContent<TranslateContent>
         }
     }
 
-    public TranslateContent AddWith(IText text)
+    public TranslateContent AddWith(IComponent text)
     {
         With.Add(text);
-        text.Parent = Parent;
         return this;
     }
+    
+    public TranslateContent Clone() => new(Translate, With.Select(t => t.Clone()).ToArray());
 
-    public void BindParent(IText? parent)
+    private List<IComponent>? _decomposed = null;
+    
+    private class GenericMutableComponent : IMutableComponent
     {
-        Parent = parent;
-        foreach (var text in With)
+        public IContent Content { get; }
+        public IStyle Style { get; set; }
+        public IList<IComponent> Siblings { get; } = new List<IComponent>();
+    
+        public GenericMutableComponent(IContent content, IStyle style)
         {
-            text.Parent = Parent;
+            Content = content;
+            Style = style;
+        }
+    
+        public IMutableComponent Clone()
+        {
+            var result = new GenericMutableComponent(Content, Style);
+            foreach (var clone in Siblings.Select(x => x.Clone()))
+            {
+                result.Siblings.Add(clone);
+            }
+            return result;
+        }
+
+        public void Visit(IContentVisitor visitor, IStyle style)
+        {
+            style = Style.ApplyTo(style);
+            Content.Visit(visitor, style);
+
+            foreach (var sibling in Siblings)
+            {
+                sibling.Visit(visitor, style);
+            }
         }
     }
 
-    public TranslateContent Clone() => new(Translate, With.Select(t => (IText) t.Clone()).ToArray());
-
-    public string ToAnsi()
+    private List<IComponent> Decompose(IStyle style)
     {
-        var color = (Parent?.Color ?? Parent?.ParentColor).GetAnsiCode();
-        var withAscii = With.Select(text => (object) (text.ToAnsi() + color)).ToArray();
-        return Format(Translate, withAscii);
-    }
-
-    public string ToPlainText()
-    {
-        var result = "";
-        for (var i = 0; i < Translate.Length; i++)
-        {
-            var b = Translate;
-            if (b[i] == TextColor.ColorChar && TextColor.McCodes().ToList().IndexOf(b[i + 1]) > -1)
-            {
-                i += 2;
-            }
-            else
-            {
-                result += b[i];
-            }
-        }
-
-        var withAscii = With.Select(text => (object) text.ToPlainText()).ToArray();
-        return Format(result, withAscii);
-    }
-
-    private string Format(string fmt, params object[] obj)
-    {
-        var offset = -1;
+        var offset = 0;
         var counter = 0;
+        var fmt = Translate;
         var matches = new Regex("%(?:(?:(\\d*?)\\$)?)s").Matches(fmt);
+        var parameters = With.ToList();
+        
+        var result = new List<IComponent>();
         foreach (Match m in matches)
         {
             var c = m.Groups[1].Value;
-            if (c.Length == 0)
-            {
-                c = counter++ + "";
-            }
+            var ci = c.Length == 0 ? counter++ : int.Parse(c) - 1;
 
-            offset += c.Length + 2 - m.Value.Length;
-            // fmt = fmt[..(m.Index + offset)] + "{" + c + "}" + fmt[(m.Index + offset + m.Value.Length)..];
-            // Need to use legacy syntax to support older versions of .NET
-            fmt = fmt.Substring(0, m.Index + offset) + $"{{{c}}}" +
-                  fmt.Substring(m.Index + offset + m.Value.Length);
+            var front = fmt[offset..m.Index];
+            if (front.Length > 0) 
+                result.Add(new GenericMutableComponent(new LiteralContent(front), style.Clear()));
+            
+            result.Add(parameters[ci].Clone());
+            offset = m.Index + m.Length;
         }
+        
+        result.Add(new GenericMutableComponent(new LiteralContent(fmt[offset..]), style.Clear()));
+        return result;
+    }
 
-        var o = obj.ToList();
-        for (var i = 0; i < counter; i++) o.Add("");
-        return string.Format(fmt, o.ToArray());
+    public void Visit(IContentVisitor visitor, IStyle style)
+    {
+        _decomposed ??= Decompose(style);
+        foreach (var component in _decomposed)
+        {
+            component.Visit(visitor, style);
+        }
     }
 }
 
@@ -98,7 +106,7 @@ public class TranslateContentType : IContentType<TranslateContent>
     {
         var key = payload["translate"]!.GetValue<string>();
         var with = payload.TryGetPropertyValue("with", out var withNode) ? withNode!.AsArray() : new JsonArray();
-        return new TranslateContent(key, with.Select(Text.FromJson).ToArray());
+        return new TranslateContent(key, with.Select(Component.FromJson).ToArray());
     }
 
     public void InsertPayload(JsonObject target, TranslateContent content)
@@ -118,9 +126,9 @@ public class TranslateContentType : IContentType<TranslateContent>
 
 public static class TranslateText
 {
-    public static IMutableText Of(string format, params IText[] texts)
+    public static MutableComponent Of(string format, params IComponent[] texts)
     {
         var content = new TranslateContent(format, texts);
-        return new Text(content);
+        return new MutableComponent(content);
     }
 }

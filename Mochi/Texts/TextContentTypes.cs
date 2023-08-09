@@ -35,11 +35,10 @@ public static class TextContentTypes
     {
         private static EmptyContent? _instance;
         public static EmptyContent Shared => _instance ??= new EmptyContent();
-        public IText? Parent { get; set; }
+        public IComponent? Parent { get; set; }
         public IContentType<EmptyContent> Type => EmptyContentType.Shared;
         public EmptyContent Clone() => this;
-        public string ToAnsi() => "";
-        public string ToPlainText() => "";
+        public void Visit(IContentVisitor visitor, IStyle style) {}
     }
     
     private class EmptyContentType : IContentType<EmptyContent>

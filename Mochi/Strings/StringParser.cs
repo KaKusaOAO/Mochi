@@ -1,37 +1,10 @@
 ﻿using System;
 using System.Text;
 
-namespace Mochi.Utils;
+namespace Mochi.Strings;
 
-public class MochiStringReader
+public class StringParser
 {
-    public class StringReaderException : Exception
-    {
-        public StringReaderException(string msg) : base(msg) {}
-    }
-
-    public class ExpectedTokenException : StringReaderException
-    {
-        public ExpectedTokenException(string expected) : base($"Expected {expected}")
-        {
-            ExpectingToken = expected;
-        }
-        
-        public string ExpectingToken { get; }
-    }
-
-    public class InvalidTokenException : StringReaderException
-    {
-        public InvalidTokenException(string type, string value) : base($"Invalid {type}: {value}")
-        {
-            TokenType = type;
-            InvalidValue = value;
-        }
-        
-        public string TokenType { get; }
-        public string InvalidValue { get; }
-    }
-    
     private const char SyntaxEscape = '\\';
     private const char SyntaxDoubleQuote = '"';
     private const char SyntaxSingleQuote = '\'';
@@ -39,13 +12,13 @@ public class MochiStringReader
     private readonly string _str;
     private int _cursor;
 
-    public MochiStringReader(MochiStringReader other)
+    public StringParser(StringParser other)
     {
         _str = other._str;
         _cursor = other._cursor;
     }
 
-    public MochiStringReader(string str)
+    public StringParser(string str)
     {
         _str = str;
     }
@@ -134,7 +107,7 @@ public class MochiStringReader
         var number = _str.Substring(start, _cursor - start);
         if (string.IsNullOrEmpty(number))
         {
-            throw new ExpectedTokenException("integer");
+            throw new ExpectedTokenException(ReaderTokenType.Integer);
         }
 
         try
@@ -146,7 +119,7 @@ public class MochiStringReader
             if (ex is not (FormatException or OverflowException)) throw;
             _cursor = start;
 
-            throw new InvalidTokenException("integer", number);
+            throw new InvalidTokenException(ReaderTokenType.Integer, number);
         }
     }
 
@@ -161,7 +134,7 @@ public class MochiStringReader
         var number = _str.Substring(start, _cursor - start);
         if (string.IsNullOrEmpty(number))
         {
-            throw new ExpectedTokenException("long");
+            throw new ExpectedTokenException(ReaderTokenType.Long);
         }
 
         try
@@ -170,10 +143,10 @@ public class MochiStringReader
         }
         catch (Exception ex)
         {
-            if (!(ex is FormatException || ex is OverflowException)) throw;
+            if (ex is not (FormatException or OverflowException)) throw;
             _cursor = start;
 
-            throw new InvalidTokenException("long", number);
+            throw new InvalidTokenException(ReaderTokenType.Long, number);
         }
     }
 
@@ -188,7 +161,7 @@ public class MochiStringReader
         var number = _str.Substring(start, _cursor - start);
         if (string.IsNullOrEmpty(number))
         {
-            throw new ExpectedTokenException("double");
+            throw new ExpectedTokenException(ReaderTokenType.Double);
         }
 
         try
@@ -197,10 +170,10 @@ public class MochiStringReader
         }
         catch (Exception ex)
         {
-            if (!(ex is FormatException || ex is OverflowException)) throw;
+            if (ex is not (FormatException or OverflowException)) throw;
             _cursor = start;
 
-            throw new InvalidTokenException("double", number);
+            throw new InvalidTokenException(ReaderTokenType.Double, number);
         }
     }
 
@@ -215,7 +188,7 @@ public class MochiStringReader
         var number = _str.Substring(start, _cursor - start);
         if (string.IsNullOrEmpty(number))
         {
-            throw new ExpectedTokenException("float");
+            throw new ExpectedTokenException(ReaderTokenType.Float);
         }
 
         try
@@ -224,10 +197,10 @@ public class MochiStringReader
         }
         catch (Exception ex)
         {
-            if (!(ex is FormatException || ex is OverflowException)) throw;
+            if (ex is not (FormatException or OverflowException)) throw;
             _cursor = start;
 
-            throw new InvalidTokenException("float", number);
+            throw new InvalidTokenException(ReaderTokenType.Float, number);
         }
     }
 
@@ -261,7 +234,7 @@ public class MochiStringReader
         var next = Peek();
         if (!IsQuotedStringStart(next))
         {
-            throw new ExpectedTokenException("start of quote");
+            throw new ExpectedTokenException(ReaderTokenType.StartOfQuote);
         }
 
         Skip();
@@ -285,7 +258,7 @@ public class MochiStringReader
                 else
                 {
                     Cursor--;
-                    throw new InvalidTokenException("escape", $"{c}");
+                    throw new InvalidTokenException(ReaderTokenType.Escape, $"{c}");
                 }
             }
             else if (c == SyntaxEscape)
@@ -302,7 +275,7 @@ public class MochiStringReader
             }
         }
 
-        throw new ExpectedTokenException("end of quote");
+        throw new ExpectedTokenException(ReaderTokenType.EndOfQuote);
     }
 
     public string ReadString()
@@ -328,7 +301,7 @@ public class MochiStringReader
         var value = ReadString();
         if (string.IsNullOrEmpty(value))
         {
-            throw new ExpectedTokenException("boolean");
+            throw new ExpectedTokenException(ReaderTokenType.Boolean);
         }
 
         if (value.Equals("true"))
@@ -342,7 +315,7 @@ public class MochiStringReader
         else
         {
             _cursor = start;
-            throw new InvalidTokenException("boolean", value);
+            throw new InvalidTokenException(ReaderTokenType.Boolean, value);
         }
     }
 

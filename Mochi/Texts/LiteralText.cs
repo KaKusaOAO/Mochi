@@ -8,7 +8,6 @@ namespace Mochi.Texts;
 
 public class LiteralContent : IContent<LiteralContent>
 {
-    public IText? Parent { get; set; }
     public IContentType<LiteralContent> Type => TextContentTypes.Literal;
     
     public string Text { get; set; }
@@ -18,14 +17,15 @@ public class LiteralContent : IContent<LiteralContent>
         return new LiteralContent(Text);
     }
 
+    public void Visit(IContentVisitor visitor, IStyle style)
+    {
+        visitor.Accept(this, style);
+    }
+
     public LiteralContent(string? text = null)
     {
         Text = text ?? "";
     }
-
-    public string ToAnsi() => Text;
-
-    public string ToPlainText() => Text;
 }
 
 public class LiteralContentType : IContentType<LiteralContent>
@@ -44,11 +44,11 @@ public class LiteralContentType : IContentType<LiteralContent>
 
 public static class LiteralText
 {
-    public static IMutableText Of(string? text) => new Text(new LiteralContent(text));
+    public static MutableComponent Of(string? text) => Component.Literal(text);
 
-    public static IText FromLegacyText(string message)
+    public static MutableComponent FromLegacyText(string message)
     {
-        var texts = new List<IText>();
+        var texts = new List<IComponent>();
         var sb = new StringBuilder();
         var t = Of("");
 
