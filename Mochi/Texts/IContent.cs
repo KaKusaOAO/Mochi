@@ -8,6 +8,7 @@ public interface IContent
     public IContent Clone();
     public void InsertPayload(JsonObject target) => Type.InsertPayload(target, this);
     public void Visit(IContentVisitor visitor, IStyle style);
+    public void VisitLiteral(IContentVisitor visitor, IStyle style);
 }
 
 public interface IContent<T> : IContent where T : IContent<T>

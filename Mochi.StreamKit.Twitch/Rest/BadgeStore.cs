@@ -1,5 +1,6 @@
 using Mochi.StreamKit.Twitch.API;
 using Mochi.StreamKit.Twitch.Chat;
+using Mochi.StreamKit.Twitch.Entities;
 
 namespace Mochi.StreamKit.Twitch.Rest;
 
@@ -27,7 +28,11 @@ public class BadgeStore
         _badges = CreateLazyBadgesResolver();
     }
 
-    private Lazy<Task<List<BadgeSet>>> CreateLazyBadgesResolver() => new(async () => (await GetBadgeSetAsync()).Data);
+    private Lazy<Task<List<BadgeSet>>> CreateLazyBadgesResolver() => new(async () =>
+    {
+        var set = await GetBadgeSetAsync();
+        return set.Data;
+    });
 
-    protected virtual async Task<ListPayload<BadgeSet>> GetBadgeSetAsync() => await _client.GetGlobalChatBadgesAsync();
+    protected virtual async Task<DataList<BadgeSet>> GetBadgeSetAsync() => await _client.InternalGetGlobalChatBadgesAsync();
 }

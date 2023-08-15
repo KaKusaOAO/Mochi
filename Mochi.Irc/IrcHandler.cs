@@ -19,20 +19,24 @@ public class IrcHandler
     public IrcMessage? ReadMessage()
     {
         var line = _reader.ReadLine();
+        // /*
         Logger.Info(TranslateText.Of("Read: %s")
-            .AddWith(LiteralText.Of(line).SetColor(TextColor.Gold))
-        );
+            .AddWith(Component.Literal(line).SetColor(TextColor.DarkGray))
+        ); /* */
         return line == null ? null : _serializer.Parse(line);
     }
+
+    public IrcMessage ParseMessage(string line) => _serializer.Parse(line);
 
     public async Task<IrcMessage?> ReadMessageAsync() => await Task.Run(ReadMessage);
 
     public void WriteMessage(IrcMessage message)
     {
         var line = _serializer.Serialize(message);
+        // /*
         Logger.Info(TranslateText.Of("Sent: %s")
-            .AddWith(LiteralText.Of(line).SetColor(TextColor.Aqua))
-        );
+            .AddWith(Component.Literal(line).SetColor(TextColor.DarkGray))
+        ); /* */
         _writer.WriteLine(line);
         _writer.Flush();
     }

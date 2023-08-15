@@ -12,6 +12,6 @@ public class ChannelBadgeStore : BadgeStore
         _chatRoom = chatRoom;
     }
 
-    protected override async Task<ListPayload<BadgeSet>> GetBadgeSetAsync() => 
-        await _client.GetChannelChatBadgesAsync(_chatRoom.RoomState.RoomId);
+    protected override async Task<DataList<BadgeSet>> GetBadgeSetAsync() => 
+        await _client.InternalGetChannelChatBadgesAsync(_chatRoom.RoomState.RoomId);
 }

@@ -13,8 +13,8 @@ namespace Mochi.Utils;
 public class LoggerEventArgs : EventArgs
 {
     public LogLevel Level { get; set; } = LogLevel.Verbose;
-    public IComponent Content { get; set; } = LiteralText.Of("Log message not set");
-    public IComponent Tag { get; set; } = LiteralText.Of("Unknown");
+    public IComponent Content { get; set; } = Component.Literal("Log message not set");
+    public IComponent Tag { get; set; } = Component.Literal("Unknown");
     public TextColor TagColor { get; set; } = TextColor.DarkGray;
     public Thread SourceThread { get; set; } = Thread.CurrentThread;
     public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.Now;
@@ -116,20 +116,20 @@ public static class Logger
                 _ = LogToEmulatedTerminalAsync(new LoggerEventArgs
                 {
                     Content = TranslateText.Of("Unhandled exception in handler %s!")
-                        .AddWith(LiteralText.Of($"{handler.Method}").SetColor(TextColor.Gold)),
+                        .AddWith(Component.Literal($"{handler.Method}").SetColor(TextColor.Gold)),
                     Level = LogLevel.Error,
                     SourceThread = _thread,
-                    Tag = LiteralText.Of("Logger"),
+                    Tag = Component.Literal("Logger"),
                     TagColor = TextColor.Red,
                     Timestamp = DateTimeOffset.Now
                 });
                     
                 _ = LogToEmulatedTerminalAsync(new LoggerEventArgs
                 {
-                    Content = LiteralText.Of($"{ex}"),
+                    Content = Component.Literal($"{ex}"),
                     Level = LogLevel.Error,
                     SourceThread = _thread,
-                    Tag = LiteralText.Of("Logger"),
+                    Tag = Component.Literal("Logger"),
                     TagColor = TextColor.Red,
                     Timestamp = DateTimeOffset.Now
                 });
@@ -167,7 +167,7 @@ public static class Logger
             var d = new LoggerEventArgs
             {
                 Level = LogLevel.Warn,
-                Content = LiteralText.Of("*** Logger is not bootstrapped. ***"),
+                Content = Component.Literal("*** Logger is not bootstrapped. ***"),
                 TagColor = TextColor.Gold,
                 SourceThread = _thread,
                 Tag = Component.RepresentType(typeof(Logger))
@@ -177,7 +177,7 @@ public static class Logger
             d = new LoggerEventArgs
             {
                 Level = LogLevel.Warn,
-                Content = LiteralText.Of(
+                Content = Component.Literal(
                     "Logger now requires either RunThreaded(), RunBlocking() or RunManualPoll() to poll log events."),
                 TagColor = TextColor.Gold,
                 SourceThread = _thread,
@@ -188,7 +188,7 @@ public static class Logger
             d = new LoggerEventArgs
             {
                 Level = LogLevel.Warn,
-                Content = LiteralText.Of(
+                Content = Component.Literal(
                     "The threaded approach will be used by default."),
                 TagColor = TextColor.Gold,
                 SourceThread = _thread,
@@ -262,13 +262,13 @@ public static class Logger
             nameClone.Style = colored.WithColor(color);
         }
         
-        var tag = LiteralText.Of($"[{thread.Name}@{thread.ManagedThreadId}] ")
+        var tag = Component.Literal($"[{thread.Name}@{thread.ManagedThreadId}] ")
             .SetColor(TextColor.DarkGray)
             .AddExtra(TranslateText.Of("[%s]").AddWith(nameClone).SetColor(color));
         var now = time.ToLocalTime().DateTime.ToString(CultureInfo.InvariantCulture);
 
         var text = t.Clone();
-        var prefix = f.AddWith(tag, LiteralText.Of(""), LiteralText.Of(now));
+        var prefix = f.AddWith(tag, Component.Literal(""), Component.Literal(now));
             
         var pPlain = prefix.ToPlainText();
         var pf = ascii ? prefix.ToAnsi() : prefix.ToPlainText(); 
@@ -322,10 +322,10 @@ public static class Logger
     {
         return obj switch
         {
-            null => LiteralText.Of("<null>").SetColor(TextColor.Red),
+            null => Component.Literal("<null>").SetColor(TextColor.Red),
             IComponent text => text,
             Type type => Component.RepresentType(type),
-            _ => LiteralText.Of(obj.ToString())
+            _ => Component.Literal(obj.ToString())
         };
     }
 

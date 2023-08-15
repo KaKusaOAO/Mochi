@@ -17,10 +17,11 @@ public class LiteralContent : IContent<LiteralContent>
         return new LiteralContent(Text);
     }
 
-    public void Visit(IContentVisitor visitor, IStyle style)
-    {
+    public void Visit(IContentVisitor visitor, IStyle style) => 
         visitor.Accept(this, style);
-    }
+
+    public void VisitLiteral(IContentVisitor visitor, IStyle style) => 
+        visitor.Accept(this, style);
 
     public LiteralContent(string? text = null)
     {
@@ -44,13 +45,14 @@ public class LiteralContentType : IContentType<LiteralContent>
 
 public static class LiteralText
 {
-    public static MutableComponent Of(string? text) => Component.Literal(text);
+    [Obsolete("Use Component.Literal()", true)]
+    public static IMutableComponent Of(string? text) => Component.Literal(text);
 
-    public static MutableComponent FromLegacyText(string message)
+    public static IMutableComponent FromLegacyText(string message)
     {
         var texts = new List<IComponent>();
         var sb = new StringBuilder();
-        var t = Of("");
+        var t = Component.Literal("");
 
         for (var i = 0; i < message.Length; i++)
         {
@@ -99,7 +101,7 @@ public static class LiteralText
                     texts.Add(old);
                 }
 
-                t = Of("").SetColor(color);
+                t = Component.Literal("").SetColor(color);
                 continue;
             }
 
@@ -109,7 +111,7 @@ public static class LiteralText
         ((LiteralContent) t.Content).Text = sb.ToString();
         texts.Add(t);
 
-        var result = Of("");
+        var result = Component.Literal("");
         foreach (var text in texts)
         {
             result.AddExtra(text);

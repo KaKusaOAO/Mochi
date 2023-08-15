@@ -39,6 +39,7 @@ public static class TextContentTypes
         public IContentType<EmptyContent> Type => EmptyContentType.Shared;
         public EmptyContent Clone() => this;
         public void Visit(IContentVisitor visitor, IStyle style) {}
+        public void VisitLiteral(IContentVisitor visitor, IStyle style) {}
     }
     
     private class EmptyContentType : IContentType<EmptyContent>

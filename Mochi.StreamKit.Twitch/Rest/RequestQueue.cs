@@ -1,13 +1,21 @@
 ﻿using System.Net;
+using Microsoft.VisualBasic.CompilerServices;
 using Mochi.Utils;
 
 namespace Mochi.StreamKit.Twitch.Rest;
 
 public class RequestQueue
 {
+    private readonly TwitchRestApiClient _client;
     private readonly SemaphoreSlim _lock = new(1, 1);
     private RateLimitInfo? _rateLimitInfo;
+    private bool _isReLoggingIn;
 
+    public RequestQueue(TwitchRestApiClient client)
+    {
+        _client = client;
+    }
+    
     public async Task<Stream> SendAsync(RestRequest request)
     {
         await _lock.WaitAsync();
@@ -34,6 +42,13 @@ public class RequestQueue
                     if (response.StatusCode == HttpStatusCode.TooManyRequests)
                     {
                         Logger.Warn("Being rate limited. Retrying after reset...");
+                        continue;
+                    }
+
+                    if (response.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        Logger.Warn("Unauthorized! Re-logging in and retrying...");
+                        await _client.ReLoginAsync();
                         continue;
                     }
 

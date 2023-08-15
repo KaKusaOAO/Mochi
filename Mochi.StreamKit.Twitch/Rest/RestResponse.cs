@@ -8,7 +8,7 @@ public class RestResponse
     public Dictionary<string, string> Headers { get; }
     public Stream? Stream { get; }
     
-    public RateLimitInfo RateLimitInfo { get; }
+    public RateLimitInfo? RateLimitInfo { get; }
 
     public RestResponse(HttpResponseMessage response, RequestOptions options)
     {
@@ -45,12 +45,13 @@ public class RateLimitInfo
     {
         Limit = limit;
         Remaining = remaining;
-        ResetAt = resetAt;
+        ResetAt = resetAt.ToLocalTime();
     }
 
-    public static RateLimitInfo CreateFromHeaders(Dictionary<string, string> headers)
+    public static RateLimitInfo? CreateFromHeaders(Dictionary<string, string> headers)
     {
-        var limit = int.Parse(headers["Ratelimit-Limit"]);
+        if (!headers.TryGetValue("Ratelimit-Limit", out var str)) return null;
+        var limit = int.Parse(str);
         var remaining = int.Parse(headers["Ratelimit-Remaining"]);
         var resetAt = DateTimeOffset.FromUnixTimeSeconds(long.Parse(headers["Ratelimit-Reset"]));
         return new RateLimitInfo(limit, remaining, resetAt);

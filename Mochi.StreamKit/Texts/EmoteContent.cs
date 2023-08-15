@@ -18,18 +18,16 @@ public class EmoteContent : IContent<EmoteContent>
 
     public void Visit(IContentVisitor visitor, IStyle style)
     {
-        if (visitor is IEmoteVisitor)
+        visitor.Accept(this, style);
+    }
+
+    public void VisitLiteral(IContentVisitor visitor, IStyle style)
+    {
+        if (style is IColoredStyle colored)
         {
-            visitor.Accept(this, style);
+            style = colored.WithColor(TextColor.Yellow).ApplyTo(style);
         }
-        else
-        {
-            if (style is IColoredStyle colored)
-            {
-                style = colored.WithColor(TextColor.Yellow).ApplyTo(style);
-            }
-            visitor.Accept(new LiteralContent(@$"[{Emote.Name}]"), style);
-        }
+        visitor.Accept(new LiteralContent(@$":{Emote.Name}:"), style);
     }
 }
 
@@ -44,11 +42,19 @@ public class EmoteContentType : IContentType<EmoteContent>
     
     public EmoteContent CreateContent(JsonObject payload)
     {
-        throw new NotImplementedException();
+        var obj = payload["emote"]!.AsObject();
+        var name = obj["name"]!.GetValue<string>();
+        var url = new Uri(obj["url"]!.GetValue<string>());
+        return new EmoteContent(new Emote(name, url));
     }
 
     public void InsertPayload(JsonObject target, EmoteContent content)
     {
-        throw new NotImplementedException();
+        var emote = content.Emote;
+        target["emote"] = new JsonObject
+        {
+            ["name"] = emote.Name,
+            ["url"] = emote.ImageUrl.ToString()
+        };
     }
 }

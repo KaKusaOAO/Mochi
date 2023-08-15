@@ -2,7 +2,7 @@
 
 namespace Mochi.StreamKit.Twitch.API;
 
-public class ListPayload<T>
+public class DataList<T>
 {
     [JsonPropertyName("data")]
     public List<T> Data { get; set; }

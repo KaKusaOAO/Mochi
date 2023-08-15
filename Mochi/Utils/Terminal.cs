@@ -198,7 +198,7 @@ public static class Terminal
     }
 
     public static string ReadLine(string prompt, AutoCompleterDelegate autoCompleter = null, InputBufferRendererDelegate inputBufferRenderer = null) =>
-        ReadLine(LiteralText.Of(prompt), autoCompleter, inputBufferRenderer);
+        ReadLine(Component.Literal(prompt), autoCompleter, inputBufferRenderer);
 
     private static void UpdateSuggestions(AutoCompleterDelegate autoCompleter,
         InputBufferRendererDelegate inputBufferRenderer = null)

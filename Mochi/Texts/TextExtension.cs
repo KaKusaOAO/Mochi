@@ -1,12 +1,17 @@
-﻿using System.Text.Json.Nodes;
+﻿using System.Linq;
+using System.Text.Json.Nodes;
 
 namespace Mochi.Texts;
 
 public static class TextExtension
 {
-    public static T SetColor<T>(this T text, TextColor? color) where T : MutableComponent
+    public static T SetColor<T>(this T text, TextColor? color) where T : IMutableComponent
     {
-        text.Style = text.Style.WithColor(color);
+        if (text.Style is IColoredStyle colored)
+        {
+            text.Style = colored.WithColor(color);
+        }
+
         return text;
     }
     
@@ -40,9 +45,9 @@ public static class TextExtension
             extras.Add(e.ToJson());
         }
 
-        obj["extra"] = extras;
-        text.Style.SerializeInto(obj);
         text.Content.InsertPayload(obj);
+        text.Style.SerializeInto(obj);
+        if (extras.Any()) obj["extra"] = extras;
         return obj;
     }
 }

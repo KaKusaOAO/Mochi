@@ -7,10 +7,9 @@ public class TwitchIrcMessageSerializer : IrcMessageSerializer
 {
     public TwitchIrcMessageSerializer()
     {
-        var badgeTagParser = new BadgeTagParser();
-        RegisterTagParser("badges", badgeTagParser);
-        RegisterTagParser("badge-info", badgeTagParser);
+        RegisterTagParser("badges", new BadgeTagParser());
         RegisterTagParser("emotes", new EmoteTagParser());
+        RegisterTagParser("emote-sets", new EmoteSetTagParser());
         
         RegisterCommandParser("CAP", new CapIrcCommandParser());
     }

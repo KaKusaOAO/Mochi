@@ -2,7 +2,7 @@
 
 namespace Mochi.StreamKit;
 
-public interface IComment
+public interface IGenericComment
 {
     public List<IUserBadge> Badges { get; }
     public string Id { get; }

@@ -1,12 +1,19 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 
 namespace Mochi.Texts;
+
+public enum FlattenMode
+{
+    EmptyWithSiblings,
+    OneAndSiblings
+}
 
 public static class Component
 {
@@ -27,6 +34,102 @@ public static class Component
         return _ansiTextVisitor.Result;
     }
 
+    public static IComponent ToFlattened(this IEnumerable<IComponent> components, FlattenMode mode = FlattenMode.OneAndSiblings)
+    {
+        var storage = components.ToList();
+        storage.RemoveAll(x => x.Content is LiteralContent literal && string.IsNullOrEmpty(literal.Text));
+        
+        if (!storage.Any()) return Literal("");
+        
+        var first = storage.First();
+        if (mode == FlattenMode.OneAndSiblings)
+        {
+            if (storage.Count == 1) return first;
+            
+            var x = first.Clone();
+            foreach (var sibling in storage.Skip(1))
+            {
+                x.AddExtra(sibling);
+            }
+
+            return x;
+        }
+
+        if (mode == FlattenMode.EmptyWithSiblings)
+        {
+            var a = new GenericMutableComponent(new LiteralContent(""), first.Style.Clear());
+            foreach (var comp in storage)
+            {
+                a.Siblings.Add(comp);
+            }
+
+            return a;
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(mode));
+    }
+
+    public static IComponent Flatten(this IComponent component, FlattenMode mode = FlattenMode.OneAndSiblings)
+    {
+        var storage = new List<IComponent>();
+        VisitFlatten(component, storage);
+        return storage.ToFlattened(mode);
+    }
+
+    private static void VisitFlatten(IComponent component, List<IComponent> storage)
+    {
+        var x = component.Clone();
+        x.Siblings.Clear();
+        storage.Add(x);
+
+        foreach (var sibling in component.Siblings)
+        {
+            VisitFlatten(sibling, storage);
+        }
+    }
+
+    public static IComponent ResolveComponents(this IComponent component, IComponentResolver resolver)
+    {
+        var source = new List<IComponent>();
+        var clone = component.Clone();
+        source.AddRange(clone.Siblings);
+        clone.Siblings.Clear();
+        source.Insert(0, clone);
+
+        var components = new List<IComponent>();
+        foreach (var comp in source)
+        {
+            if (comp.Content is not LiteralContent literal)
+            {
+                components.Add(comp);
+                continue;
+            }
+
+            var offset = 0;
+            var content = literal.Text;
+            var matches = resolver.GetResolvedEntries(content);
+            foreach (var match in matches)
+            {
+                var range = match.Range;
+                components.Add(new GenericMutableComponent(new LiteralContent(content[offset..range.Start]), comp.Style.Clear()));
+                offset = range.End.Value;
+
+                var produced = match.Resolve(comp.Style);
+                if (produced != null) components.Add(produced);
+            }
+
+            var remaining = content[offset..];
+            if (!string.IsNullOrEmpty(remaining))
+                components.Add(new GenericMutableComponent(new LiteralContent(remaining), comp.Style.Clear()));
+        }
+
+        return components.ToFlattened();
+    }
+
+    public static IComponent
+        ResolveComponents(this IComponent component, Regex regex, Func<Match, IStyle, IComponent?> factory) =>
+        component.ResolveComponents(new RegexComponentResolver(regex, factory));
+
     private class PlainTextVisitor : IContentVisitor
     {
         private readonly StringBuilder _sb = new();
@@ -35,10 +138,13 @@ public static class Component
         
         public void Accept(IContent content, IStyle style)
         {
-            if (content is LiteralContent literal)
+            if (content is not LiteralContent literal)
             {
-                _sb.Append(literal.Text);
+                content.VisitLiteral(this, style);
+                return;
             }
+            
+            _sb.Append(literal.Text);
         }
 
         public string Result => _sb.ToString();
@@ -52,26 +158,34 @@ public static class Component
         
         public void Accept(IContent content, IStyle style)
         {
+            if (content is not LiteralContent literal)
+            {
+                content.VisitLiteral(this, style);
+                return;
+            }
+            
             if (style is IColoredStyle colored)
             {
                 var color = colored.Color == null ? LegacyAnsiColor.Reset : AnsiColor.FromTextColor(colored.Color);
                 _sb.Append(color.ToAnsiCode());
             }
             
-            if (content is LiteralContent literal)
-            {
-                _sb.Append(literal.Text);
-            }
+            _sb.Append(literal.Text);
         }
 
         public string Result => _sb.ToString();
     }
     
-    public static MutableComponent Literal(string? text) => new(new LiteralContent(text));
+    public static IMutableComponent Literal(string? text) => new MutableComponent(new LiteralContent(text));
 
-    public static MutableComponent<T> Literal<T>(string? text, T style) where T : IStyle<T> =>
-        new(new LiteralContent(text), style);
+    public static IMutableComponent Literal(string? text, IStyle style) => 
+        new GenericMutableComponent(new LiteralContent(text), style);
+
+    public static IMutableComponent<T> Literal<T>(string? text, T style) where T : IStyle<T> =>
+        new MutableComponent<T>(new LiteralContent(text), style);
     
+    
+
     public static IComponent FromJson(string json) => FromJson(JsonSerializer.Deserialize<JsonNode>(json));
 
     public static IComponent FromJson(JsonNode? obj)
@@ -83,8 +197,7 @@ public static class Component
 
         if (obj is JsonArray arr)
         {
-            return LiteralText.Of("")
-                .AddExtra(arr.Select(FromJson).ToArray());
+            return Literal("").AddExtra(arr.Select(FromJson).ToArray());
         }
         
         if (obj is JsonObject o)
@@ -107,18 +220,18 @@ public static class Component
         => TranslateText.Of($"%s.{t.Name}")
             .SetColor(color ?? TextColor.Gold)
             .AddWith(
-                LiteralText.Of(t.Namespace)
+                Literal(t.Namespace)
                     .SetColor(TextColor.DarkGray)
             );
             
     private static IComponent RepresentInt(int val, TextColor? color = null)
-        => LiteralText.Of(val.ToString())
+        => Literal(val.ToString())
             .SetColor(color ?? TextColor.Gold);
 
     private static IComponent RepresentDefGoldWithRedSuffix(string s, string suffix, TextColor? color = null)
         => TranslateText.Of($"{s}%s")
             .SetColor(color ?? TextColor.Gold)
-            .AddWith(LiteralText.Of(suffix).SetColor(TextColor.Red));
+            .AddWith(Literal(suffix).SetColor(TextColor.Red));
 
     private static IComponent RepresentLong(long val, TextColor? color = null)
         => RepresentDefGoldWithRedSuffix(val.ToString(), "L", color);
@@ -138,13 +251,13 @@ public static class Component
     private static IComponent RepresentString(string val, TextColor? color = null)
         => TranslateText.Of(@"""%s""")
             .SetColor(color ?? TextColor.Green)
-            .AddWith(LiteralText.Of(val));
+            .AddWith(Literal(val));
 
     private static IComponent RepresentShort(short val, TextColor? color = null)
         => RepresentDefGoldWithRedSuffix(val.ToString(), "s", color);
         
     private static IComponent RepresentBool(bool val, TextColor? color = null)
-        => LiteralText.Of(val.ToString())
+        => Literal(val.ToString())
             .SetColor(color ?? (val ? TextColor.Green : TextColor.Red));
         
     public static IComponent Represent(object obj, TextColor? color = null)
@@ -152,7 +265,7 @@ public static class Component
         switch (obj)
         {
             case null:
-                return LiteralText.Of("null").SetColor(TextColor.Red);
+                return Literal("null").SetColor(TextColor.Red);
             case int i:
                 return RepresentInt(i, color);
             case long l:

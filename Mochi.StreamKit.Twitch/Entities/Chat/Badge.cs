@@ -1,6 +1,6 @@
 using Mochi.StreamKit.Twitch.API;
 
-namespace Mochi.StreamKit.Twitch.Chat;
+namespace Mochi.StreamKit.Twitch.Entities;
 
 public class Badge : IUserBadge
 {

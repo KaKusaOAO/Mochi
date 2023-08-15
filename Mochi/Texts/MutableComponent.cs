@@ -11,8 +11,7 @@ public class MutableComponent<T> : IMutableComponent<T> where T : IStyle<T>
     IList<IComponent> IComponent.Siblings => _downcastList;
     
     public T Style { get; set; }
-
-
+    
     public MutableComponent(IContent content, T style)
     {
         Content = content;
@@ -42,6 +41,17 @@ public class MutableComponent<T> : IMutableComponent<T> where T : IStyle<T>
             sibling.Visit(visitor, style);
         }
     }
+    
+    public void VisitLiteral(IContentVisitor visitor, T style)
+    {
+        style = Style.ApplyTo(style);
+        Content.VisitLiteral(visitor, style);
+
+        foreach (var sibling in Siblings)
+        {
+            sibling.VisitLiteral(visitor, style);
+        }
+    }
 }
 
 public class MutableComponent : MutableComponent<Style>
@@ -51,4 +61,49 @@ public class MutableComponent : MutableComponent<Style>
     }
 
     public new MutableComponent Clone() => (MutableComponent) base.Clone();
+}
+
+public class GenericMutableComponent : IMutableComponent
+{
+    public IContent Content { get; }
+    public IStyle Style { get; set; }
+    public IList<IComponent> Siblings { get; } = new List<IComponent>();
+    
+    public GenericMutableComponent(IContent content, IStyle style)
+    {
+        Content = content;
+        Style = style;
+    }
+    
+    public IMutableComponent Clone()
+    {
+        var result = new GenericMutableComponent(Content, Style);
+        foreach (var clone in Siblings.Select(x => x.Clone()))
+        {
+            result.Siblings.Add(clone);
+        }
+        return result;
+    }
+
+    public void Visit(IContentVisitor visitor, IStyle style)
+    {
+        style = Style.ApplyTo(style);
+        Content.Visit(visitor, style);
+
+        foreach (var sibling in Siblings)
+        {
+            sibling.Visit(visitor, style);
+        }
+    }
+    
+    public void VisitLiteral(IContentVisitor visitor, IStyle style)
+    {
+        style = Style.ApplyTo(style);
+        Content.VisitLiteral(visitor, style);
+
+        foreach (var sibling in Siblings)
+        {
+            sibling.VisitLiteral(visitor, style);
+        }
+    }
 }

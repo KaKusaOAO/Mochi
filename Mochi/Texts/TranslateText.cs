@@ -29,40 +29,6 @@ public class TranslateContent : IContent<TranslateContent>
     public TranslateContent Clone() => new(Translate, With.Select(t => t.Clone()).ToArray());
 
     private List<IComponent>? _decomposed = null;
-    
-    private class GenericMutableComponent : IMutableComponent
-    {
-        public IContent Content { get; }
-        public IStyle Style { get; set; }
-        public IList<IComponent> Siblings { get; } = new List<IComponent>();
-    
-        public GenericMutableComponent(IContent content, IStyle style)
-        {
-            Content = content;
-            Style = style;
-        }
-    
-        public IMutableComponent Clone()
-        {
-            var result = new GenericMutableComponent(Content, Style);
-            foreach (var clone in Siblings.Select(x => x.Clone()))
-            {
-                result.Siblings.Add(clone);
-            }
-            return result;
-        }
-
-        public void Visit(IContentVisitor visitor, IStyle style)
-        {
-            style = Style.ApplyTo(style);
-            Content.Visit(visitor, style);
-
-            foreach (var sibling in Siblings)
-            {
-                sibling.Visit(visitor, style);
-            }
-        }
-    }
 
     private List<IComponent> Decompose(IStyle style)
     {
@@ -96,6 +62,15 @@ public class TranslateContent : IContent<TranslateContent>
         foreach (var component in _decomposed)
         {
             component.Visit(visitor, style);
+        }
+    }
+    
+    public void VisitLiteral(IContentVisitor visitor, IStyle style)
+    {
+        _decomposed ??= Decompose(style);
+        foreach (var component in _decomposed)
+        {
+            component.VisitLiteral(visitor, style);
         }
     }
 }

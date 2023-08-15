@@ -1,6 +1,6 @@
 namespace Mochi.StreamKit;
 
-public interface ICommentWithModerator : IComment
+public interface IGenericCommentWithModerator : IGenericComment
 {
     public bool IsModerator { get; }
 }

@@ -13,6 +13,7 @@ public interface IComponent
     public IList<IComponent> Siblings { get; }
     public IMutableComponent Clone();
     public void Visit(IContentVisitor visitor, IStyle style);
+    public void VisitLiteral(IContentVisitor visitor, IStyle style);
 }
 
 internal class DowncastList<T, TSuper> : IList<TSuper> where T : TSuper
@@ -65,4 +66,7 @@ public interface IComponent<T> : IComponent where T : IStyle<T>
     
     public void Visit(IContentVisitor visitor, T style);
     void IComponent.Visit(IContentVisitor visitor, IStyle style) => Visit(visitor, (T) style);
+    
+    public void VisitLiteral(IContentVisitor visitor, T style);
+    void IComponent.VisitLiteral(IContentVisitor visitor, IStyle style) => VisitLiteral(visitor, (T) style);
 }

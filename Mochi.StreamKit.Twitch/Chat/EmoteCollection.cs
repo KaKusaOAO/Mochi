@@ -6,7 +6,7 @@ namespace Mochi.StreamKit.Twitch.Chat;
 
 public class EmoteCollection : IIrcTagValue
 {
-    public List<EmoteMetadata> Emotes { get; }
+    public List<EmoteMetadata> Emotes { get; set; }
     public string RawValue { get; }
 
     public EmoteCollection(string rawValue)
@@ -29,30 +29,45 @@ public class EmoteCollection : IIrcTagValue
         }).ToList();
     }
 
-    public IComponent ParseContent(string content)
+    public IComponentResolver GetComponentResolver() => new EmoteComponentResolver(this);
+
+    private class EmoteComponentResolver : IComponentResolver
     {
-        var components = new List<IComponent>();
-        var offset = 0;
-        foreach (var (id, range) in Emotes.SelectMany(x =>
-                     x.Positions.OrderBy(a => a.Start.Value).Select(r => (x.Id, r))))
+        private readonly EmoteCollection _collection;
+
+        public EmoteComponentResolver(EmoteCollection collection)
         {
-            components.Add(Component.Literal(content[offset..range.Start]));
-
-            var name = content[range];
-            offset = range.End.Value;
-
-            var emote = new Emote(name, id);
-            components.Add(new MutableComponent(new EmoteContent(emote)));
+            _collection = collection;
         }
-        components.Add(Component.Literal(content[offset..]));
-        if (components.Count == 1) return components.First();
-
-        var result = Component.Literal("");
-        foreach (var comp in components)
+        
+        public ICollection<IResolvedComponentEntry> GetResolvedEntries(string content)
         {
-            result.AddExtra(comp);
+            return _collection.Emotes
+                .SelectMany(x => x.Positions.Select(r => (x.Id, r)))
+                .OrderBy(x => x.r.Start.Value)
+                .Select(x => new EmoteResolvedComponentEntry(content, x.Id, x.r))
+                .OfType<IResolvedComponentEntry>().ToList();
+        }
+    }
+
+    private class EmoteResolvedComponentEntry : IResolvedComponentEntry
+    {
+        private readonly string _content;
+        private readonly string _id;
+        public Range Range { get; }
+
+        public EmoteResolvedComponentEntry(string content, string id, Range range)
+        {
+            _content = content;
+            _id = id;
+            Range = range;
         }
 
-        return result;
+        public IComponent? Resolve(IStyle style)
+        {
+            var name = _content[Range];
+            var emote = Emote.CreateFromTwitch(name, _id);
+            return new GenericMutableComponent(new EmoteContent(emote), style.Clear());
+        }
     }
 }

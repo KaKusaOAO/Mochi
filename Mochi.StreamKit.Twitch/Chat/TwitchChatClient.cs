@@ -2,7 +2,9 @@
 using Mochi.IO;
 using Mochi.Irc;
 using Mochi.StreamKit.Twitch.Chat.Irc;
+using Mochi.StreamKit.Twitch.Entities;
 using Mochi.StreamKit.Twitch.OAuth2;
+using Mochi.Texts;
 using Mochi.Utils;
 
 namespace Mochi.StreamKit.Twitch.Chat;
@@ -10,10 +12,11 @@ namespace Mochi.StreamKit.Twitch.Chat;
 public class TwitchChatClient : IDisposable
 {
     public TwitchClient Client { get; }
-    private readonly ClientWebSocket _webSocket;
-    private readonly WebSocketInputStream _inputStream;
-    private readonly WebSocketOutputStream _outputStream;
-    internal readonly IrcHandler _ircHandler;
+    private ClientWebSocket _webSocket = null!;
+    private WebSocketInputStream _inputStream = null!;
+    private  WebSocketOutputStream _outputStream = null!;
+    private IrcHandler _ircHandler = null!;
+    private bool _disposed;
     private readonly MutableChatRoomCollection _chatRooms = new();
     public IChatRoomCollection ChatRooms => _chatRooms;
 
@@ -22,6 +25,20 @@ public class TwitchChatClient : IDisposable
     public TwitchChatClient(TwitchClient client)
     {
         Client = client;
+        InitializeConnection();
+    }
+
+    public async Task ReadTestMessageAsync(string origin)
+    {
+        Logger.Info(TranslateText.Of("Test Read: %s")
+            .AddWith(Component.Literal(origin).SetColor(TextColor.Gold))
+        );
+        var message = _ircHandler.ParseMessage(origin);
+        await ProcessMessageAsync(message);
+    }
+
+    private void InitializeConnection()
+    {
         _webSocket = new ClientWebSocket();
         _inputStream = new WebSocketInputStream(_webSocket);
         _outputStream = new WebSocketOutputStream(_webSocket, WebSocketMessageType.Text);
@@ -42,8 +59,8 @@ public class TwitchChatClient : IDisposable
         {
             Parameters = string.Join(' ', new List<string>
             {
-                "twitch.tv/tags", "twitch.tv/commands"
-            })
+                "tags", "commands", "membership"
+            }.Select(x => $"twitch.tv/{x}"))
         });
 
         if (accessToken == null)
@@ -58,7 +75,7 @@ public class TwitchChatClient : IDisposable
         else
         {
             await _ircHandler.WriteMessageAsync(new IrcMessage(new GenericCommand("PASS", $"oauth:{accessToken}")));
-            await _ircHandler.WriteMessageAsync(new IrcMessage(new GenericCommand("NICK", Client.Rest.CurrentUser!.Login.ToLower())));
+            await _ircHandler.WriteMessageAsync(new IrcMessage(new GenericCommand("NICK", Client.Rest.CurrentUser.Name.ToLower())));
         }
 
         _ = RunEventLoopAsync();
@@ -66,13 +83,33 @@ public class TwitchChatClient : IDisposable
 
     private async Task RunEventLoopAsync()
     {
-        while (true)
+        while (!_disposed)
         {
-            var message = await _ircHandler.ReadMessageAsync();
-            if (message == null) return;
+            await RunMessageLoopAsync();
+            if (_disposed) return;
             
-            var channelName = message.Command.Arguments.FirstOrDefault()?.TrimStart('#');
-            
+            try
+            {
+                await _inputStream.DisposeAsync();
+                await _outputStream.DisposeAsync();
+                _webSocket.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn(ex);
+            }
+
+            InitializeConnection();
+        }
+    }
+
+    private async Task ProcessMessageAsync(IrcMessage message)
+    {
+        try
+        {
+            var channelName = message.Command.Arguments
+                .FirstOrDefault(x => x.StartsWith('#'))?.TrimStart('#');
+
             if (message.Command.Command == "PING")
             {
                 await _ircHandler.WriteMessageAsync(new IrcMessage(new GenericCommand("PONG"))
@@ -85,14 +122,50 @@ public class TwitchChatClient : IDisposable
             {
                 if (!_chatRooms.ContainsKey(channelName!))
                 {
-                    var room = new ChatRoom(this, channelName!);
+                    var user = await Client.Rest.GetUserByNameAsync(channelName!);
+                    var room = new ChatRoom(this, user!);
                     _chatRooms.Add(room);
                 }
             }
 
-            if (message.Command.Command is "PRIVMSG" or "ROOMSTATE")
+            if (message.Command.Command is "JOIN" or "PART" or "PRIVMSG" or "ROOMSTATE" or "USERSTATE" or "353")
             {
                 await _chatRooms[channelName!].OnReceivedIrcMessageAsync(message);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Unexpected error occurred while processing IRC messages!");
+            Logger.Error(ex);
+        }
+    }
+
+    private async Task RunMessageLoopAsync()
+    {
+        while (!_disposed)
+        {
+            try
+            {
+                IrcMessage? message;
+                try
+                {
+                    message = await _ircHandler.ReadMessageAsync();
+                    if (message == null) return;
+                }
+                catch (AggregateException ex)
+                {
+                    if (ex.InnerExceptions.OfType<WebSocketException>().Any()) return;
+                    Logger.Error("Unexpected error occurred while processing IRC messages!");
+                    Logger.Error(ex);
+                    continue;
+                }
+
+                await ProcessMessageAsync(message);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Unexpected error occurred while reading IRC messages!");
+                Logger.Error(ex);
             }
         }
     }
@@ -112,7 +185,7 @@ public class TwitchChatClient : IDisposable
     public async Task UnsubscribeChannelAsync(string name)
     {
         if (!_chatRooms.TryGetValue(name, out var room)) return;
-        
+        _chatRooms.Remove(room);
         room.MessageReceived -= RoomOnMessageReceived;
         await _ircHandler.WriteMessageAsync(new IrcMessage(new GenericCommand("PART", $"#{name}")));
     }
@@ -123,8 +196,11 @@ public class TwitchChatClient : IDisposable
             await MessageReceived.Invoke(comment);
     }
 
+    public async Task WriteMessageAsync(IrcMessage message) => await _ircHandler.WriteMessageAsync(message);
+
     public void Dispose()
     {
+        _disposed = true;
         _inputStream.Dispose();
         _outputStream.Dispose();
         _webSocket.Dispose();

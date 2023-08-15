@@ -14,7 +14,7 @@ public static class Common
     {
         DiscardAndCatch(task, ex =>
         {
-            Logger.Warn(LiteralText.Of($"Uncaught exception from task {task}:"));
+            Logger.Warn(Component.Literal($"Uncaught exception from task {task}:"));
             Logger.Warn(ex.ToString());
         });
     }

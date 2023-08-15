@@ -29,7 +29,7 @@ public static class BrigadierTerminal
             Terminal.Write(text);
             if (Console.CursorLeft - co < suggestion.Length && suggestion.StartsWith(input))
             {
-                Terminal.Write(LiteralText.Of(suggestion[(Console.CursorLeft - co.Value)..]).SetColor(TextColor.DarkGray));
+                Terminal.Write(Component.Literal(suggestion[(Console.CursorLeft - co.Value)..]).SetColor(TextColor.DarkGray));
             }
         }
 
@@ -37,14 +37,14 @@ public static class BrigadierTerminal
         {
             if (Console.BufferWidth - Console.CursorLeft <= msg.Length)
                 msg = msg[..(Console.BufferWidth - Console.CursorLeft - 1)];
-            Terminal.Write(LiteralText.Of(msg).SetColor(TextColor.Red));
+            Terminal.Write(Component.Literal(msg).SetColor(TextColor.Red));
         }
         
         void WriteUsage(string msg)
         {
             if (Console.BufferWidth - Console.CursorLeft <= msg.Length)
                 msg = msg[..(Console.BufferWidth - Console.CursorLeft - 1)];
-            Terminal.Write(LiteralText.Of(msg).SetColor(TextColor.DarkGray));
+            Terminal.Write(Component.Literal(msg).SetColor(TextColor.DarkGray));
         }
         
         var result = dispatcher.Parse(input, source);
@@ -55,7 +55,7 @@ public static class BrigadierTerminal
         {
             if (context.Range.IsEmpty)
             {
-                WriteWithSuggestion(LiteralText.Of(input).SetColor(TextColor.Red));
+                WriteWithSuggestion(Component.Literal(input).SetColor(TextColor.Red));
                 var c2 = Console.CursorLeft;
                 Terminal.ClearRemaining();
                 
@@ -95,7 +95,7 @@ public static class BrigadierTerminal
 
                     var useColor = node.Node is not LiteralCommandNode<T>;
                     var range = node.Range;
-                    var text = LiteralText.Of(range.Get(reader)).SetColor(useColor ? colors[colorIndex++] : null);
+                    var text = Component.Literal(range.Get(reader)).SetColor(useColor ? colors[colorIndex++] : null);
                     Terminal.Write(text);
 
                     colorIndex %= colors.Length;
@@ -105,7 +105,7 @@ public static class BrigadierTerminal
                 catch (Exception ex)
                 {
                     var range = node.Range;
-                    WriteWithSuggestion(LiteralText.Of(input[range.Start..range.End])
+                    WriteWithSuggestion(Component.Literal(input[range.Start..range.End])
                         .SetColor(TextColor.Red));
 
                     var c2 = c + reader.Cursor;
@@ -123,7 +123,7 @@ public static class BrigadierTerminal
                 var nextNode = last?.Node?.Children?.FirstOrDefault();
                 var usage = nextNode is ArgumentCommandNode<T> ? nextNode.GetUsageText() : null;
             
-                WriteWithSuggestion(LiteralText.Of(reader.GetString()[startFrom..]).SetColor(TextColor.Red), coLeft);
+                WriteWithSuggestion(Component.Literal(reader.GetString()[startFrom..]).SetColor(TextColor.Red), coLeft);
                 if (usage != null) WriteUsage($" :{usage}");
                 var c1 = Console.CursorLeft;
                 Terminal.ClearRemaining();
@@ -144,7 +144,7 @@ public static class BrigadierTerminal
             context = child;
         }
         
-        WriteWithSuggestion(LiteralText.Of(""), coLeft);
+        WriteWithSuggestion(Component.Literal(""), coLeft);
 
         if (lastProcessedNode != null && lastProcessedNode.Node.Command == null)
         {
