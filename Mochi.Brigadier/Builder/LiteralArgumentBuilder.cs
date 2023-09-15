@@ -2,7 +2,7 @@
 
 namespace Mochi.Brigadier.Builder;
 
-public class LiteralArgumentBuilder<TS> : ArgumentBuilder<TS, LiteralArgumentBuilder<TS>>
+public class LiteralArgumentBuilder<T> : ArgumentBuilder<T, LiteralArgumentBuilder<T>>
 {
     private readonly string _literal;
 
@@ -11,16 +11,16 @@ public class LiteralArgumentBuilder<TS> : ArgumentBuilder<TS, LiteralArgumentBui
         _literal = literal;
     }
 
-    public static LiteralArgumentBuilder<TS> Literal(string name) => new(name);
+    public static LiteralArgumentBuilder<T> Literal(string name) => new(name);
 
-    protected override LiteralArgumentBuilder<TS> GetThis() => this;
+    protected override LiteralArgumentBuilder<T> GetThis() => this;
 
     public string GetLiteral() => _literal;
 
-    public override CommandNode<TS> Build()
+    public override CommandNode<T> Build()
     {
         var result =
-            new LiteralCommandNode<TS>(GetLiteral(), Command, Requirement, GetRedirect(), RedirectModifier, IsFork);
+            new LiteralCommandNode<T>(GetLiteral(), Command, Requirement, RedirectTarget, RedirectModifier, IsFork);
 
         foreach (var argument in Arguments)
         {

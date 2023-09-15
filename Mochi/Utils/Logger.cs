@@ -10,21 +10,15 @@ using Mochi.Texts;
 
 namespace Mochi.Utils;
 
-public class LoggerEventArgs : EventArgs
-{
-    public LogLevel Level { get; set; } = LogLevel.Verbose;
-    public IComponent Content { get; set; } = Component.Literal("Log message not set");
-    public IComponent Tag { get; set; } = Component.Literal("Unknown");
-    public TextColor TagColor { get; set; } = TextColor.DarkGray;
-    public Thread SourceThread { get; set; } = Thread.CurrentThread;
-    public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.Now;
-}
-    
-public delegate Task AsyncLogEventDelegate(LoggerEventArgs data);
-
 public static class Logger
 {
     private static readonly AsyncEventHandler<AsyncLogEventDelegate> _loggedHandler = new();
+    public static IComponent PrefixFormat => TranslateText.Of("%3$s - %1$s %2$s");
+    private static readonly SemaphoreSlim _logLock = new(1, 1);
+    private static readonly ConcurrentQueue<Action> _recordCall = new();
+    private static Thread _thread;
+    private static bool _bootstrapped;
+    
     public static event AsyncLogEventDelegate Logged
     {
         add => _loggedHandler.AddHandler(value);
@@ -32,11 +26,6 @@ public static class Logger
     }
         
     public static LogLevel Level { get; set; }
-    public static IComponent PrefixFormat => TranslateText.Of("%3$s - %1$s %2$s");
-    private static readonly SemaphoreSlim _logLock = new(1, 1);
-    private static readonly ConcurrentQueue<Action> _recordCall = new();
-    private static Thread _thread;
-    private static bool _bootstrapped;
 
     static Logger()
     {

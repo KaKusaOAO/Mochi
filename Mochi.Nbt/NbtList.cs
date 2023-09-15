@@ -15,7 +15,7 @@ public class NbtList : NbtTag, IList<NbtTag>
     public NbtList(TagType type, List<NbtTag> list) : this()
     {
         ContentType = type;
-        children = list;
+        _children = list;
     }
 
     public NbtList(List<NbtTag> list) : this()
@@ -25,57 +25,57 @@ public class NbtList : NbtTag, IList<NbtTag>
             ContentType = list.First().Type;
         }
 
-        children = list;
+        _children = list;
     }
 
-    public TagType ContentType { get; set; }
+    public TagType ContentType { get; private set; }
 
-    public int Count => children.Count;
+    public int Count => _children.Count;
 
     public bool IsReadOnly => false;
 
     public NbtTag this[int index]
     {
-        get => children[index];
-        set => children[index] = value;
+        get => _children[index];
+        set => _children[index] = value;
     }
 
-    public int IndexOf(NbtTag item) => children.IndexOf(item);
+    public int IndexOf(NbtTag item) => _children.IndexOf(item);
 
     public void Insert(int index, NbtTag item)
     {
-        children.Insert(index, item);
+        _children.Insert(index, item);
     }
 
     public void RemoveAt(int index)
     {
-        children.RemoveAt(index);
+        _children.RemoveAt(index);
     }
 
     public void Add(NbtTag item)
     {
-        children.Add(item);
+        _children.Add(item);
     }
 
     public void Clear()
     {
-        children.Clear();
+        _children.Clear();
     }
 
-    public bool Contains(NbtTag item) => children.Contains(item);
+    public bool Contains(NbtTag item) => _children.Contains(item);
 
     public void CopyTo(NbtTag[] array, int arrayIndex)
     {
-        children.CopyTo(array, arrayIndex);
+        _children.CopyTo(array, arrayIndex);
     }
 
-    public bool Remove(NbtTag item) => children.Remove(item);
+    public bool Remove(NbtTag item) => _children.Remove(item);
 
-    public IEnumerator<NbtTag> GetEnumerator() => children.GetEnumerator();
+    public IEnumerator<NbtTag> GetEnumerator() => _children.GetEnumerator();
 
-    IEnumerator IEnumerable.GetEnumerator() => children.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => _children.GetEnumerator();
 
-    private List<NbtTag> children = new();
+    private readonly List<NbtTag> _children = new();
 
     public static NbtList Deserialize(byte[] buffer, ref int index, bool named = false)
     {
@@ -93,7 +93,7 @@ public class NbtList : NbtTag, IList<NbtTag>
         var name = Name == null ? "None" : $"'{Name}'";
         var result = $"TAG_List({name}): {Count} entries\n{{";
 
-        foreach (var tag in children)
+        foreach (var tag in _children)
         {
             var lines = tag.ToString().Split('\n');
             foreach (var line in lines) result += "\n  " + line.ToString();

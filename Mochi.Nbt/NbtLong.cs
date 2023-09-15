@@ -1,6 +1,6 @@
 ﻿namespace Mochi.Nbt;
 
-public class NbtLong : NbtTag, INbtValue<long>
+public class NbtLong : NbtTag, INbtValue<long>, INbtNumeric
 {
     public NbtLong() : base(TagType.Long)
     {
@@ -25,4 +25,18 @@ public class NbtLong : NbtTag, INbtValue<long>
         var name = Name == null ? "None" : $"'{Name}'";
         return $"TAG_Long({name}): {Value}L";
     }
+
+    public long AsInt64() => Value;
+
+    public int AsInt32() => (int) (Value & 0xffffffff);
+
+    public short AsInt16() => (short) (Value & 0xffff);
+
+    public byte AsByte() => (byte) (Value & 0xff);
+
+    public double AsDouble() => Value;
+
+    public float AsSingle() => Value;
+
+    public decimal AsDecimal() => Value;
 }

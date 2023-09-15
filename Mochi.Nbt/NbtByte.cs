@@ -1,6 +1,6 @@
 ﻿namespace Mochi.Nbt;
 
-public class NbtByte : NbtTag, INbtValue<byte>
+public class NbtByte : NbtTag, INbtValue<byte>, INbtNumeric
 {
     public NbtByte() : base(TagType.Byte)
     {
@@ -15,16 +15,17 @@ public class NbtByte : NbtTag, INbtValue<byte>
     public static implicit operator NbtByte(byte value) => new(value);
     public static implicit operator NbtByte(bool flag) => new(flag);
 
-    public byte Value { get; set; }
+    public byte Value { get; }
 
-    public bool AsBool => Value != 0;
+    public bool AsBool() => Value != 0;
 
     public static NbtByte Deserialize(byte[] buffer, ref int index, bool named = false)
     {
-        var result = new NbtByte();
-        InternalDeserializeReadTagName(buffer, ref index, named, TagType.Byte, result);
-        result.Value = NbtIO.ReadByte(buffer, ref index);
-        return result;
+        var name = InternalDeserializeReadTagName(buffer, ref index, named, TagType.Byte);
+        return new NbtByte(NbtIO.ReadByte(buffer, ref index))
+        {
+            Name = name
+        };
     }
 
     public override string ToString()
@@ -41,4 +42,18 @@ public class NbtByte : NbtTag, INbtValue<byte>
         if (!(obj is NbtByte b)) return false;
         return Value == b.Value;
     }
+
+    public long AsInt64() => Value;
+
+    public int AsInt32() => Value;
+
+    public short AsInt16() => Value;
+
+    public byte AsByte() => Value;
+
+    public double AsDouble() => Value;
+
+    public float AsSingle() => Value;
+
+    public decimal AsDecimal() => Value;
 }

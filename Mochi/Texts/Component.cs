@@ -176,46 +176,66 @@ public static class Component
         public string Result => _sb.ToString();
     }
     
-    public static IMutableComponent Literal(string? text) => new MutableComponent(new LiteralContent(text));
+    public static IMutableComponent Literal(string? text) => 
+        new MutableComponent(new LiteralContent(text));
 
     public static IMutableComponent Literal(string? text, IStyle style) => 
         new GenericMutableComponent(new LiteralContent(text), style);
 
     public static IMutableComponent<T> Literal<T>(string? text, T style) where T : IStyle<T> =>
         new MutableComponent<T>(new LiteralContent(text), style);
-    
-    
 
-    public static IComponent FromJson(string json) => FromJson(JsonSerializer.Deserialize<JsonNode>(json));
-
-    public static IComponent FromJson(JsonNode? obj)
+    private static IComponent[] FromObjects(object[] parameters)
     {
-        if (obj is JsonValue val)
+        return parameters.Select(p =>
         {
-            return LiteralText.FromLegacyText(val.GetValue<string>());
-        }
+            if (p is IComponent comp) return comp;
+            if (p is string str) return Literal(str);
+            return Literal(p?.ToString() ?? "<null>");
+        }).ToArray();
+    }
+    
+    public static IMutableComponent Translatable(string text, params object[] parameters) => 
+        new MutableComponent(new TranslateContent(text, FromObjects(parameters)));
 
+    public static IMutableComponent Translatable(string text, IStyle style, params object[] parameters) => 
+        new GenericMutableComponent(new TranslateContent(text, FromObjects(parameters)), style);
+
+    public static IMutableComponent<T> Translatable<T>(string text, T style, params object[] parameters) where T : IStyle<T> =>
+        new MutableComponent<T>(new TranslateContent(text, FromObjects(parameters)), style);
+    
+    public static IComponent FromJson(string json) => 
+        FromJson(JsonSerializer.Deserialize<JsonNode>(json));
+    public static IComponent FromJson(string json, Func<JsonObject, IStyle> parseStyle) => 
+        FromJson(JsonSerializer.Deserialize<JsonNode>(json), parseStyle);
+
+    public static Style ParseColorStyle(JsonObject o)
+    {
+        var color = o.TryGetPropertyValue("color", out var colorNode) ? TextColor.Of(colorNode!.GetValue<string>()) : null;
+        return Style.Empty.WithColor(color);
+    }
+
+    public static IComponent FromJson(JsonNode? obj, Func<JsonObject, IStyle> parseStyle)
+    {
         if (obj is JsonArray arr)
         {
-            return Literal("").AddExtra(arr.Select(FromJson).ToArray());
+            return Literal("")
+                .AddExtra(arr.Select(n => FromJson(n, parseStyle)).ToArray());
         }
         
         if (obj is JsonObject o)
         {
             var content = TextContentTypes.CreateContent(o);
-            var t = new MutableComponent(content);
-            
-            var color = o.TryGetPropertyValue("color", out var colorNode) ? TextColor.Of(colorNode!.GetValue<string>()) : null;
+            var t = new GenericMutableComponent(content, parseStyle(o));
             var extra = o.TryGetPropertyValue("extra", out var extraNode) ? extraNode!.AsArray() : new JsonArray();
-            
-            return t
-                .SetColor(color)
-                .AddExtra(extra.Select(FromJson).ToArray());
+            return t.AddExtra(extra.Select(n => FromJson(n, parseStyle)).ToArray());
         }
         
         throw new ArgumentException("Invalid JSON");
     }
     
+    public static IComponent FromJson(JsonNode? obj) => FromJson(obj, ParseColorStyle);
+
     public static IComponent RepresentType(Type t, TextColor? color = null)
         => TranslateText.Of($"%s.{t.Name}")
             .SetColor(color ?? TextColor.Gold)

@@ -6,7 +6,7 @@
         <RepositoryUrl>https://github.com/KaKusaOAO/Mochi</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
         <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
-        <PackageVersion>1.1.2</PackageVersion>
+        <PackageVersion>1.1.4</PackageVersion>
         <LangVersion>11</LangVersion>
         <Nullable>enable</Nullable>
     </PropertyGroup>

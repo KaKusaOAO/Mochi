@@ -312,10 +312,6 @@ public class TwitchRestApiClient : IDisposable
         options ??= new RequestOptions();
 
         var endpoint = endpointExpr.Compile()();
-        Logger.Verbose(TranslateText.Of("Sending %s request to %s...")
-            .AddWith(Component.Literal(method.Method).SetColor(TextColor.Aqua))
-            .AddWith(Component.Literal($"/{endpoint}").SetColor(TextColor.Green))
-        );
         var request = new RestRequest(this, method, endpoint, payload, options);
         if (form != null)
         {
@@ -357,6 +353,11 @@ public class TwitchRestApiClient : IDisposable
         {
             request.Headers.Add(key, value);
         }    
+        
+        Logger.Verbose(TranslateText.Of("Sending %s request to %s...")
+            .AddWith(Component.Literal(request.Method.Method).SetColor(TextColor.Aqua))
+            .AddWith(Component.Literal($"/{request.RequestUri!.AbsoluteUri[TwitchConfig.ApiUrl.Length..]}").SetColor(TextColor.Green))
+        );
         
         var response = await _httpClient.SendAsync(request);
         return new RestResponse(response, options);

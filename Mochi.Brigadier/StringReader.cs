@@ -13,6 +13,18 @@ public class StringReader : IMutableStringReader
     private string _str;
     private int _cursor;
 
+    public int Cursor
+    {
+        get => InternalGetCursor();
+        set => InternalSetCursor(value);
+    }
+
+    public int RemainingLength => _str.Length - _cursor;
+
+    public int TotalLength => _str.Length;
+
+    public string Remaining => _str[_cursor..];
+    
     public StringReader(StringReader other)
     {
         _str = other._str;
@@ -34,21 +46,9 @@ public class StringReader : IMutableStringReader
         _cursor = cursor;
     }
 
-    public int Cursor
-    {
-        get => InternalGetCursor();
-        set => InternalSetCursor(value);
-    }
-
-    public int RemainingLength => _str.Length - _cursor;
-
-    public int TotalLength => _str.Length;
-
     private int InternalGetCursor() => _cursor;
 
     public string GetRead() => _str[.._cursor];
-
-    public string GetRemaining() => _str[_cursor..];
 
     public bool CanRead(int length) => _cursor + length <= _str.Length;
 

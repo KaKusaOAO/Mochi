@@ -89,6 +89,9 @@ public abstract class NbtTag : INbtTag
     {
         if (named) instance.Name = NbtIO.ReadString(buffer, ref index);
     }
+    
+    protected static string? InternalDeserializeReadTagName(byte[] buffer, ref int index, bool named, TagType target) => 
+        named ? NbtIO.ReadString(buffer, ref index) : null;
 
     public new abstract string ToString();
 

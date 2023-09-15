@@ -8,16 +8,17 @@ public class NbtString : NbtTag, INbtValue<string>
 
     public NbtString(string s) : base(TagType.String) => Value = s;
 
-    public string Value { get; private set; }
+    public string Value { get; }
     
     public static implicit operator NbtString(string s) => new(s);
 
     public static NbtString Deserialize(byte[] buffer, ref int index, bool named = false)
     {
-        var result = new NbtString();
-        InternalDeserializeReadTagName(buffer, ref index, named, TagType.String, result);
-        result.Value = NbtIO.ReadString(buffer, ref index);
-        return result;
+        var name = InternalDeserializeReadTagName(buffer, ref index, named, TagType.String);
+        return new NbtString(NbtIO.ReadString(buffer, ref index))
+        {
+            Name = name
+        };
     }
 
     public override string ToString()

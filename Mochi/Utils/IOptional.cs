@@ -16,6 +16,7 @@ public interface IOptional<out T> : IOptional
 {
     public new T Value { get; }
     object IOptional.Value => Value!;
+    public IOptional<T> Where(Predicate<T> predicate);
 }
 
 public static class Optional
@@ -35,6 +36,7 @@ public static class Optional
         bool IOptional.IsPresent => true;
         bool IOptional.IsEmpty => false;
         T IOptional<T>.Value => _value;
+        public IOptional<T> Where(Predicate<T> predicate) => predicate(_value) ? this : new None<T>();
     }
 
     private readonly struct None<T> : IOptional<T>
@@ -42,6 +44,7 @@ public static class Optional
         bool IOptional.IsPresent => false;
         bool IOptional.IsEmpty => true;
         T IOptional<T>.Value => throw new InvalidOperationException("No value present");
+        public IOptional<T> Where(Predicate<T> predicate) => this;
     }
 
     public static IOptional<T> OfNullable<T>(T? value) where T : class =>
@@ -93,7 +96,7 @@ public static class Optional
         return optional.IsPresent ? optional.Value : def;
     }
     
-    public static T OrElse<T>(this IOptional<T> optional, Func<T> def)
+    public static T OrElseGet<T>(this IOptional<T> optional, Func<T> def)
     {
         return optional.IsPresent ? optional.Value : def();
     }

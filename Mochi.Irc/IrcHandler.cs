@@ -19,11 +19,13 @@ public class IrcHandler
     public IrcMessage? ReadMessage()
     {
         var line = _reader.ReadLine();
+        if (string.IsNullOrEmpty(line)) return null;
+        
         // /*
         Logger.Info(TranslateText.Of("Read: %s")
             .AddWith(Component.Literal(line).SetColor(TextColor.DarkGray))
         ); /* */
-        return line == null ? null : _serializer.Parse(line);
+        return _serializer.Parse(line);
     }
 
     public IrcMessage ParseMessage(string line) => _serializer.Parse(line);

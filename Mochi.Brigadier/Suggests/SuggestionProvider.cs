@@ -3,4 +3,4 @@ using Mochi.Brigadier.Context;
 
 namespace Mochi.Brigadier.Suggests;
 
-public delegate Task<Suggestions> SuggestionProvider<TS>(CommandContext<TS> context, SuggestionsBuilder builder);
+public delegate Task<Suggestions> SuggestionProvider<T>(CommandContext<T> context, SuggestionsBuilder builder);

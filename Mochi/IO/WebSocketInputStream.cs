@@ -19,15 +19,24 @@ public class WebSocketInputStream : Stream
 
     public override int Read(byte[] buffer, int offset, int count)
     {
-        var result = _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer, offset, count), CancellationToken.None)
-            .Result;
-        
-        if (result.CloseStatus.HasValue)
+        if (_webSocket.CloseStatus.HasValue) return 0;
+
+        try
         {
-            _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None).Wait();
+            var result = _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer, offset, count), CancellationToken.None)
+                .Result;
+
+            if (result.CloseStatus.HasValue)
+            {
+                _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None).Wait();
+            }
+
+            return result.Count;
         }
-        
-        return result.Count;
+        catch (Exception)
+        {
+            return 0;
+        }
     }
 
     public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();

@@ -8,41 +8,61 @@ using Mochi.Brigadier.Suggests;
 
 namespace Mochi.Brigadier.Tree;
 
-public abstract class CommandNode<TS> : IComparable<CommandNode<TS>>
+public interface ICommandNode<T>
 {
-    private readonly Dictionary<string, CommandNode<TS>> _children = new();
-    private Dictionary<string, LiteralCommandNode<TS>> _literals = new();
+    public ICommand<T>? Command { get; }
+    public IEnumerable<CommandNode<T>> Children { get; }
+    public CommandNode<T>? Redirect { get; }
+    public RedirectModifier<T>? RedirectModifier { get; }
+    public bool IsFork { get; }
+    public ICollection<string> Examples { get; }
+    public Predicate<T> Requirement { get; }
+    public string Name { get; }
 
-    private Dictionary<string, ArgumentCommandNode<TS>> _arguments =
-        new Dictionary<string, ArgumentCommandNode<TS>>();
+    public bool CanUse(T source);
+    public void Parse(StringReader reader, CommandContextBuilder<T> contextBuilder);
+    public IEnumerable<ICommandNode<T>> GetRelevantNodes(StringReader input);
+}
 
-    private bool _forks;
+public abstract class CommandNode<T> : ICommandNode<T>, IComparable<CommandNode<T>>
+{
+    private readonly Dictionary<string, CommandNode<T>> _children = new();
+    private Dictionary<string, LiteralCommandNode<T>> _literals = new();
+    private Dictionary<string, IArgumentCommandNode<T>> _arguments = new();
 
-    protected CommandNode(ICommand<TS>? command, Predicate<TS> requirement, CommandNode<TS>? redirect,
-        RedirectModifier<TS> modifier, bool forks)
+    protected CommandNode(ICommand<T>? command, Predicate<T> requirement, CommandNode<T>? redirect,
+        RedirectModifier<T>? modifier, bool forks)
     {
         Command = command;
         Requirement = requirement;
         Redirect = redirect;
         RedirectModifier = modifier;
-        _forks = forks;
+        IsFork = forks;
     }
 
-    public ICommand<TS>? Command { get; private set; }
+    public ICommand<T>? Command { get; private set; }
 
-    public IEnumerable<CommandNode<TS>> Children => _children.Values;
+    public IEnumerable<CommandNode<T>> Children => _children.Values;
 
-    public CommandNode<TS>? GetChild(string name) => _children.GetValueOrDefault(name);
+    public CommandNode<T>? Redirect { get; }
 
-    public CommandNode<TS>? Redirect { get; }
+    public RedirectModifier<T>? RedirectModifier { get; }
 
-    public RedirectModifier<TS> RedirectModifier { get; }
+    public bool IsFork { get; }
 
-    public bool CanUse(TS source) => Requirement(source);
+    public abstract ICollection<string> Examples { get; }
+    
+    public Predicate<T> Requirement { get; }
 
-    public void AddChild(CommandNode<TS> node)
+    public abstract string Name { get; }
+
+    public bool CanUse(T source) => Requirement(source);
+
+    public CommandNode<T>? GetChild(string name) => _children.GetValueOrDefault(name);
+
+    public void AddChild(CommandNode<T> node)
     {
-        if (node is RootCommandNode<TS>)
+        if (node is RootCommandNode<T>)
         {
             throw new NotSupportedException("Cannot add a RootCommandNode as a child to any other CommandNode");
         }
@@ -65,18 +85,18 @@ public abstract class CommandNode<TS> : IComparable<CommandNode<TS>>
             _children.Add(node.Name, node);
             switch (node)
             {
-                case LiteralCommandNode<TS> literal:
+                case LiteralCommandNode<T> literal:
                     _literals.Add(node.Name, literal);
                     break;
                 
-                case ArgumentCommandNode<TS> arg:
+                case IArgumentCommandNode<T> arg:
                     _arguments.Add(node.Name, arg);
                     break;
             }
         }
     }
 
-    public void FindAmbiguities(AmbiguityConsumer<TS> consumer)
+    public void FindAmbiguities(AmbiguityConsumer<T> consumer)
     {
         var matches = new HashSet<string>();
 
@@ -86,7 +106,7 @@ public abstract class CommandNode<TS> : IComparable<CommandNode<TS>>
             foreach (var sibling in _children.Values
                          .Where(sibling => child != sibling))
             {
-                foreach (var input in child.GetExamples()
+                foreach (var input in child.Examples
                              .Where(i => sibling.IsValidInput(i)))
                 {
                     matches.Add(input);
@@ -103,10 +123,10 @@ public abstract class CommandNode<TS> : IComparable<CommandNode<TS>>
 
     protected abstract bool IsValidInput(string input);
 
-    public override bool Equals(object o)
+    public override bool Equals(object? o)
     {
         if (this == o) return true;
-        if (!(o is CommandNode<TS> that)) return false;
+        if (o is not CommandNode<T> that) return false;
 
         if (!_children.Equals(that._children)) return false;
         if (!Command?.Equals(that.Command) ?? that.Command != null) return false;
@@ -120,21 +140,17 @@ public abstract class CommandNode<TS> : IComparable<CommandNode<TS>>
         return HashCode.Combine(_children, Command);
     }
 
-    public Predicate<TS> Requirement { get; }
-
-    public abstract string Name { get; }
-
     public abstract string GetUsageText();
 
-    public abstract void Parse(StringReader reader, CommandContextBuilder<TS> contextBuilder);
+    public abstract void Parse(StringReader reader, CommandContextBuilder<T> contextBuilder);
 
-    public abstract Task<Suggestions> ListSuggestionsAsync(CommandContext<TS> context, SuggestionsBuilder builder);
+    public abstract Task<Suggestions> ListSuggestionsAsync(CommandContext<T> context, SuggestionsBuilder builder);
 
-    public abstract ArgumentBuilder<TS> CreateBuilder();
+    public abstract IArgumentBuilder<T> CreateBuilder();
 
     protected abstract string GetSortedKey();
 
-    public IEnumerable<CommandNode<TS>> GetRelevantNodes(StringReader input)
+    public IEnumerable<ICommandNode<T>> GetRelevantNodes(StringReader input)
     {
         if (_literals.Count <= 0) return _arguments.Values;
         
@@ -156,17 +172,13 @@ public abstract class CommandNode<TS> : IComparable<CommandNode<TS>>
 
     }
 
-    public int CompareTo(CommandNode<TS> o)
+    public int CompareTo(CommandNode<T>? o)
     {
-        if (this is LiteralCommandNode<TS> == o is LiteralCommandNode<TS>)
+        if (this is LiteralCommandNode<T> == o is LiteralCommandNode<T>)
         {
-            return string.Compare(GetSortedKey(), o.GetSortedKey(), StringComparison.Ordinal);
+            return string.Compare(GetSortedKey(), o?.GetSortedKey(), StringComparison.Ordinal);
         }
 
-        return o is LiteralCommandNode<TS> ? 1 : -1;
+        return o is LiteralCommandNode<T> ? 1 : -1;
     }
-
-    public bool IsFork => _forks;
-
-    public abstract IEnumerable<string> GetExamples();
 }

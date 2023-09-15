@@ -5,9 +5,27 @@ namespace Mochi.Structs;
 
 public struct Color
 {
+    public static readonly Color White = new(0xffffff);
+    
     public byte R { get; set; }
     public byte G { get; set; }
     public byte B { get; set; }
+
+    // ReSharper disable once InconsistentNaming
+    public int RGB
+    {
+        get
+        {
+            int result = R;
+            result = result << 8 | G;
+            result = result << 8 | B;
+            return result;
+        }
+    }
+
+    public (double NormalizedR, double NormalizedG, double NormalizedB) Normalized => (R / 255.0, G / 255.0, B / 255.0);
+
+    public double Hue => ToHsv().Hue;
 
     public Color(byte r, byte g, byte b)
     {
@@ -33,20 +51,6 @@ public struct Color
         G = (byte)((hex >> 8) & 0xff);
         B = (byte)(hex & 0xff);
     }
-
-    // ReSharper disable once InconsistentNaming
-    public int RGB
-    {
-        get
-        {
-            int result = R;
-            result = result << 8 | G;
-            result = result << 8 | B;
-            return result;
-        }
-    }
-
-    public (double NormalizedR, double NormalizedG, double NormalizedB) Normalized => (R / 255.0, G / 255.0, B / 255.0);
 
     public (double Hue, double Saturation, double Value) ToHsv()
     {
@@ -93,10 +97,6 @@ public struct Color
         value = max;
         return (hue, saturation, value);
     }
-
-    public double Hue => ToHsv().Hue;
-
-    public static readonly Color White = new(0xffffff);
 
     /// <summary>
     /// 

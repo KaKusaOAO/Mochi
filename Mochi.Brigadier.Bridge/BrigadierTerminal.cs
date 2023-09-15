@@ -77,12 +77,12 @@ public static class BrigadierTerminal
         var colorIndex = 0;
 
         var coLeft = Console.CursorLeft;
-        ParsedCommandNode<T> lastProcessedNode = null;
+        ParsedCommandNode<T>? lastProcessedNode = null;
         while (context != null)
         {
             foreach (var node in context.Nodes)
             {
-                if (node == null)
+                if (node == null!)
                 {
                     Terminal.WriteLineStdOut("node is null??");
                     continue;
@@ -121,7 +121,7 @@ public static class BrigadierTerminal
             {
                 var last = context.Nodes.LastOrDefault();
                 var nextNode = last?.Node?.Children?.FirstOrDefault();
-                var usage = nextNode is ArgumentCommandNode<T> ? nextNode.GetUsageText() : null;
+                var usage = nextNode is IArgumentCommandNode<T> ? nextNode.GetUsageText() : null;
             
                 WriteWithSuggestion(Component.Literal(reader.GetString()[startFrom..]).SetColor(TextColor.Red), coLeft);
                 if (usage != null) WriteUsage($" :{usage}");

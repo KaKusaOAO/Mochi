@@ -3,13 +3,13 @@ using Mochi.Brigadier.Context;
 
 namespace Mochi.Brigadier;
 
-public interface ICommand<TS>
+public interface ICommand<T>
 {
-    Task<int> Run(CommandContext<TS> context);
+    Task<int> Run(CommandContext<T> context);
 }
 
-public delegate int CommandDelegate<TS>(CommandContext<TS> context);
+public delegate int CommandDelegate<T>(CommandContext<T> context);
 
-public delegate Task<int> CommandDelegateAsync<TS>(CommandContext<TS> context);
+public delegate Task<int> CommandDelegateAsync<T>(CommandContext<T> context);
 
-public delegate Task CommandDelegateNoResult<TS>(CommandContext<TS> context);
+public delegate Task CommandDelegateNoResult<T>(CommandContext<T> context);

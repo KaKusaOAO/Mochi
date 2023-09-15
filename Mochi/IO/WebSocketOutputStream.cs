@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
+using Mochi.Utils;
 
 namespace Mochi.IO;
 
@@ -27,12 +28,21 @@ public class WebSocketOutputStream : Stream
     
     public override void Write(byte[] buffer, int offset, int count)
     {
-        _webSocket.SendAsync(new ArraySegment<byte>(buffer, offset, count), _type, true,
-            CancellationToken.None).Wait();
+        if (_webSocket.CloseStatus.HasValue) return;
         
-        if (_webSocket.CloseStatus.HasValue)
+        try
         {
-            _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None).Wait();
+            _webSocket.SendAsync(new ArraySegment<byte>(buffer, offset, count), _type, true,
+                CancellationToken.None).Wait();
+
+            if (_webSocket.CloseStatus.HasValue)
+            {
+                _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None).Wait();
+            }
+        }
+        catch (Exception)
+        {
+            //
         }
     }
 

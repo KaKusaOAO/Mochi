@@ -9,30 +9,15 @@ namespace Mochi.Brigadier.Arguments;
 public interface IArgumentType
 {
     object Parse(StringReader reader);
+    
+    public Task<Suggestions> ListSuggestionsAsync<TSource>(CommandContext<TSource> context, SuggestionsBuilder builder) => 
+        Suggestions.Empty();
+
+    public ICollection<string> Examples => new List<string>();
 }
 
 public interface IArgumentType<out T> : IArgumentType
 {
     new T Parse(StringReader reader);
-    object IArgumentType.Parse(StringReader reader) => Parse(reader);
-}
-
-public static class ArgumentTypeExtensions
-{
-    public static Task<Suggestions> ListSuggestions<TS>(this IArgumentType type, CommandContext<TS> context,
-        SuggestionsBuilder builder)
-    {
-        if (type is ISuggestingArgumentType suggestingType)
-            return suggestingType.ListSuggestionsAsync(context, builder);
-
-        return Suggestions.Empty();
-    }
-
-    public static IEnumerable<string> GetExamples(this IArgumentType type)
-    {
-        if (type is IArgumentTypeWithExamples typeWithExamples)
-            return typeWithExamples.GetExamples();
-
-        return Array.Empty<string>();
-    }
+    object IArgumentType.Parse(StringReader reader) => Parse(reader)!;
 }

@@ -8,20 +8,21 @@ public class NbtLongArray : NbtTag, INbtValue<long[]>
 
     public NbtLongArray(long[] n) : this() => Value = n;
 
-    public long[] Value { get; set; }
+    public long[] Value { get; }
     
     public static implicit operator NbtLongArray(long[] n) => new(n);
 
     public static NbtLongArray Deserialize(byte[] buffer, ref int index, bool named = false)
     {
-        var result = new NbtLongArray();
-        InternalDeserializeReadTagName(buffer, ref index, named, TagType.LongArray, result);
+        var name = InternalDeserializeReadTagName(buffer, ref index, named, TagType.LongArray);
         var count = NbtIO.ReadInt(buffer, ref index);
+        var arr = new long[count];
+        for (var i = 0; i < count; i++) arr[i] = NbtIO.ReadLong(buffer, ref index);
 
-        result.Value = new long[count];
-        for (var i = 0; i < count; i++) result.Value[i] = NbtIO.ReadLong(buffer, ref index);
-
-        return result;
+        return new NbtLongArray(arr)
+        {
+            Name = name
+        };
     }
 
     public override string ToString()

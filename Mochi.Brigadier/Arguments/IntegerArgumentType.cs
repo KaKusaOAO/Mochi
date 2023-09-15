@@ -5,7 +5,7 @@ using Mochi.Brigadier.Exceptions;
 
 namespace Mochi.Brigadier.Arguments;
 
-public class IntegerArgumentType : IArgumentType<int>, IArgumentTypeWithExamples
+public class IntegerArgumentType : IArgumentType<int> 
 {
     private static readonly IEnumerable<string> _examples = new[] { "0", "123", "-123" };
 
@@ -20,7 +20,7 @@ public class IntegerArgumentType : IArgumentType<int>, IArgumentTypeWithExamples
 
     public static IntegerArgumentType Integer(int min = int.MinValue, int max = int.MaxValue) => new(min, max);
 
-    public static int GetInteger<TS>(CommandContext<TS> context, string name) => 
+    public static int GetInteger<T>(CommandContext<T> context, string name) => 
         context.GetArgument<int>(name);
 
     public int GetMinimum() => _minimum;
@@ -48,10 +48,10 @@ public class IntegerArgumentType : IArgumentType<int>, IArgumentTypeWithExamples
         return result;
     }
 
-    public override bool Equals(object o)
+    public override bool Equals(object? o)
     {
         if (this == o) return true;
-        if (!(o is IntegerArgumentType that)) return false;
+        if (o is not IntegerArgumentType that) return false;
         return _maximum == that._maximum && _minimum == that._minimum;
     }
 
@@ -75,8 +75,5 @@ public class IntegerArgumentType : IArgumentType<int>, IArgumentTypeWithExamples
         return "integer(" + _minimum + ", " + _maximum + ")";
     }
 
-    public IEnumerable<string> GetExamples()
-    {
-        return _examples;
-    }
+    public IEnumerable<string> Examples => _examples;
 }

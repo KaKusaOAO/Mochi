@@ -28,7 +28,7 @@ public class NbtIntArray : NbtTag, INbtValue<int[]>
         });
     }
 
-    public int[] Value { get; set; }
+    public int[] Value { get; }
 
     public Guid ToGuid()
     {
@@ -59,14 +59,15 @@ public class NbtIntArray : NbtTag, INbtValue<int[]>
 
     public static NbtIntArray Deserialize(byte[] buffer, ref int index, bool named = false)
     {
-        var result = new NbtIntArray();
-        InternalDeserializeReadTagName(buffer, ref index, named, TagType.IntArray, result);
+        var name = InternalDeserializeReadTagName(buffer, ref index, named, TagType.IntArray);
         var count = NbtIO.ReadInt(buffer, ref index);
+        var arr = new int[count];
+        for (var i = 0; i < count; i++) arr[i] = NbtIO.ReadInt(buffer, ref index);
 
-        result.Value = new int[count];
-        for (var i = 0; i < count; i++) result.Value[i] = NbtIO.ReadInt(buffer, ref index);
-
-        return result;
+        return new NbtIntArray(arr)
+        {
+            Name = name
+        };
     }
 
     public override string ToString()

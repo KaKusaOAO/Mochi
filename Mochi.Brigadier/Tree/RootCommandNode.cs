@@ -6,8 +6,8 @@ using Mochi.Brigadier.Context;
 using Mochi.Brigadier.Suggests;
 
 namespace Mochi.Brigadier.Tree;
-#pragma warning disable CS0659
-public class RootCommandNode<TS> : CommandNode<TS>
+
+public class RootCommandNode<T> : CommandNode<T>
 {
     public RootCommandNode() : 
         base(null, _ => true, null, s => new[] { s.Source }, false)
@@ -21,44 +21,29 @@ public class RootCommandNode<TS> : CommandNode<TS>
         return "";
     }
 
-    public override void Parse(StringReader reader, CommandContextBuilder<TS> contextBuilder)
+    public override void Parse(StringReader reader, CommandContextBuilder<T> contextBuilder)
     {
     }
 
-    public override Task<Suggestions> ListSuggestionsAsync(CommandContext<TS> context, SuggestionsBuilder builder)
-    {
-        return Suggestions.Empty();
-    }
+    public override Task<Suggestions> ListSuggestionsAsync(CommandContext<T> context, SuggestionsBuilder builder) => 
+        Suggestions.Empty();
 
-    protected override bool IsValidInput(string input)
-    {
-        return false;
-    }
+    protected override bool IsValidInput(string input) => false;
 
-    public override bool Equals(object o)
+    public override bool Equals(object? o)
     {
         if (this == o) return true;
-        if (!(o is RootCommandNode<TS>)) return false;
-        return Equals(o);
+        return o is RootCommandNode<T> && Equals(o);
     }
 
-    public override ArgumentBuilder<TS> CreateBuilder()
-    {
+    public override int GetHashCode() => HashCode.Combine(this);
+
+    public override IArgumentBuilder<T> CreateBuilder() => 
         throw new Exception("Cannot convert root into a builder");
-    }
 
-    protected override string GetSortedKey()
-    {
-        return "";
-    }
+    protected override string GetSortedKey() => "";
 
-    public override IEnumerable<string> GetExamples()
-    {
-        return Array.Empty<string>();
-    }
+    public override ICollection<string> Examples => new List<string>();
 
-    public override string ToString()
-    {
-        return "<root>";
-    }
+    public override string ToString() => "<root>";
 }

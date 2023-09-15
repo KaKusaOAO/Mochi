@@ -8,16 +8,17 @@ public class NbtByteArray : NbtTag, INbtValue<byte[]>
 
     public NbtByteArray(byte[] arr) : this() => Value = arr;
 
-    public byte[] Value { get; set; }
+    public byte[] Value { get; }
     
     public static implicit operator NbtByteArray(byte[] arr) => new(arr);
 
     public static NbtByteArray Deserialize(byte[] buffer, ref int index, bool named = false)
     {
-        var result = new NbtByteArray();
-        InternalDeserializeReadTagName(buffer, ref index, named, TagType.ByteArray, result);
-        result.Value = NbtIO.ReadByteArray(buffer, ref index);
-        return result;
+        var name = InternalDeserializeReadTagName(buffer, ref index, named, TagType.ByteArray);
+        return new NbtByteArray(NbtIO.ReadByteArray(buffer, ref index))
+        {
+            Name = name
+        };
     }
 
     public override string ToString()

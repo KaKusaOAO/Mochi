@@ -18,6 +18,8 @@ public class TwitchChatClient : IDisposable
     private IrcHandler _ircHandler = null!;
     private bool _disposed;
     private readonly MutableChatRoomCollection _chatRooms = new();
+    private Credential? _lastCredential;
+    
     public IChatRoomCollection ChatRooms => _chatRooms;
 
     public event Func<TwitchComment, Task>? MessageReceived;
@@ -67,6 +69,8 @@ public class TwitchChatClient : IDisposable
         {
             await _ircHandler.WriteMessageAsync(new IrcMessage(new GenericCommand("PASS", "SCHMOOPIIE")));
             await _ircHandler.WriteMessageAsync(new IrcMessage(new GenericCommand("NICK", "justinfan27073")));
+            
+            // Not sure what this means, but it presents in the not-logged-in Twitch chat login sequence.
             await _ircHandler.WriteMessageAsync(new IrcMessage(new GenericCommand("USER", "justinfan27073", "8", "*"))
             {
                 Parameters = "justinfan27073"
@@ -74,32 +78,53 @@ public class TwitchChatClient : IDisposable
         }
         else
         {
+            SpinWait.SpinUntil(() => Client.Rest.CurrentUser != null!);
             await _ircHandler.WriteMessageAsync(new IrcMessage(new GenericCommand("PASS", $"oauth:{accessToken}")));
             await _ircHandler.WriteMessageAsync(new IrcMessage(new GenericCommand("NICK", Client.Rest.CurrentUser.Name.ToLower())));
         }
 
+        _lastCredential = credential;
         _ = RunEventLoopAsync();
     }
 
     private async Task RunEventLoopAsync()
     {
-        while (!_disposed)
+        await RunMessageLoopAsync();
+        if (_disposed) return;
+        
+        try
         {
-            await RunMessageLoopAsync();
-            if (_disposed) return;
-            
-            try
-            {
-                await _inputStream.DisposeAsync();
-                await _outputStream.DisposeAsync();
-                _webSocket.Dispose();
-            }
-            catch (Exception ex)
-            {
-                Logger.Warn(ex);
-            }
+            await _inputStream.DisposeAsync();
+            await _outputStream.DisposeAsync();
+            _webSocket.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn(ex);
+        }
 
-            InitializeConnection();
+        if (_lastCredential == null)
+        {
+            throw new Exception("Cannot re-login as we did not have a successful login before.");
+        }
+
+        // Wait for a period of time to prevent reconnecting too much time in a short period of time.
+        // This can happen if network issues are present (or debugging, which is bad due to the rate limit thing)
+        Logger.Info("Waiting for reconnecting...");
+        await Task.Delay(1000);
+        
+        InitializeConnection();
+        await LoginAsync(_lastCredential);
+
+        var rooms = _chatRooms.Keys.ToList();
+        foreach (var room in _chatRooms.Values.ToList())
+        {
+            RemoveChannel(room);
+        }
+        
+        foreach (var room in rooms)
+        {
+            await SubscribeChannelAsync(room);
         }
     }
 
@@ -132,6 +157,13 @@ public class TwitchChatClient : IDisposable
             {
                 await _chatRooms[channelName!].OnReceivedIrcMessageAsync(message);
             }
+
+            if (message.Command.Command == "RECONNECT")
+            {
+                // We should close the connection if we receive this command
+                // The event loop will and should start a new connection automatically
+                await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+            }
         }
         catch (Exception ex)
         {
@@ -159,6 +191,12 @@ public class TwitchChatClient : IDisposable
                     Logger.Error(ex);
                     continue;
                 }
+                catch (WebSocketException ex)
+                {
+                    Logger.Error("Unexpected error occurred while processing IRC messages!");
+                    Logger.Error(ex);
+                    continue;
+                }
 
                 await ProcessMessageAsync(message);
             }
@@ -170,7 +208,12 @@ public class TwitchChatClient : IDisposable
         }
     }
 
-    public Task<ChatRoom> SubscribeChannelAsync(string name) => SubscribeChannelAsync(name, CancellationToken.None);
+    public Task<ChatRoom> SubscribeChannelAsync(string name)
+    {
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        return SubscribeChannelAsync(name, cts.Token);
+    }
+
     public async Task<ChatRoom> SubscribeChannelAsync(string name, CancellationToken token)
     {
         if (_chatRooms.TryGetValue(name, out var room)) return room;
@@ -182,11 +225,16 @@ public class TwitchChatClient : IDisposable
         return room;
     }
 
+    private void RemoveChannel(ChatRoom room)
+    {
+        _chatRooms.Remove(room);
+        room.MessageReceived -= RoomOnMessageReceived;
+    }
+    
     public async Task UnsubscribeChannelAsync(string name)
     {
         if (!_chatRooms.TryGetValue(name, out var room)) return;
-        _chatRooms.Remove(room);
-        room.MessageReceived -= RoomOnMessageReceived;
+        RemoveChannel(room);
         await _ircHandler.WriteMessageAsync(new IrcMessage(new GenericCommand("PART", $"#{name}")));
     }
 

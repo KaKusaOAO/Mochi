@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+#if NET7_0_OR_GREATER
 using System.Numerics;
+#endif
 using System.Text;
 using Mochi.Utils;
 
@@ -24,29 +26,31 @@ public class BufferWriter
     }
     
 #if NET7_0_OR_GREATER
-    private BufferWriter WriteVariableLengthValue<T>(T value, T byteMask, T segmentBits, T continueBit) where T : 
-        IConvertible, IBinaryInteger<T>
+    private BufferWriter WriteVariableLengthValue<T>(T value) 
+        where T : IBinaryInteger<T>
     {
+        var segmentBits = T.CreateChecked(VariableLengthValues.SegmentBits);
+        var continueBit = T.CreateChecked(VariableLengthValues.ContinueBit);
+        
         while (true)
         {
-            var segment = (value & byteMask).ToByte(null);
+            var segment = byte.CreateTruncating(value);
             if ((value & ~segmentBits) == T.Zero)
             {
                 WriteByte(segment);
                 return this;
             }
             
-            WriteByte(((value & segmentBits) | continueBit).ToByte(null));
+            WriteByte(byte.CreateTruncating((value & segmentBits) | continueBit));
             value >>>= 7;
         }
     }
     
-    public BufferWriter WriteVarInt(int value) => WriteVariableLengthValue(value, 0xff, 
-        VariableLengthValues.SegmentBits, VariableLengthValues.ContinueBit);
-    public BufferWriter WriteVarLong(long value) => WriteVariableLengthValue(value, 0xff, 
-        VariableLengthValues.SegmentBits, VariableLengthValues.ContinueBit);
+    public BufferWriter WriteVarInt(int value) => WriteVariableLengthValue(value);
+    public BufferWriter WriteVarLong(long value) => WriteVariableLengthValue(value);
 #else
-    private BufferWriter WriteVariableLengthValue<T>(T value, Func<T, byte> getSegment, 
+    private BufferWriter WriteVariableLengthValue<T>(T value, 
+        Func<T, byte> getSegment, 
         Func<T, int, T> andOperator,
         Func<T, bool> isZero,
         Func<T, int, T> orOperator,

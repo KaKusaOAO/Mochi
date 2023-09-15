@@ -1,6 +1,6 @@
 ﻿namespace Mochi.Nbt;
 
-public class NbtShort : NbtTag, INbtValue<short>
+public class NbtShort : NbtTag, INbtValue<short>, INbtNumeric
 {
     public NbtShort() : base(TagType.Short)
     {
@@ -14,10 +14,11 @@ public class NbtShort : NbtTag, INbtValue<short>
 
     public static NbtShort Deserialize(byte[] buffer, ref int index, bool named = false)
     {
-        var result = new NbtShort();
-        InternalDeserializeReadTagName(buffer, ref index, named, TagType.Short, result);
-        result.Value = NbtIO.ReadShort(buffer, ref index);
-        return result;
+        var name = InternalDeserializeReadTagName(buffer, ref index, named, TagType.Short);
+        return new NbtShort(NbtIO.ReadShort(buffer, ref index))
+        {
+            Name = name
+        };
     }
 
     public override string ToString()
@@ -25,4 +26,18 @@ public class NbtShort : NbtTag, INbtValue<short>
         var name = Name == null ? "None" : $"'{Name}'";
         return $"TAG_Short({name}): {Value}";
     }
+
+    public long AsInt64() => Value;
+
+    public int AsInt32() => Value;
+
+    public short AsInt16() => Value;
+
+    public byte AsByte() => (byte) (Value & 0xff);
+
+    public double AsDouble() => Value;
+
+    public float AsSingle() => Value;
+
+    public decimal AsDecimal() => Value;
 }

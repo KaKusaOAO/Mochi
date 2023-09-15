@@ -292,12 +292,12 @@ public record RoomState(bool IsEmoteOnly, int FollowersOnlyMinutes, bool IsUniqu
             throw new ArgumentException("No tags defined in the IRC message.");
         }
 
-        var emoteOnly = Optional.OfNullable(message.Tags["emote-only"]).Select(x => (bool?) (x.RawValue != "0")).OrElse(() => null);
-        var followersOnly = Optional.OfNullable(message.Tags["followers-only"]).Select(x => (int?) int.Parse(x.RawValue)).OrElse(() => null);
-        var r9K = Optional.OfNullable(message.Tags["r9k"]).Select(x => (bool?) (x.RawValue != "0")).OrElse(() => null);
+        var emoteOnly = Optional.OfNullable(message.Tags["emote-only"]).Select(x => (bool?) (x.RawValue != "0")).OrElseGet(() => null);
+        var followersOnly = Optional.OfNullable(message.Tags["followers-only"]).Select(x => (int?) int.Parse(x.RawValue)).OrElseGet(() => null);
+        var r9K = Optional.OfNullable(message.Tags["r9k"]).Select(x => (bool?) (x.RawValue != "0")).OrElseGet(() => null);
         var roomId = message.Tags["room-id"]!.RawValue;
-        var slow = Optional.OfNullable(message.Tags["slow"]).Select(x => (bool?) (x.RawValue != "0")).OrElse(() => null);
-        var subsOnly = Optional.OfNullable(message.Tags["subs-only"]).Select(x => (bool?) (x.RawValue != "0")).OrElse(() => null);
+        var slow = Optional.OfNullable(message.Tags["slow"]).Select(x => (bool?) (x.RawValue != "0")).OrElseGet(() => null);
+        var subsOnly = Optional.OfNullable(message.Tags["subs-only"]).Select(x => (bool?) (x.RawValue != "0")).OrElseGet(() => null);
 
         prev ??= new RoomState(false, -1, false, roomId, false, false);
         return new RoomState(

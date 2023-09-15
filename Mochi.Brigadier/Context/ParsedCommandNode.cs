@@ -3,34 +3,26 @@ using Mochi.Brigadier.Tree;
 
 namespace Mochi.Brigadier.Context;
 
-public class ParsedCommandNode<TS>
+public class ParsedCommandNode<T>
 {
-    private readonly CommandNode<TS> _node;
+    public CommandNode<T> Node { get; }
 
-    private readonly StringRange _range;
-
-    public ParsedCommandNode(CommandNode<TS> node, StringRange range)
+    public StringRange Range { get; }
+    
+    public ParsedCommandNode(CommandNode<T> node, StringRange range)
     {
-        _node = node;
-        _range = range;
+        Node = node;
+        Range = range;
     }
 
-    public CommandNode<TS> Node => _node;
+    public override string ToString() => Node + "@" + Range;
 
-    public StringRange Range => _range;
-
-    public override string ToString()
-    {
-        return _node + "@" + _range;
-    }
-
-    public override bool Equals(object o)
+    public override bool Equals(object? o)
     {
         if (this == o) return true;
-        var that = o as ParsedCommandNode<TS>;
-        if (that == null) return false;
-        return _node == that._node && _range == that._range;
+        if (o is not ParsedCommandNode<T> that) return false;
+        return Node == that.Node && Range == that.Range;
     }
 
-    public override int GetHashCode() => HashCode.Combine(_node, _range);
+    public override int GetHashCode() => HashCode.Combine(Node, Range);
 }

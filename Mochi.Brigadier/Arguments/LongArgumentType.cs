@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Mochi.Brigadier.Context;
 using Mochi.Brigadier.Exceptions;
 
 namespace Mochi.Brigadier.Arguments;
 
-public class LongArgumentType : IArgumentType<long>, IArgumentTypeWithExamples
+public class LongArgumentType : IArgumentType<long>
 {
     private static readonly IEnumerable<string> _examples = new[] { "0", "123", "-123" };
 
@@ -19,7 +20,7 @@ public class LongArgumentType : IArgumentType<long>, IArgumentTypeWithExamples
     
     public static LongArgumentType LongArg(long min = long.MinValue, long max = long.MaxValue) => new(min, max);
 
-    public static long GetLong<TS>(CommandContext<TS> context, string name) => context.GetArgument<long>(name);
+    public static long GetLong<T>(CommandContext<T> context, string name) => context.GetArgument<long>(name);
 
     public long GetMinimum() => _minimum;
 
@@ -32,24 +33,24 @@ public class LongArgumentType : IArgumentType<long>, IArgumentTypeWithExamples
         if (result < _minimum)
         {
             reader.Cursor = start;
-            throw CommandSyntaxException.BuiltInExceptions.IntegerTooLow()
+            throw CommandSyntaxException.BuiltInExceptions.LongTooLow()
                 .CreateWithContext(reader, result, _minimum);
         }
 
         if (result > _maximum)
         {
             reader.Cursor = start;
-            throw CommandSyntaxException.BuiltInExceptions.IntegerTooHigh()
+            throw CommandSyntaxException.BuiltInExceptions.LongTooHigh()
                 .CreateWithContext(reader, result, _maximum);
         }
 
         return result;
     }
 
-    public override bool Equals(object o)
+    public override bool Equals(object? o)
     {
         if (this == o) return true;
-        if (!(o is LongArgumentType that)) return false;
+        if (o is not LongArgumentType that) return false;
         return _maximum == that._maximum && _minimum == that._minimum;
     }
 
@@ -73,8 +74,5 @@ public class LongArgumentType : IArgumentType<long>, IArgumentTypeWithExamples
         return "longArg(" + _minimum + ", " + _maximum + ")";
     }
 
-    public IEnumerable<string> GetExamples()
-    {
-        return _examples;
-    }
+    public ICollection<string> Examples => _examples.ToList();
 }

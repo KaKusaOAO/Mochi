@@ -5,9 +5,9 @@ using Mochi.Brigadier.Context;
 
 namespace Mochi.Brigadier.Arguments;
 
-public class StringArgumentType : IArgumentType<string>, IArgumentTypeWithExamples
+public class StringArgumentType : IArgumentType<string>
 {
-    private StringType _type;
+    private readonly StringType _type;
 
     private StringArgumentType(StringType type)
     {
@@ -23,16 +23,13 @@ public class StringArgumentType : IArgumentType<string>, IArgumentTypeWithExampl
         return context.GetArgument<string>(name);
     }
 
-    public StringType GetStringType()
-    {
-        return _type;
-    }
+    public StringType GetStringType() => _type;
 
     public string Parse(StringReader reader)
     {
         if (_type == StringType.GreedyPhrase)
         {
-            var text = reader.GetRemaining();
+            var text = reader.Remaining;
             reader.Cursor = reader.TotalLength;
             return text;
         }
@@ -44,10 +41,7 @@ public class StringArgumentType : IArgumentType<string>, IArgumentTypeWithExampl
 
     public override string ToString() => "string()";
 
-    public IEnumerable<string> GetExamples()
-    {
-        return _type.GetExamples();
-    }
+    public ICollection<string> Examples => _type.Examples;
 
     public static string EscapeIfRequired(string input) =>
         input.Any(c => !StringReader.IsAllowedInUnquotedString(c)) ? Escape(input) : input;
@@ -77,13 +71,11 @@ public class StringArgumentType : IArgumentType<string>, IArgumentTypeWithExampl
         public static readonly StringType QuotablePhrase = new("\"quoted phrase\"", "word", "\"\"");
         public static readonly StringType GreedyPhrase = new("word", "words with spaces", "\"and symbols\"");
 
-        private IEnumerable<string> _examples;
+        public ICollection<string> Examples { get; }
 
         private StringType(params string[] examples)
         {
-            _examples = new List<string>(examples);
+            Examples = new List<string>(examples);
         }
-
-        public IEnumerable<string> GetExamples() => _examples;
     }
 }

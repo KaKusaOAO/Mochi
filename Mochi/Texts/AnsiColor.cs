@@ -5,7 +5,7 @@ internal abstract class AnsiColor
     public static AnsiColor FromTextColor(TextColor color)
     {
         var closest = color.ToNearestPredefinedColor();
-        var code = closest.ToString().Substring(1)[0];
+        var code = closest.ToString()[1..][0];
         return LegacyAnsiColor.Of(code);
     }
     

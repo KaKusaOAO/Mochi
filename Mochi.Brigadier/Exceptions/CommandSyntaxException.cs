@@ -6,83 +6,71 @@ namespace Mochi.Brigadier.Exceptions;
 public class CommandSyntaxException : Exception
 {
     public const int ContextAmount = 10;
+    
     public static bool EnableCommandStackTraces = true;
-    public static IBuiltInExceptionProvider BuiltInExceptions = new BuiltInExceptions();
+    
+    public IBrigadierMessage RawMessage { get; }
+    public ICommandExceptionType ExceptionType { get; }
+    public string? Input { get; }
+    public int Cursor { get; }
 
-    private readonly ICommandExceptionType _type;
-    private readonly IBrigadierMessage _message;
-    private readonly string _input;
-    private readonly int _cursor;
+    public static IBuiltInExceptionProvider BuiltInExceptions { get; set; } = new BuiltInExceptions();
 
-    public CommandSyntaxException(ICommandExceptionType type, IBrigadierMessage message, Exception inner = null) : base(
+    public CommandSyntaxException(ICommandExceptionType type, IBrigadierMessage message, Exception? inner = null) : base(
         message.GetString(), inner)
     {
-        _type = type;
-        _message = message;
-        _input = null;
-        _cursor = -1;
+        ExceptionType = type;
+        RawMessage = message;
+        Input = null;
+        Cursor = -1;
     }
 
-    public CommandSyntaxException(ICommandExceptionType type, IBrigadierMessage message, string input, int cursor,
-        Exception inner = null) : base(
+    public CommandSyntaxException(ICommandExceptionType type, IBrigadierMessage message, string? input, int cursor,
+        Exception? inner = null) : base(
         message.GetString(), inner)
     {
-        _type = type;
-        _message = message;
-        _input = input;
-        _cursor = cursor;
+        ExceptionType = type;
+        RawMessage = message;
+        Input = input;
+        Cursor = cursor;
     }
 
-    public string GetMessage()
+    public override string Message
     {
-        var message = _message.GetString();
-        var context = GetContext();
-        if (context != null)
+        get
         {
-            message += " at position " + _cursor + ": " + context;
+            var message = RawMessage.GetString();
+            var context = Context;
+            if (context != null)
+            {
+                message += " at position " + Cursor + ": " + context;
+            }
+
+            return message;
         }
-
-        return message;
     }
 
-    public IBrigadierMessage GetRawMessage()
+    public string? Context
     {
-        return _message;
-    }
-
-    public string GetContext()
-    {
-        if (_input == null || _cursor < 0)
+        get
         {
-            return null;
+            if (Input == null || Cursor < 0)
+            {
+                return null;
+            }
+
+            var builder = new StringBuilder();
+            var cursor = Math.Min(Input.Length, Cursor);
+
+            if (cursor > ContextAmount)
+            {
+                builder.Append("...");
+            }
+
+            builder.Append(Input.Substring(Math.Max(0, cursor - ContextAmount), cursor));
+            builder.Append("<--[HERE]");
+
+            return builder.ToString();
         }
-
-        var builder = new StringBuilder();
-        var cursor = Math.Min(_input.Length, _cursor);
-
-        if (cursor > ContextAmount)
-        {
-            builder.Append("...");
-        }
-
-        builder.Append(_input.Substring(Math.Max(0, cursor - ContextAmount), cursor));
-        builder.Append("<--[HERE]");
-
-        return builder.ToString();
-    }
-
-    public ICommandExceptionType GetExceptionType()
-    {
-        return _type;
-    }
-
-    public string GetInput()
-    {
-        return _input;
-    }
-
-    public int GetCursor()
-    {
-        return _cursor;
     }
 }

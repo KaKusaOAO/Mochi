@@ -29,6 +29,7 @@ public class RequestQueue
                     var resetAt = _rateLimitInfo.ResetAt;
                     if (resetAt > now)
                     {
+                        Logger.Verbose("Waiting for rate limit reset...");
                         await Task.Delay(resetAt - now);
                     }
                 }

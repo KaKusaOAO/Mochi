@@ -4,7 +4,7 @@ namespace Mochi.Texts;
 
 public class Style : IStyle<Style>, IColoredStyle<Style>
 {
-    public static readonly Style Empty = new();
+    public static Style Empty { get; } = new();
 
     public TextColor? Color { get; private set; }
 

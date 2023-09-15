@@ -9,13 +9,13 @@ using Mochi.Brigadier.Suggests;
 
 namespace Mochi.Brigadier.Tree;
 
-public class LiteralCommandNode<TS> : CommandNode<TS>
+public class LiteralCommandNode<T> : CommandNode<T>
 {
     private readonly string _literal;
     private readonly string _literalLowerCase;
 
-    public LiteralCommandNode(string literal, ICommand<TS> command, Predicate<TS> requirement,
-        CommandNode<TS> redirect, RedirectModifier<TS> modifier, bool forks)
+    public LiteralCommandNode(string literal, ICommand<T>? command, Predicate<T> requirement,
+        CommandNode<T>? redirect, RedirectModifier<T>? modifier, bool forks)
         : base(command, requirement, redirect, modifier, forks)
     {
         _literal = literal;
@@ -29,7 +29,7 @@ public class LiteralCommandNode<TS> : CommandNode<TS>
 
     public override string Name => _literal;
 
-    public override void Parse(StringReader reader, CommandContextBuilder<TS> contextBuilder)
+    public override void Parse(StringReader reader, CommandContextBuilder<T> contextBuilder)
     {
         var start = reader.Cursor;
         var end = Parse(reader);
@@ -63,7 +63,7 @@ public class LiteralCommandNode<TS> : CommandNode<TS>
         return -1;
     }
 
-    public override Task<Suggestions> ListSuggestionsAsync(CommandContext<TS> context, SuggestionsBuilder builder)
+    public override Task<Suggestions> ListSuggestionsAsync(CommandContext<T> context, SuggestionsBuilder builder)
     {
         if (_literalLowerCase.StartsWith(builder.RemainingLowerCase))
         {
@@ -75,11 +75,10 @@ public class LiteralCommandNode<TS> : CommandNode<TS>
 
     protected override bool IsValidInput(string input) => Parse(new StringReader(input)) > -1;
 
-    public override bool Equals(object o)
+    public override bool Equals(object? o)
     {
         if (this == o) return true;
-        if (o is not LiteralCommandNode<TS> that) return false;
-
+        if (o is not LiteralCommandNode<T> that) return false;
         if (!_literal.Equals(that._literal)) return false;
         return Equals(that);
     }
@@ -93,9 +92,9 @@ public class LiteralCommandNode<TS> : CommandNode<TS>
         return result;
     }
 
-    public override ArgumentBuilder<TS> CreateBuilder()
+    public override IArgumentBuilder<T> CreateBuilder()
     {
-        var builder = LiteralArgumentBuilder<TS>.Literal(_literal);
+        var builder = LiteralArgumentBuilder<T>.Literal(_literal);
         builder.Requires(Requirement);
         builder.Forward(Redirect, RedirectModifier, IsFork);
         if (Command != null)
@@ -111,7 +110,7 @@ public class LiteralCommandNode<TS> : CommandNode<TS>
         return _literal;
     }
 
-    public override IEnumerable<string> GetExamples() => new[] { _literal };
+    public override ICollection<string> Examples => new List<string> { _literal };
 
     public override string ToString()
     {

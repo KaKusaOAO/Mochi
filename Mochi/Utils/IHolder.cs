@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Mochi.Utils;
 
@@ -88,6 +86,12 @@ public class Holder<T> : IHolder<T>
 
     public T Value => _hasValue ? _value! : throw new InvalidOperationException("No value present");
     
+    public IOptional<T> Where(Predicate<T> predicate)
+    {
+        if (!_hasValue) return this;
+        return predicate(_value!) ? this : Holder.Empty<T>();
+    }
+
     public IHolder<T> Remove()
     {
         _hasValue = false;

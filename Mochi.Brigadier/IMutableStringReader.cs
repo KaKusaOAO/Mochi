@@ -12,7 +12,7 @@ public interface IMutableStringReader
 
     string GetRead();
 
-    string GetRemaining();
+    string Remaining { get; }
 
     bool CanRead(int length);
 
