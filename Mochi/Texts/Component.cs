@@ -237,13 +237,23 @@ public static class Component
     public static IComponent FromJson(JsonNode? obj) => FromJson(obj, ParseColorStyle);
 
     public static IComponent RepresentType(Type t, TextColor? color = null)
-        => TranslateText.Of($"%s.{t.Name}")
+    {
+        var name = t.Name;
+        var currentType = t;
+        while (currentType.DeclaringType != null)
+        {
+            name = currentType.DeclaringType.Name + "." + name;
+            currentType = currentType.DeclaringType;
+        }
+        
+        return TranslateText.Of($"%s.{name}")
             .SetColor(color ?? TextColor.Gold)
             .AddWith(
                 Literal(t.Namespace)
                     .SetColor(TextColor.DarkGray)
             );
-            
+    }
+
     private static IComponent RepresentInt(int val, TextColor? color = null)
         => Literal(val.ToString())
             .SetColor(color ?? TextColor.Gold);

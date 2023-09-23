@@ -6,6 +6,7 @@ using Mochi.Brigadier.Bridge;
 using Mochi.Texts;
 using Mochi.Utils;
 using StringReader = Mochi.Brigadier.StringReader;
+// ReSharper disable All
 
 namespace KaLib.Brigadier.Test;
 
