@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Mochi.Nbt\Mochi.Nbt.csproj" />
       <ProjectReference Include="..\Mochi.StreamKit.Twitch\Mochi.StreamKit.Twitch.csproj" />
       <ProjectReference Include="..\Mochi\Mochi.csproj" />
     </ItemGroup>

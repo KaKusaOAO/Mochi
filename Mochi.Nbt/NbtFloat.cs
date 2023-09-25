@@ -1,45 +1,57 @@
-﻿using System;
+using System;
+using Mochi.Nbt.Serializations;
 
 namespace Mochi.Nbt;
 
-public class NbtFloat : NbtTag, INbtValue<float>, INbtNumeric
+public class NbtFloat : NbtNumeric<float>
 {
-    public NbtFloat() : base(TagType.Float)
-    {
-    }
-
-    public NbtFloat(float f) : this() => Value = f;
-
-    public float Value { get; }
+    public static NbtFloat Zero { get; } = new(0);
     
-    public static implicit operator NbtFloat(float f) => new(f);
+    public override TagTypeInfo TypeInfo => TagTypeInfo.Float;
 
-    public static NbtFloat Deserialize(byte[] buffer, ref int index, bool named = false)
+    public override float Value { get; }
+
+    private NbtFloat(float value)
     {
-        var name = InternalDeserializeReadTagName(buffer, ref index, named, TagType.Float);
-        return new NbtFloat(NbtIO.ReadFloat(buffer, ref index))
+        Value = value;
+    }
+
+    public static NbtFloat CreateValue(float value) => 
+        value == 0 ? Zero : new NbtFloat(value);
+
+    public override void WriteContentTo(NbtWriter writer)
+    {
+        writer.WriteSingle(Value);
+    }
+
+    public override void Accept(ITagVisitor visitor) => visitor.VisitFloat(this);
+
+#if !NET7_0_OR_GREATER
+    public override byte AsByte() => (byte) Value;
+    public override short AsInt16() => (short) Value;
+    public override int AsInt32() => (int) Value;
+    public override long AsInt64() => (long) Value;
+    public override ushort AsUInt16() => (ushort) Value;
+    public override uint AsUInt32() => (uint) Value;
+    public override ulong AsUInt64() => (ulong) Value;
+    public override float AsSingle() => Value;
+    public override double AsDouble() => Value;
+#endif
+    
+    public sealed class FloatTypeInfo : TagTypeInfo<NbtFloat>
+    {
+        internal static FloatTypeInfo Instance { get; } = new();
+        
+        public override TagType Type => TagType.Float;
+
+        public override string FriendlyName => "TAG_Float";
+
+        private FloatTypeInfo() {}
+
+        protected override NbtFloat LoadValue(NbtReader reader)
         {
-            Name = name
-        };
+            var val = reader.ReadSingle();
+            return new NbtFloat(val);
+        }
     }
-
-    public override string ToString()
-    {
-        var name = Name == null ? "None" : $"'{Name}'";
-        return $"TAG_Float({name}): {Value}";
-    }
-
-    public long AsInt64() => (long) Math.Floor(Value);
-
-    public int AsInt32() => (int) Math.Floor(Value);
-
-    public short AsInt16() => (short) ((int) Math.Floor(Value) & 0xffff);
-
-    public byte AsByte() => (byte) ((int) Math.Floor(Value) & 0xff);
-
-    public double AsDouble() => Value;
-
-    public float AsSingle() => Value;
-
-    public decimal AsDecimal() => (decimal) Value;
 }

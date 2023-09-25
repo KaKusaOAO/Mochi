@@ -1,43 +1,69 @@
-﻿namespace Mochi.Nbt;
+using System;
+using System.Linq;
+using Mochi.Nbt.Serializations;
 
-public class NbtInt : NbtTag, INbtValue<int>, INbtNumeric
+namespace Mochi.Nbt;
+
+public class NbtInt : NbtNumeric<int>
 {
-    public NbtInt() : base(TagType.Int)
-    {
-    }
-
-    public NbtInt(int n) : this() => Value = n;
-
-    public int Value { get; }
+    private const short MinCachedValue = -128;
+    private const short MaxCachedValue = 1024;
     
-    public static implicit operator NbtInt(int n) => new(n);
+    private static readonly NbtInt[] _cache = Enumerable
+        .Range(MinCachedValue, MaxCachedValue - MinCachedValue + 1)
+        .Select(i => new NbtInt((short) i)).ToArray(); 
+    
+    public static NbtInt Zero { get; } = CreateValue(0);
+    
+    public override TagTypeInfo TypeInfo => TagTypeInfo.Int;
 
-    public static NbtInt Deserialize(byte[] buffer, ref int index, bool named = false)
+    public override int Value { get; }
+
+    private NbtInt(int value)
     {
-        var name = InternalDeserializeReadTagName(buffer, ref index, named, TagType.Int);
-        return new NbtInt(NbtIO.ReadInt(buffer, ref index))
+        Value = value;
+    }
+
+    public static NbtInt CreateValue(int value)
+    {
+        var index = value - MinCachedValue;
+        if (index < 0 || index >= _cache.Length) return new NbtInt(value);
+        return _cache[index];
+    }
+
+    public override void WriteContentTo(NbtWriter writer)
+    {
+        writer.WriteInt32(Value);
+    }
+
+    public override void Accept(ITagVisitor visitor) => visitor.VisitInt(this);
+
+#if !NET7_0_OR_GREATER
+    public override byte AsByte() => (byte) (Value & byte.MaxValue);
+    public override short AsInt16() => (short) (Value & short.MaxValue);
+    public override int AsInt32() => Value;
+    public override long AsInt64() => Value;
+    public override ushort AsUInt16() => (ushort) (Value & ushort.MaxValue);
+    public override uint AsUInt32() => (uint) Value;
+    public override ulong AsUInt64() => (ulong) Value;
+    public override float AsSingle() => Value;
+    public override double AsDouble() => Value;
+#endif
+    
+    public sealed class IntTypeInfo : TagTypeInfo<NbtInt>
+    {
+        internal static IntTypeInfo Instance { get; } = new();
+        
+        public override TagType Type => TagType.Int;
+
+        public override string FriendlyName => "TAG_Int";
+
+        private IntTypeInfo() {}
+
+        protected override NbtInt LoadValue(NbtReader reader)
         {
-            Name = name
-        };
+            var val = reader.ReadInt32();
+            return new NbtInt(val);
+        }
     }
-
-    public override string ToString()
-    {
-        var name = Name == null ? "None" : $"'{Name}'";
-        return $"TAG_Int({name}): {Value}";
-    }
-
-    public long AsInt64() => Value;
-
-    public int AsInt32() => Value;
-
-    public short AsInt16() => (short) (Value & 0xffff);
-
-    public byte AsByte() => (byte) (Value & 0xff);
-
-    public double AsDouble() => Value;
-
-    public float AsSingle() => Value;
-
-    public decimal AsDecimal() => Value;
 }

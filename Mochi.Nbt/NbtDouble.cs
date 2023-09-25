@@ -1,45 +1,57 @@
-﻿using System;
+using System;
+using Mochi.Nbt.Serializations;
 
 namespace Mochi.Nbt;
 
-public class NbtDouble : NbtTag, INbtValue<double>, INbtNumeric
+public class NbtDouble : NbtNumeric<double>
 {
-    public NbtDouble() : base(TagType.Double)
-    {
-    }
-
-    public NbtDouble(double d) : this() => Value = d;
-
-    public double Value { get; }
+    public static NbtDouble Zero { get; } = new(0);
     
-    public static implicit operator NbtDouble(double d) => new(d);
+    public override TagTypeInfo TypeInfo => TagTypeInfo.Double;
 
-    public static NbtDouble Deserialize(byte[] buffer, ref int index, bool named = false)
+    public override double Value { get; }
+
+    private NbtDouble(double value)
     {
-        var name = InternalDeserializeReadTagName(buffer, ref index, named, TagType.Double);
-        return new NbtDouble(NbtIO.ReadDouble(buffer, ref index))
+        Value = value;
+    }
+
+    public static NbtDouble CreateValue(double value) => 
+        value == 0 ? Zero : new NbtDouble(value);
+
+    public override void WriteContentTo(NbtWriter writer)
+    {
+        writer.WriteDouble(Value);
+    }
+
+    public override void Accept(ITagVisitor visitor) => visitor.VisitDouble(this);
+
+#if !NET7_0_OR_GREATER
+    public override byte AsByte() => (byte) Value;
+    public override short AsInt16() => (short) Value;
+    public override int AsInt32() => (int) Value;
+    public override long AsInt64() => (long) Value;
+    public override ushort AsUInt16() => (ushort) Value;
+    public override uint AsUInt32() => (uint) Value;
+    public override ulong AsUInt64() => (ulong) Value;
+    public override float AsSingle() => (float) Value;
+    public override double AsDouble() => Value;
+#endif
+    
+    public sealed class DoubleTypeInfo : TagTypeInfo<NbtDouble>
+    {
+        internal static DoubleTypeInfo Instance { get; } = new();
+        
+        public override TagType Type => TagType.Double;
+
+        public override string FriendlyName => "TAG_Double";
+
+        private DoubleTypeInfo() {}
+
+        protected override NbtDouble LoadValue(NbtReader reader)
         {
-            Name = name
-        };
+            var val = reader.ReadDouble();
+            return new NbtDouble(val);
+        }
     }
-
-    public override string ToString()
-    {
-        var name = Name == null ? "None" : $"'{Name}'";
-        return $"TAG_Double({name}): {Value}";
-    }
-
-    public long AsInt64() => (long) Math.Floor(Value);
-
-    public int AsInt32() => (int) Math.Floor(Value);
-
-    public short AsInt16() => (short) ((int) Math.Floor(Value) & 0xffff);
-
-    public byte AsByte() => (byte) ((int) Math.Floor(Value) & 0xff);
-
-    public double AsDouble() => Value;
-
-    public float AsSingle() => (float) Value;
-
-    public decimal AsDecimal() => (decimal) Value;
 }

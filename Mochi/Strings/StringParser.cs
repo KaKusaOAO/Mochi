@@ -40,20 +40,12 @@ public class StringParser
 
     public string GetRead()
     {
-#if NETCOREAPP
-            return _str[.._cursor];
-#else
-        return _str.Substring(0, _cursor);
-#endif
+        return _str[.._cursor];
     }
 
     private string InternalGetRemaining()
     {
-#if NETCOREAPP
-            return _str[_cursor..];
-#else
-        return _str.Substring(_cursor);
-#endif
+        return _str[_cursor..];
     }
 
     public string Remaining => InternalGetRemaining();
@@ -204,14 +196,8 @@ public class StringParser
         }
     }
 
-    public static bool IsAllowedInUnquotedString(char c)
-    {
-        return c >= '0' && c <= '9'
-               || c >= 'A' && c <= 'Z'
-               || c >= 'a' && c <= 'z'
-               || c == '_' || c == '-'
-               || c == '.' || c == '+';
-    }
+    public static bool IsAllowedInUnquotedString(char c) => 
+        c is >= '0' and <= '9' or >= 'A' and <= 'Z' or >= 'a' and <= 'z' or '_' or '-' or '.' or '+';
 
     public string ReadUnquotedString()
     {
@@ -308,15 +294,14 @@ public class StringParser
         {
             return true;
         }
-        else if (value.Equals("false"))
+
+        if (value.Equals("false"))
         {
             return false;
         }
-        else
-        {
-            _cursor = start;
-            throw new InvalidTokenException(ReaderTokenType.Boolean, value);
-        }
+
+        _cursor = start;
+        throw new InvalidTokenException(ReaderTokenType.Boolean, value);
     }
 
     public void Expect(char c)

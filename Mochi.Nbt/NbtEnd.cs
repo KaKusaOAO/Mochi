@@ -1,17 +1,35 @@
+using System;
+using Mochi.Nbt.Serializations;
+
 namespace Mochi.Nbt;
 
 public class NbtEnd : NbtTag
 {
-    private static NbtEnd? _instance;
-    public static NbtEnd Shared => _instance ??= new NbtEnd();
-    
-    public NbtEnd() : base(TagType.End)
-    {
-    }
+    public static NbtEnd Instance { get; } = new();
 
-    public override string ToString()
+    public override TagTypeInfo TypeInfo => TagTypeInfo.End;
+
+    private NbtEnd() {}
+    
+    public override void WriteContentTo(NbtWriter writer)
     {
-        var name = Name == null ? "None" : $"'{Name}'";
-        return $"TAG_End({name})";
+        throw new InvalidOperationException(
+            $"{nameof(NbtEnd)}.{nameof(WriteContentTo)}() should never be called");
+    }
+    
+    public override void Accept(ITagVisitor visitor) => visitor.VisitEnd(this);
+    
+    public sealed class EndTypeInfo : TagTypeInfo<NbtEnd>
+    {
+        // ReSharper disable once MemberHidesStaticFromOuterClass
+        internal static EndTypeInfo Instance { get; } = new();
+        
+        public override TagType Type => TagType.End;
+
+        public override string FriendlyName => "TAG_End";
+
+        private EndTypeInfo() {}
+
+        protected override NbtEnd LoadValue(NbtReader reader) => NbtEnd.Instance;
     }
 }

@@ -26,9 +26,9 @@ public class TranslateContent : IContent<TranslateContent>
         return this;
     }
     
-    public TranslateContent Clone() => new(Translate, With.Select(t => t.Clone()).ToArray());
+    public TranslateContent Clone() => new(Translate, With.Select(t => (IComponent) t.Clone()).ToArray());
 
-    private List<IComponent>? _decomposed = null;
+    private List<IComponent>? _decomposed;
 
     private List<IComponent> Decompose(IStyle style)
     {
@@ -47,8 +47,11 @@ public class TranslateContent : IContent<TranslateContent>
             var front = fmt[offset..m.Index];
             if (front.Length > 0) 
                 result.Add(new GenericMutableComponent(new LiteralContent(front), style.Clear()));
-            
-            result.Add(parameters[ci].Clone());
+
+            result.Add(ci >= parameters.Count && ci < 0
+                ? new GenericMutableComponent(new LiteralContent(m.Value), style.Clear())
+                : parameters[ci].Clone());
+
             offset = m.Index + m.Length;
         }
         

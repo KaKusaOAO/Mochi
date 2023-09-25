@@ -1,153 +1,90 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using Mochi.Nbt.Serializations;
 
 namespace Mochi.Nbt;
 
-public abstract class NbtTag : INbtTag
+public abstract class NbtTag
 {
-    public byte RawType { get; private set; }
+    public abstract TagTypeInfo TypeInfo { get; }
 
-    public TagType Type => (TagType)RawType;
+    public TagType Type => TypeInfo.Type;
 
-    public enum TagType : byte
+    public virtual NbtTag? this[string key]
     {
-        End,
-        Byte,
-        Short,
-        Int,
-        Long,
-        Float,
-        Double,
-        ByteArray,
-        String,
-        List,
-        Compound,
-        IntArray,
-        LongArray
+        get => AsCompound()[key];
+        set => AsCompound()[key] = value;
     }
 
-    public string? Name { get; set; } = null;
+    public static implicit operator NbtTag(bool flag) => Create(flag);
+    public static implicit operator NbtTag(byte val) => Create(val);
+    public static implicit operator NbtTag(short val) => Create(val);
+    public static implicit operator NbtTag(int val) => Create(val);
+    public static implicit operator NbtTag(long val) => Create(val);
+    public static implicit operator NbtTag(float val) => Create(val);
+    public static implicit operator NbtTag(double val) => Create(val);
+    public static implicit operator NbtTag(string val) => Create(val);
+    public static implicit operator NbtTag(byte[] val) => Create(val);
+    public static implicit operator NbtTag(int[] val) => Create(val);
+    public static implicit operator NbtTag(long[] val) => Create(val);
     
-    public static implicit operator NbtTag(string s) => new NbtString(s);
-    public static implicit operator NbtTag(byte b) => new NbtByte(b);
-    public static implicit operator NbtTag(bool b) => new NbtByte(b);
-    public static implicit operator NbtTag(short s) => new NbtShort(s);
-    public static implicit operator NbtTag(int i) => new NbtInt(i);
-    public static implicit operator NbtTag(long l) => new NbtLong(l);
-    public static implicit operator NbtTag(float f) => new NbtFloat(f);
-    public static implicit operator NbtTag(double d) => new NbtDouble(d);
-    public static implicit operator NbtTag(byte[] b) => new NbtByteArray(b);
-    public static implicit operator NbtTag(int[] i) => new NbtIntArray(i);
-    public static implicit operator NbtTag(long[] l) => new NbtLongArray(l);
+    public static NbtTag Create(bool flag) => NbtByte.CreateValue(flag);
+    public static NbtTag Create(byte val) => NbtByte.CreateValue(val);
+    public static NbtTag Create(short val) => NbtShort.CreateValue(val);
+    public static NbtTag Create(int val) => NbtInt.CreateValue(val);
+    public static NbtTag Create(long val) => NbtLong.CreateValue(val);
+    public static NbtTag Create(float val) => NbtFloat.CreateValue(val);
+    public static NbtTag Create(double val) => NbtDouble.CreateValue(val);
+    public static NbtTag Create(string val) => NbtString.CreateValue(val);
+    public static NbtTag Create(IEnumerable<byte> val) => new NbtByteArray(val);
+    public static NbtTag Create(IEnumerable<int> val) => new NbtIntArray(val);
+    public static NbtTag Create(IEnumerable<long> val) => new NbtLongArray(val);
+    
+    public virtual NbtValue AsValue() =>
+        throw new NotSupportedException("Not a value");
+    
+    public virtual NbtCompound AsCompound() => 
+        throw new NotSupportedException("Not a compound");
 
-    protected NbtTag(TagType type) => RawType = (byte)type;
-
-    public static NbtTag Deserialize(byte[] buffer, ref int index, bool named = false, TagType? type = null)
+    public T As<T>() where T : NbtTag
     {
-        switch (type ?? (TagType)NbtIO.ReadByte(buffer, ref index))
-        {
-            case TagType.End:
-                return NbtEnd.Shared;
-            case TagType.Byte:
-                return NbtByte.Deserialize(buffer, ref index, named);
-            case TagType.Short:
-                return NbtShort.Deserialize(buffer, ref index, named);
-            case TagType.Int:
-                return NbtInt.Deserialize(buffer, ref index, named);
-            case TagType.Long:
-                return NbtLong.Deserialize(buffer, ref index, named);
-            case TagType.Float:
-                return NbtFloat.Deserialize(buffer, ref index, named);
-            case TagType.Double:
-                return NbtDouble.Deserialize(buffer, ref index, named);
-            case TagType.ByteArray:
-                return NbtByteArray.Deserialize(buffer, ref index, named);
-            case TagType.String:
-                return NbtString.Deserialize(buffer, ref index, named);
-            case TagType.List:
-                return NbtList.Deserialize(buffer, ref index, named);
-            case TagType.Compound:
-                return NbtCompound.Deserialize(buffer, ref index, named);
-            case TagType.IntArray:
-                return NbtIntArray.Deserialize(buffer, ref index, named);
-            case TagType.LongArray:
-                return NbtLongArray.Deserialize(buffer, ref index, named);
-        }
-
-        throw new ArgumentException($"Unknown type {buffer[index]} at index {index}: {(char)buffer[index]}");
-    }
-
-    public T As<T>() where T : NbtTag => (T)this;
-
-    public static NbtTag Deserialize(byte[] buffer, bool named = false, TagType? type = null)
-    {
-        var i = 0;
-        return Deserialize(buffer, ref i, named, type);
-    }
-
-    protected static void InternalDeserializeReadTagName(byte[] buffer, ref int index, bool named, TagType target,
-        NbtTag instance)
-    {
-        if (named) instance.Name = NbtIO.ReadString(buffer, ref index);
+        if (this is T result) return result;
+        if (typeof(T) == typeof(NbtValue)) return (T) (object) AsValue();
+        
+        throw new InvalidOperationException($"{GetType().Name} cannot be casted to type {typeof(T)}");
     }
     
-    protected static string? InternalDeserializeReadTagName(byte[] buffer, ref int index, bool named, TagType target) => 
-        named ? NbtIO.ReadString(buffer, ref index) : null;
-
-    public new abstract string ToString();
-
-    public virtual string ToValue() => "";
-}
-
-public static class NbtExtension
-{
-    public static T Copy<T>(this T self) where T : NbtTag
+    public static NbtTag Parse(Stream stream, bool hasRootName = false)
     {
-        if (self is NbtEnd) return self;
-        if (self is NbtByte b) return (new NbtByte(b.Value) { Name = self.Name } as T)!;
-        if (self is NbtByteArray bArr)
-        {
-            var arr = new byte[bArr.Value.Length];
-            Array.Copy(bArr.Value, arr, arr.Length);
-            return (new NbtByteArray(arr) { Name = self.Name } as T)!;
-        }
+        var reader = hasRootName
+            ? NbtReader.CreateWithRootName(stream, long.MaxValue)
+            : NbtReader.Create(stream, long.MaxValue);
+        
+        var type = reader.ReadTagType();
+        if (type == TagType.End) return NbtEnd.Instance;
 
-        if (self is NbtCompound c)
-        {
-            var result = new NbtCompound() { Name = self.Name };
-            foreach (var entry in c) result.Add(entry.Key, entry.Value.Copy());
-
-            return (result as T)!;
-        }
-
-        if (self is NbtDouble d) return (new NbtDouble(d.Value) { Name = self.Name } as T)!;
-        if (self is NbtFloat f) return (new NbtFloat(f.Value) { Name = self.Name } as T)!;
-        if (self is NbtInt i) return (new NbtInt(i.Value) { Name = self.Name } as T)!;
-        if (self is NbtIntArray iArr)
-        {
-            var arr = new int[iArr.Value.Length];
-            Array.Copy(iArr.Value, arr, arr.Length);
-            return (new NbtIntArray(arr) { Name = self.Name } as T)!;
-        }
-
-        if (self is NbtList list)
-        {
-            var result = new NbtList(list.ContentType) { Name = self.Name };
-            foreach (var tag in list) result.Add(tag.Copy());
-
-            return (result as T)!;
-        }
-
-        if (self is NbtLong l) return (new NbtLong(l.Value) { Name = self.Name } as T)!;
-        if (self is NbtLongArray lArr)
-        {
-            var arr = new long[lArr.Value.Length];
-            Array.Copy(lArr.Value, arr, arr.Length);
-            return (new NbtLongArray(arr) { Name = self.Name } as T)!;
-        }
-
-        if (self is NbtShort s) return (new NbtShort(s.Value) { Name = self.Name } as T)!;
-        if (self is NbtString str) return (new NbtString(str.Value) { Name = self.Name } as T)!;
-
-        throw new ArgumentException($"Don't know how to copy tag: {self}");
+        reader.ReadRootName();
+        return TagTypeInfo.GetTagType(type).Load(reader);
     }
+
+    public void WriteTo(NbtWriter writer)
+    {
+        writer.WriteTagType(Type);
+        if (Type == TagType.End) return;
+        
+        writer.WriteRootName();
+        WriteContentTo(writer);
+    }
+
+    public string GetAsString() => new StringTagVisitor().Visit(this);
+
+    public override string ToString() => GetAsString();
+
+    public abstract void Accept(ITagVisitor visitor);
+
+    public abstract void WriteContentTo(NbtWriter writer);
+
+    public virtual T GetValue<T>() =>
+        throw new InvalidOperationException($"{nameof(GetValue)}() called on wrong type");
 }

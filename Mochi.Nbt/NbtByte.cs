@@ -1,59 +1,70 @@
-﻿namespace Mochi.Nbt;
+using System;
+using System.Linq;
+using Mochi.Nbt.Serializations;
 
-public class NbtByte : NbtTag, INbtValue<byte>, INbtNumeric
+namespace Mochi.Nbt;
+
+public class NbtByte : NbtNumeric<byte>
 {
-    public NbtByte() : base(TagType.Byte)
-    {
-    }
-
-    public NbtByte(byte value) : this() => Value = value;
-
-    public NbtByte(bool flag) : this((byte)(flag ? 1 : 0))
-    {
-    }
+    private static readonly NbtByte[] _cache = Enumerable.Range(0, 0x100)
+        .Select(i => new NbtByte((byte) i)).ToArray(); 
     
-    public static implicit operator NbtByte(byte value) => new(value);
-    public static implicit operator NbtByte(bool flag) => new(flag);
+    public static NbtByte Zero { get; } = _cache[0];
+    public static NbtByte One { get; } = _cache[1];
+    
+    public override TagTypeInfo TypeInfo => TagTypeInfo.Byte;
 
-    public byte Value { get; }
+    public override byte Value { get; }
+
+    private NbtByte(byte value)
+    {
+        if (_cache != null!)
+        {
+            throw new InvalidOperationException(
+                $"Use {nameof(NbtTag)}.{nameof(Create)}({Value}), instead of creating a new instance.");
+        }
+
+        Value = value;
+    }
+
+    public static NbtByte CreateValue(byte value) => _cache[value];
+    public static NbtByte CreateValue(bool bl) => bl ? One : Zero;
+
+    public override void WriteContentTo(NbtWriter writer)
+    {
+        writer.WriteByte(Value);
+    }
 
     public bool AsBool() => Value != 0;
 
-    public static NbtByte Deserialize(byte[] buffer, ref int index, bool named = false)
+    public override void Accept(ITagVisitor visitor) => visitor.VisitByte(this);
+
+#if !NET7_0_OR_GREATER
+    public override byte AsByte() => Value;
+    public override short AsInt16() => Value;
+    public override int AsInt32() => Value;
+    public override long AsInt64() => Value;
+    public override ushort AsUInt16() => Value;
+    public override uint AsUInt32() => Value;
+    public override ulong AsUInt64() => Value;
+    public override float AsSingle() => Value;
+    public override double AsDouble() => Value;
+#endif
+    
+    public sealed class ByteTypeInfo : TagTypeInfo<NbtByte>
     {
-        var name = InternalDeserializeReadTagName(buffer, ref index, named, TagType.Byte);
-        return new NbtByte(NbtIO.ReadByte(buffer, ref index))
+        internal static ByteTypeInfo Instance { get; } = new();
+        
+        public override TagType Type => TagType.Byte;
+
+        public override string FriendlyName => "TAG_Byte";
+
+        private ByteTypeInfo() {}
+
+        protected override NbtByte LoadValue(NbtReader reader)
         {
-            Name = name
-        };
+            var val = reader.ReadByte();
+            return CreateValue(val);
+        }
     }
-
-    public override string ToString()
-    {
-        var name = Name == null ? "None" : $"'{Name}'";
-        return $"TAG_Byte({name}): {Value}";
-    }
-
-    // ReSharper disable once NonReadonlyMemberInGetHashCode
-    public override int GetHashCode() => Value.GetHashCode();
-
-    public override bool Equals(object obj)
-    {
-        if (!(obj is NbtByte b)) return false;
-        return Value == b.Value;
-    }
-
-    public long AsInt64() => Value;
-
-    public int AsInt32() => Value;
-
-    public short AsInt16() => Value;
-
-    public byte AsByte() => Value;
-
-    public double AsDouble() => Value;
-
-    public float AsSingle() => Value;
-
-    public decimal AsDecimal() => Value;
 }
