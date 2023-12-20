@@ -10,21 +10,15 @@ using Mochi.Texts;
 
 namespace Mochi.Utils;
 
-public class LoggerEventArgs : EventArgs
-{
-    public LogLevel Level { get; set; } = LogLevel.Verbose;
-    public IText Content { get; set; } = LiteralText.Of("Log message not set");
-    public IText Tag { get; set; } = LiteralText.Of("Unknown");
-    public TextColor TagColor { get; set; } = TextColor.DarkGray;
-    public Thread SourceThread { get; set; } = Thread.CurrentThread;
-    public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.Now;
-}
-    
-public delegate Task AsyncLogEventDelegate(LoggerEventArgs data);
-
 public static class Logger
 {
     private static readonly AsyncEventHandler<AsyncLogEventDelegate> _loggedHandler = new();
+    public static IComponent PrefixFormat => TranslateText.Of("%3$s - %1$s %2$s");
+    private static readonly SemaphoreSlim _logLock = new(1, 1);
+    private static readonly ConcurrentQueue<Action> _recordCall = new();
+    private static Thread _thread;
+    private static bool _bootstrapped;
+    
     public static event AsyncLogEventDelegate Logged
     {
         add => _loggedHandler.AddHandler(value);
@@ -32,11 +26,6 @@ public static class Logger
     }
         
     public static LogLevel Level { get; set; }
-    public static TranslateText PrefixFormat => TranslateText.Of("{2} - {0} {1}");
-    private static readonly SemaphoreSlim _logLock = new(1, 1);
-    private static readonly ConcurrentQueue<Action> _recordCall = new();
-    private static Thread _thread;
-    private static bool _bootstrapped;
 
     static Logger()
     {
@@ -116,20 +105,20 @@ public static class Logger
                 _ = LogToEmulatedTerminalAsync(new LoggerEventArgs
                 {
                     Content = TranslateText.Of("Unhandled exception in handler %s!")
-                        .AddWith(LiteralText.Of($"{handler.Method}").SetColor(TextColor.Gold)),
+                        .AddWith(Component.Literal($"{handler.Method}").SetColor(TextColor.Gold)),
                     Level = LogLevel.Error,
                     SourceThread = _thread,
-                    Tag = LiteralText.Of("Logger"),
+                    Tag = Component.Literal("Logger"),
                     TagColor = TextColor.Red,
                     Timestamp = DateTimeOffset.Now
                 });
                     
                 _ = LogToEmulatedTerminalAsync(new LoggerEventArgs
                 {
-                    Content = LiteralText.Of($"{ex}"),
+                    Content = Component.Literal($"{ex}"),
                     Level = LogLevel.Error,
                     SourceThread = _thread,
-                    Tag = LiteralText.Of("Logger"),
+                    Tag = Component.Literal("Logger"),
                     TagColor = TextColor.Red,
                     Timestamp = DateTimeOffset.Now
                 });
@@ -167,32 +156,32 @@ public static class Logger
             var d = new LoggerEventArgs
             {
                 Level = LogLevel.Warn,
-                Content = LiteralText.Of("*** Logger is not bootstrapped. ***"),
+                Content = Component.Literal("*** Logger is not bootstrapped. ***"),
                 TagColor = TextColor.Gold,
                 SourceThread = _thread,
-                Tag = Text.RepresentType(typeof(Logger))
+                Tag = Component.RepresentType(typeof(Logger))
             };
             InternalOnLogged(d);
 
             d = new LoggerEventArgs
             {
                 Level = LogLevel.Warn,
-                Content = LiteralText.Of(
+                Content = Component.Literal(
                     "Logger now requires either RunThreaded(), RunBlocking() or RunManualPoll() to poll log events."),
                 TagColor = TextColor.Gold,
                 SourceThread = _thread,
-                Tag = Text.RepresentType(typeof(Logger))
+                Tag = Component.RepresentType(typeof(Logger))
             };
             InternalOnLogged(d);
                 
             d = new LoggerEventArgs
             {
                 Level = LogLevel.Warn,
-                Content = LiteralText.Of(
+                Content = Component.Literal(
                     "The threaded approach will be used by default."),
                 TagColor = TextColor.Gold,
                 SourceThread = _thread,
-                Tag = Text.RepresentType(typeof(Logger))
+                Tag = Component.RepresentType(typeof(Logger))
             };
             InternalOnLogged(d);
         }
@@ -236,7 +225,7 @@ public static class Logger
         }
     }
 
-    private static void Log(LogLevel level, IText t, TextColor color, IText name)
+    private static void Log(LogLevel level, IComponent t, TextColor color, IComponent name)
     {
         var thread = Thread.CurrentThread;
         var tClone = t.Clone();
@@ -252,18 +241,23 @@ public static class Logger
         CallOrQueue(() => InternalOnLogged(data));
     }
 
-    public static List<string> GetDefaultFormattedLines(DateTimeOffset time, IText t, TextColor color, IText name, Thread thread, bool ascii = true)
+    public static List<string> GetDefaultFormattedLines(DateTimeOffset time, IComponent t, TextColor color, IComponent name, Thread thread, bool ascii = true)
     {
-        var nameClone = name.MutableCopy();
+        var nameClone = name.Clone();
         var f = PrefixFormat;
-        nameClone.Color = color;
-        var tag = LiteralText.Of($"[{thread.Name}@{thread.ManagedThreadId}] ")
+
+        if (nameClone.Style is IColoredStyle colored)
+        {
+            nameClone.Style = colored.WithColor(color);
+        }
+        
+        var tag = Component.Literal($"[{thread.Name}@{thread.ManagedThreadId}] ")
             .SetColor(TextColor.DarkGray)
             .AddExtra(TranslateText.Of("[%s]").AddWith(nameClone).SetColor(color));
         var now = time.ToLocalTime().DateTime.ToString(CultureInfo.InvariantCulture);
 
         var text = t.Clone();
-        var prefix = f.AddWith(tag, LiteralText.Of(""), LiteralText.Of(now));
+        var prefix = f.AddWith(tag, Component.Literal(""), Component.Literal(now));
             
         var pPlain = prefix.ToPlainText();
         var pf = ascii ? prefix.ToAnsi() : prefix.ToPlainText(); 
@@ -313,14 +307,14 @@ public static class Logger
         });
     }
 
-    private static IText CreateTextFromGeneric(object? obj)
+    private static IComponent CreateTextFromGeneric(object? obj)
     {
         return obj switch
         {
-            null => LiteralText.Of("<null>").SetColor(TextColor.Red),
-            IText text => text,
-            Type type => Text.RepresentType(type),
-            _ => LiteralText.Of(obj.ToString())
+            null => Component.Literal("<null>").SetColor(TextColor.Red),
+            IComponent text => text,
+            Type type => Component.RepresentType(type),
+            _ => Component.Literal(obj.ToString())
         };
     }
 

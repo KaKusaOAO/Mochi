@@ -1,77 +1,123 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using Mochi.Nbt.Serializations;
 
 namespace Mochi.Nbt;
 
-public class NbtIntArray : NbtTag, INbtValue<int[]>
+public class NbtIntArray : NbtValue<int[]>, INbtCollection<NbtInt>
 {
-    public NbtIntArray() : base(TagType.IntArray)
-    {
-    }
-
-    public NbtIntArray(int[] arr) : this() => Value = arr;
+    private readonly List<int> _list = new();
     
-    public static implicit operator NbtIntArray(int[] arr) => new(arr);
+    public override TagTypeInfo TypeInfo => TagTypeInfo.IntArray;
+    public TagTypeInfo ElementTypeInfo => TagTypeInfo.Int;
 
-    public static NbtIntArray FromGuid(Guid g)
+    public override int[] Value => _list.ToArray();
+
+    public int Count => _list.Count;
+
+    bool ICollection<NbtInt>.IsReadOnly => false;
+
+    public NbtInt this[int index]
     {
-        var raw = g.ToByteArray();
-        Array.Reverse(raw, 0, 4);
-        Array.Reverse(raw, 4, 2);
-        Array.Reverse(raw, 6, 2);
-
-        return new NbtIntArray(new[]
-        {
-            BitConverter.ToInt32(raw, 0),
-            BitConverter.ToInt32(raw, 4),
-            BitConverter.ToInt32(raw, 8),
-            BitConverter.ToInt32(raw, 12)
-        });
+        get => NbtInt.CreateValue(_list[index]);
+        set => _list[index] = value.Value;
+    }
+    
+    public NbtIntArray(IEnumerable<int> bytes)
+    {
+        _list.AddRange(bytes);
     }
 
-    public int[] Value { get; set; }
-
-    public Guid ToGuid()
+    public override void WriteContentTo(NbtWriter writer)
     {
-        var array = Value;
-
-        // Perform my magic here
-        var raw = new byte[16];
-        for (var i = 0; i < 4; i++)
+        var arr = Value;
+        writer.WriteInt32(arr.Length);
+        
+        foreach (var i in arr)
         {
-            var val = array[i];
-            var bs = BitConverter.GetBytes(val);
-            Array.Copy(bs, 0, raw, i * 4, 4);
+            writer.WriteInt32(i);
         }
+    }
 
-        Array.Reverse(raw, 0, 4);
-        Array.Reverse(raw, 4, 2);
-        Array.Reverse(raw, 6, 2);
+    public IEnumerator<NbtInt> GetEnumerator() => _list.Select(NbtInt.CreateValue).GetEnumerator();
 
-        var uuid = "";
-        for (var i = 0; i < 16; i++)
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public void Add(NbtInt tag)
+    {
+        _list.Add(tag.Value);
+    }
+
+    public void Clear() => _list.Clear();
+
+    public bool Contains(NbtInt tag) => _list.Contains(tag.Value);
+
+    void ICollection<NbtInt>.CopyTo(NbtInt[] array, int arrayIndex)
+    {
+        var arr = _list.Select(NbtInt.CreateValue).ToArray();
+        Array.Copy(arr, 0, array, arrayIndex, arr.Length);
+    }
+
+    public bool Remove(NbtInt tag) => _list.Remove(tag.Value);
+
+    public int IndexOf(NbtInt tag) => _list.IndexOf(tag.Value);
+
+    public void Insert(int index, NbtInt tag) => _list.Insert(index, tag.Value);
+
+    public void RemoveAt(int index) => _list.RemoveAt(index);
+
+    public bool SetTag(int index, NbtTag tag)
+    {
+        if (tag is not INbtNumeric numeric)
+            return false;
+        
+        _list[index] = numeric.AsByte();
+        return true;
+    }
+
+    public bool AddTag(NbtTag tag)
+    {
+        if (tag is not INbtNumeric numeric)
+            return false;
+        
+        _list.Add(numeric.AsByte());
+        return true;
+    }
+
+    public bool InsertTag(int index, NbtTag tag)
+    {
+        if (tag is not INbtNumeric numeric)
+            return false;
+        
+        _list.Insert(index, numeric.AsByte());
+        return true;
+    }
+
+    public override void Accept(ITagVisitor visitor) => visitor.VisitIntArray(this);
+
+    public sealed class IntArrTypeInfo : TagTypeInfo<NbtIntArray>
+    {
+        internal static IntArrTypeInfo Instance { get; } = new();
+        
+        public override TagType Type => TagType.IntArray;
+
+        public override string FriendlyName => "TAG_IntArray";
+
+        private IntArrTypeInfo() {}
+
+        protected override NbtIntArray LoadValue(NbtReader reader)
         {
-            uuid += $"{raw[i]:x2}";
-            if (i == 3 || i == 5 || i == 7 || i == 9) uuid += "-";
+            var size = reader.ReadInt32();
+            var arr = new int[size];
+            
+            for (var i = 0; i < arr.Length; i++)
+            {
+                arr[i] = reader.ReadInt32();
+            }
+            
+            return new NbtIntArray(arr);
         }
-
-        return Guid.Parse(uuid);
-    }
-
-    public static NbtIntArray Deserialize(byte[] buffer, ref int index, bool named = false)
-    {
-        var result = new NbtIntArray();
-        InternalDeserializeReadTagName(buffer, ref index, named, TagType.IntArray, result);
-        var count = NbtIO.ReadInt(buffer, ref index);
-
-        result.Value = new int[count];
-        for (var i = 0; i < count; i++) result.Value[i] = NbtIO.ReadInt(buffer, ref index);
-
-        return result;
-    }
-
-    public override string ToString()
-    {
-        var name = Name == null ? "None" : $"'{Name}'";
-        return $"TAG_Int_Array({name}): [{Value.Length} items]";
     }
 }

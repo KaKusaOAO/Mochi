@@ -5,9 +5,10 @@
         <PackageProjectUrl>https://github.com/KaKusaOAO/Mochi/blob/master/LICENSE</PackageProjectUrl>
         <RepositoryUrl>https://github.com/KaKusaOAO/Mochi</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
-        <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
-        <PackageVersion>1.1.1</PackageVersion>
+        <TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
+        <PackageVersion>2.0.1</PackageVersion>
         <LangVersion>11</LangVersion>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
 </Project>

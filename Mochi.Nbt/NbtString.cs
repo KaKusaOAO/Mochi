@@ -1,39 +1,85 @@
-﻿namespace Mochi.Nbt;
+using System;
+using System.Text;
+using Mochi.Nbt.Serializations;
 
-public class NbtString : NbtTag, INbtValue<string>
+namespace Mochi.Nbt;
+
+public class NbtString : NbtValue<string>
 {
-    public NbtString() : this("")
-    {
-    }
-
-    public NbtString(string s) : base(TagType.String) => Value = s;
-
-    public string Value { get; private set; }
+    public static NbtString Empty { get; } = new(string.Empty);
     
-    public static implicit operator NbtString(string s) => new(s);
+    public override TagTypeInfo TypeInfo => TagTypeInfo.String;
 
-    public static NbtString Deserialize(byte[] buffer, ref int index, bool named = false)
+    public override string Value { get; }
+
+    private NbtString(string value)
     {
-        var result = new NbtString();
-        InternalDeserializeReadTagName(buffer, ref index, named, TagType.String, result);
-        result.Value = NbtIO.ReadString(buffer, ref index);
-        return result;
+        Value = value;
     }
 
-    public override string ToString()
+    public static NbtString CreateValue(string value)
     {
-        var name = Name == null ? "None" : $"'{Name}'";
-        return $"TAG_String({name}): '{Value}'";
+        if (string.IsNullOrEmpty(value)) return Empty;
+        return new NbtString(value);
     }
 
-    public override string ToValue() => Value;
-
-    // ReSharper disable once NonReadonlyMemberInGetHashCode
-    public override int GetHashCode() => Value.GetHashCode();
-
-    public override bool Equals(object obj)
+    public static string QuoteAndEscape(string str)
     {
-        if (!(obj is NbtString str)) return false;
-        return Value == str.Value;
+        var sb = new StringBuilder(" ");
+        var c = '\u0000';
+        
+        for (var i = 0; i < str.Length; i++)
+        {
+            var d = str[i];
+
+            if (d == '\\')
+            {
+                sb.Append('\\');
+            }
+            else if (d is '"' or '\'')
+            {
+                if (c == 0)
+                {
+                    c = d == '"' ? (char)39 : (char)34;
+                }
+
+                if (c == d)
+                {
+                    sb.Append('\\');
+                }
+            }
+
+            sb.Append(d);
+        }
+
+        if (c == 0) c = (char) 34;
+
+        sb[0] = c;
+        sb.Append(c);
+        return sb.ToString();
+    }
+
+    public override void WriteContentTo(NbtWriter writer)
+    {
+        writer.WriteUtf(Value);
+    }
+
+    public override void Accept(ITagVisitor visitor) => visitor.VisitString(this);
+
+    public sealed class StringTypeInfo : TagTypeInfo<NbtString>
+    {
+        internal static StringTypeInfo Instance { get; } = new();
+        
+        public override TagType Type => TagType.String;
+
+        public override string FriendlyName => "TAG_String";
+        
+        private StringTypeInfo() {}
+
+        protected override NbtString LoadValue(NbtReader reader)
+        {
+            var val = reader.ReadUtf();
+            return CreateValue(val);
+        }
     }
 }

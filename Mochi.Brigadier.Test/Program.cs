@@ -6,6 +6,7 @@ using Mochi.Brigadier.Bridge;
 using Mochi.Texts;
 using Mochi.Utils;
 using StringReader = Mochi.Brigadier.StringReader;
+// ReSharper disable All
 
 namespace KaLib.Brigadier.Test;
 
@@ -65,11 +66,17 @@ public static class Program
         // Register some commands
         var rootNode = dispatcher.Register(Literal("execute"));
         dispatcher.Register(Literal("execute")
-            .Then(Literal("run").Redirect(dispatcher.Root))
+            .Then(Literal("run").RedirectTo(dispatcher.Root))
             .Then(Literal("at")
-                .Then(Argument("target", SpaceSeperatedArgument.String()).Fork(rootNode, context => new[] { context.Source })))
+                .Then(
+                    Argument("target", SpaceSeperatedArgument.String()).Fork(rootNode, context => new[] { context.Source })
+                )
+            )
             .Then(Literal("as")
-                .Then(Argument("target", SpaceSeperatedArgument.String()).Fork(rootNode, context => new[] { context.Source })))
+                .Then(
+                    Argument("target", SpaceSeperatedArgument.String()).Fork(rootNode, context => new[] { context.Source })
+                    )
+            )
         );
         
         dispatcher.Register(Literal("foo")
@@ -120,10 +127,10 @@ public static class Program
                     (input, index) => BrigadierTerminal.AutoComplete(input, index, dispatcher, source),
                     (input, suggestion, index) => BrigadierTerminal.Render(input, suggestion, index, dispatcher, source));
 
-                var text = LiteralText.Of("Console issued: ")
-                    .AddExtra(LiteralText.Of(line).SetColor(TextColor.Aqua));
+                var text = Component.Literal("Console issued: ")
+                    .AddExtra(Component.Literal(line).SetColor(TextColor.Aqua));
                 Logger.Info(text);
-                dispatcher.Execute((string)line, new CommandSource());
+                dispatcher.Execute(line, new CommandSource());
             }
             catch (Exception ex)
             {

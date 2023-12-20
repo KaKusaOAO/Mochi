@@ -2,4 +2,4 @@
 
 namespace Mochi.Brigadier;
 
-public delegate TS SingleRedirectModifier<TS>(CommandContext<TS> context);
+public delegate T SingleRedirectModifier<T>(CommandContext<T> context);

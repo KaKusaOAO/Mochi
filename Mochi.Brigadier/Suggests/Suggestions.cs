@@ -34,29 +34,17 @@ public class Suggestions
         return _suggestions.Count == 0;
     }
 
-    public override bool Equals(object o)
+    public override bool Equals(object? o)
     {
-        if (this == o)
-        {
-            return true;
-        }
-
-        if (!(o is Suggestions that))
-        {
-            return false;
-        }
-
+        if (this == o) return true;
+        if (o is not Suggestions that) return false;
         return _range == that._range &&
                _suggestions == that._suggestions;
     }
 
     public override int GetHashCode()
     {
-#if NET6_0_OR_GREATER
-            return HashCode.Combine(_range, _suggestions);
-#else
-        return _range.GetHashCode() * 31 + _suggestions.GetHashCode();
-#endif
+        return HashCode.Combine(_range, _suggestions);
     }
 
     public override string ToString()
@@ -75,15 +63,8 @@ public class Suggestions
 
     public static Suggestions Merge(string command, ICollection<Suggestions> input)
     {
-        if (input.Count == 0)
-        {
-            return _internalEmpty;
-        }
-
-        if (input.Count == 1)
-        {
-            return input.First();
-        }
+        if (input.Count == 0) return _internalEmpty;
+        if (input.Count == 1) return input.First();
 
         var texts = new HashSet<Suggestion>();
         foreach (var suggestions in input)

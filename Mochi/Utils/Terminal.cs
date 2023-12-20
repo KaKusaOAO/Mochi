@@ -46,7 +46,7 @@ public static class Terminal
     private static int _historyIndex = -1;
     private static bool _browsingHistory;
     private static int _inputIndex;
-    private static IText _currentPrompt;
+    private static IComponent _currentPrompt;
     private static InputBufferRendererDelegate _inputRenderer;
 
     private static readonly List<string> _suggestions = new();
@@ -76,7 +76,7 @@ public static class Terminal
         (_stdoutCursorX, _stdoutCursorY) = (Console.CursorLeft, Console.CursorTop);
     }
 
-    public static void WriteStdOut(IText text) => WriteStdOut(text.ToAnsi());
+    public static void WriteStdOut(IComponent text) => WriteStdOut(text.ToAnsi());
 
     public static void WriteLineStdOut(string text)
     {
@@ -95,7 +95,7 @@ public static class Terminal
         DrawPromptLine(inputBufferRenderer: _inputRenderer);
     }
 
-    public static void WriteLineStdOut(IText text) => WriteLineStdOut(text.ToAnsi());
+    public static void WriteLineStdOut(IComponent text) => WriteLineStdOut(text.ToAnsi());
     
     public static void Write(string text)
     {
@@ -104,7 +104,7 @@ public static class Terminal
         _writeLock.Release();
     }
 
-    public static void Write(IText text) => Write(text.ToAnsi());
+    public static void Write(IComponent text) => Write(text.ToAnsi());
     
     public static void WriteLine(string text)
     {
@@ -115,7 +115,7 @@ public static class Terminal
 
     public static string CurrentInput => string.Join("", _inputBuffer);
 
-    public static void WriteLine(IText text) => WriteLine(text.ToAnsi());
+    public static void WriteLine(IComponent text) => WriteLine(text.ToAnsi());
 
     public static void ClearLine()
     {
@@ -198,7 +198,7 @@ public static class Terminal
     }
 
     public static string ReadLine(string prompt, AutoCompleterDelegate autoCompleter = null, InputBufferRendererDelegate inputBufferRenderer = null) =>
-        ReadLine(LiteralText.Of(prompt), autoCompleter, inputBufferRenderer);
+        ReadLine(Component.Literal(prompt), autoCompleter, inputBufferRenderer);
 
     private static void UpdateSuggestions(AutoCompleterDelegate autoCompleter,
         InputBufferRendererDelegate inputBufferRenderer = null)
@@ -215,7 +215,7 @@ public static class Terminal
         });
     }
     
-    public static string ReadLine(IText prompt = null, AutoCompleterDelegate autoCompleter = null, InputBufferRendererDelegate inputBufferRenderer = null)
+    public static string ReadLine(IComponent prompt = null, AutoCompleterDelegate autoCompleter = null, InputBufferRendererDelegate inputBufferRenderer = null)
     {
         return Common.AcquireSemaphore(_readLineLock, () =>
         {

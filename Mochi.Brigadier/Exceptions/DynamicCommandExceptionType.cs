@@ -11,12 +11,12 @@ public class DynamicCommandExceptionType : ICommandExceptionType
         _function = function;
     }
 
-    public CommandSyntaxException Create(object arg, Exception inner = null)
+    public CommandSyntaxException Create(object arg, Exception? inner = null)
     {
         return new CommandSyntaxException(this, _function(arg), inner);
     }
 
-    public CommandSyntaxException CreateWithContext(IMutableStringReader reader, object arg, Exception inner = null)
+    public CommandSyntaxException CreateWithContext(IMutableStringReader reader, object arg, Exception? inner = null)
     {
         return new CommandSyntaxException(this, _function(arg), reader.GetString(), reader.Cursor, inner);
     }

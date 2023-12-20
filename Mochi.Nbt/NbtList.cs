@@ -1,104 +1,197 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Mochi.Nbt.Serializations;
 
 namespace Mochi.Nbt;
 
-public class NbtList : NbtTag, IList<NbtTag>
+public class NbtList : NbtTag, INbtCollection<NbtTag>
 {
-    public NbtList() : base(TagType.List)
-    {
-    }
+    private readonly List<NbtTag> _list = new();
+    
+    public override TagTypeInfo TypeInfo => TagTypeInfo.List;
 
-    public NbtList(TagType type) : this() => ContentType = type;
+    public TagTypeInfo ElementTypeInfo { get; private set; }
 
-    public NbtList(TagType type, List<NbtTag> list) : this()
-    {
-        ContentType = type;
-        children = list;
-    }
+    public int Count => _list.Count;
 
-    public NbtList(List<NbtTag> list) : this()
-    {
-        if (list.Any())
-        {
-            ContentType = list.First().Type;
-        }
-
-        children = list;
-    }
-
-    public TagType ContentType { get; set; }
-
-    public int Count => children.Count;
-
-    public bool IsReadOnly => false;
-
+    bool ICollection<NbtTag>.IsReadOnly => false;
+    
     public NbtTag this[int index]
     {
-        get => children[index];
-        set => children[index] = value;
+        get => _list[index];
+        set
+        {
+            if (!SetTag(index, value))
+                throw new InvalidOperationException(
+                    $"Trying to insert tag of type {value.Type} to list of {ElementTypeInfo.Type}");
+        }
+    }
+    
+    public NbtList(IEnumerable<NbtTag> list, TagType type)
+    {
+        ElementTypeInfo = TagTypeInfo.GetTagType(type);
+        _list.AddRange(list);
+    }
+    
+    public NbtList() : this(Enumerable.Empty<NbtTag>(), TagType.End) {}
+
+    public override void WriteContentTo(NbtWriter writer)
+    {
+        var list = _list.ToArray();
+        
+        if (!list.Any())
+        {
+            writer.WriteTagType(TagType.End);
+            writer.WriteInt32(0);
+            return;
+        }
+
+        if (list.Select(t => t.Type).Distinct().Count() > 1)
+            throw new Exception("NBT tags in the list has different types");
+
+        var type = list.First().Type;
+        if (type != ElementTypeInfo.Type)
+            throw new Exception("Saved element type is not equal to the actual type of the items in the list");
+        
+        writer.WriteTagType(type);
+        writer.WriteInt32(list.Length);
+
+        foreach (var tag in _list)
+        {
+            tag.WriteContentTo(writer);
+        }
     }
 
-    public int IndexOf(NbtTag item) => children.IndexOf(item);
+    public IEnumerator<NbtTag> GetEnumerator() => _list.GetEnumerator();
 
-    public void Insert(int index, NbtTag item)
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    private void UpdateTypeAfterRemove()
     {
-        children.Insert(index, item);
+        if (_list.Any()) return;
+        ElementTypeInfo = TagTypeInfo.End;
     }
 
-    public void RemoveAt(int index)
+    private bool UpdateType(NbtTag tag)
     {
-        children.RemoveAt(index);
+        if (tag.Type == TagType.End)
+        {
+            // Attempting to add an end tag
+            return false;
+        }
+
+        if (ElementTypeInfo.Type == TagType.End)
+        {
+            ElementTypeInfo = tag.TypeInfo;
+            return true;
+        }
+
+        return tag.Type == ElementTypeInfo.Type;
+    }
+
+    public bool SetTag(int index, NbtTag tag)
+    {
+        if (!UpdateType(tag)) return false;
+
+        _list[index] = tag;
+        return true;
+    }
+
+    public bool AddTag(NbtTag tag)
+    {
+        if (!UpdateType(tag)) return false;
+        
+        _list.Add(tag);
+        return true;
+    }
+
+    public bool InsertTag(int index, NbtTag tag)
+    {
+        if (!UpdateType(tag)) return false;
+        
+        _list.Insert(index, tag);
+        return true;
     }
 
     public void Add(NbtTag item)
     {
-        children.Add(item);
+        if (!AddTag(item))
+            throw new InvalidOperationException(
+                $"Trying to add tag of type {item.Type} to list of {ElementTypeInfo.Type}");
     }
 
     public void Clear()
     {
-        children.Clear();
+        _list.Clear();
+        UpdateTypeAfterRemove();
     }
 
-    public bool Contains(NbtTag item) => children.Contains(item);
+    public bool Contains(NbtTag item) => _list.Contains(item);
 
-    public void CopyTo(NbtTag[] array, int arrayIndex)
+    void ICollection<NbtTag>.CopyTo(NbtTag[] array, int arrayIndex) => 
+        ((ICollection<NbtTag>) _list).CopyTo(array, arrayIndex);
+
+    public bool Remove(NbtTag item)
     {
-        children.CopyTo(array, arrayIndex);
+        if (!_list.Remove(item)) return false;
+        
+        UpdateTypeAfterRemove();
+        return true;
     }
 
-    public bool Remove(NbtTag item) => children.Remove(item);
+    public int IndexOf(NbtTag item) => _list.IndexOf(item);
 
-    public IEnumerator<NbtTag> GetEnumerator() => children.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => children.GetEnumerator();
-
-    private List<NbtTag> children = new();
-
-    public static NbtList Deserialize(byte[] buffer, ref int index, bool named = false)
+    public void Insert(int index, NbtTag item)
     {
-        var result = new NbtList();
-        InternalDeserializeReadTagName(buffer, ref index, named, TagType.List, result);
-        var type = (TagType)NbtIO.ReadByte(buffer, ref index);
-        result.ContentType = type;
-        var count = NbtIO.ReadInt(buffer, ref index);
-        for (var i = 0; i < count; i++) result.Add(Deserialize(buffer, ref index, false, type));
-        return result;
+        if (!InsertTag(index, item))
+            throw new InvalidOperationException(
+                $"Trying to insert tag of type {item.Type} to list of {ElementTypeInfo.Type}");
     }
 
-    public override string ToString()
+    public void RemoveAt(int index)
     {
-        var name = Name == null ? "None" : $"'{Name}'";
-        var result = $"TAG_List({name}): {Count} entries\n{{";
+        _list.RemoveAt(index);
+        UpdateTypeAfterRemove();
+    }
 
-        foreach (var tag in children)
+    public override void Accept(ITagVisitor visitor) => visitor.VisitList(this);
+
+    public sealed class ListTypeInfo : TagTypeInfo<NbtList>
+    {
+        internal static ListTypeInfo Instance { get; } = new();
+        
+        public override TagType Type => TagType.List;
+
+        public override string FriendlyName => "TAG_List";
+
+        private ListTypeInfo() {}
+
+        protected override NbtList LoadValue(NbtReader reader)
         {
-            var lines = tag.ToString().Split('\n');
-            foreach (var line in lines) result += "\n  " + line.ToString();
-        }
+            reader.PushDepth();
 
-        return result + "\n}";
+            try
+            {
+                var type = reader.ReadTagType();
+                var count = reader.ReadInt32();
+
+                if (type == TagType.End && count > 0)
+                    throw new MalformedNbtException("Missing type on NbtList");
+
+                var list = new List<NbtTag>();
+                for (var i = 0; i < count; i++)
+                {
+                    list.Add(GetTagType(type).Load(reader));
+                }
+
+                return new NbtList(list, type);
+            }
+            finally
+            {
+                reader.PopDepth();
+            }
+        }
     }
 }

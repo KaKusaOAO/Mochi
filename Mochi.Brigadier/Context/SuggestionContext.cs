@@ -2,12 +2,12 @@
 
 namespace Mochi.Brigadier.Context;
 
-public class SuggestionContext<TS>
+public class SuggestionContext<T>
 {
-    public CommandNode<TS> Parent { get; }
+    public CommandNode<T> Parent { get; }
     public int StartPos { get; }
 
-    public SuggestionContext(CommandNode<TS> parent, int startPos)
+    public SuggestionContext(CommandNode<T> parent, int startPos)
     {
         Parent = parent;
         StartPos = startPos;

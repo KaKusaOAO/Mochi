@@ -6,12 +6,21 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
-    <ItemGroup>
       <ProjectReference Include="..\Mochi.MetalFX\Mochi.MetalFX.csproj" />
       <ProjectReference Include="..\Mochi.Metal\Mochi.Metal.csproj" />
       <ProjectReference Include="..\Mochi.ObjC\Mochi.ObjC.csproj" />
+    <ItemGroup>
+<<<<<<< HEAD
+      <ProjectReference Include="..\Mochi.MetalFX\Mochi.MetalFX.csproj" />
+      <ProjectReference Include="..\Mochi.Metal\Mochi.Metal.csproj" />
+      <ProjectReference Include="..\Mochi.ObjC\Mochi.ObjC.csproj" />
+=======
+      <ProjectReference Include="..\Mochi.Nbt\Mochi.Nbt.csproj" />
+      <ProjectReference Include="..\Mochi.StreamKit.Twitch\Mochi.StreamKit.Twitch.csproj" />
+>>>>>>> origin/master
       <ProjectReference Include="..\Mochi\Mochi.csproj" />
     </ItemGroup>
 

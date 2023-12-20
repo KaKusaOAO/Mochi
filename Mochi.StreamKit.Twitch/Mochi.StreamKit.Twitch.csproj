@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Mochi.Irc\Mochi.Irc.csproj" />
+      <ProjectReference Include="..\Mochi.StreamKit\Mochi.StreamKit.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="IO\" />
+    </ItemGroup>
+
+</Project>

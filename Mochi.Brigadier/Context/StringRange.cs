@@ -35,13 +35,9 @@ public struct StringRange
 
     public int Length => _end - _start;
 
-    public override bool Equals(object o)
+    public override bool Equals(object? o)
     {
-        if (o is not StringRange that)
-        {
-            return false;
-        }
-
+        if (o is not StringRange that) return false;
         return _start == that._start && _end == that._end;
     }
 

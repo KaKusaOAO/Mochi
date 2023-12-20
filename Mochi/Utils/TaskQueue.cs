@@ -9,7 +9,7 @@ public class TaskQueue
 {
     private ConcurrentQueue<Func<Task>> Queue { get; } = new();
 
-    private SemaphoreSlim _loopLock = new(1, 1);
+    private readonly SemaphoreSlim _loopLock = new(1, 1);
 
     public int Count => Queue.Count;
         

@@ -1,102 +1,53 @@
-﻿using System.Text.Json.Nodes;
+﻿using System.Linq;
+using System.Text.Json.Nodes;
 
 namespace Mochi.Texts;
 
 public static class TextExtension
 {
-    public static T SetColor<T>(this T text, TextColor? color) where T : IMutableText
+    public static T SetColor<T>(this T text, TextColor? color) where T : IMutableComponent
     {
-        if (text is ITextGenericHelper<T> g) 
-            return g.SetColor(color);
-        
-        text.Color = color;
+        if (text.Style is IColoredStyle colored)
+        {
+            text.Style = colored.WithColor(color);
+        }
+
         return text;
     }
     
-    public static T AddExtra<T>(this T text, params IText[] texts) where T : IText
+    public static T AddExtra<T>(this T text, params IComponent[] texts) where T : IComponent
     {
-        if (text is ITextGenericHelper<T> g) 
-            return g.AddExtra(texts);
-        
         foreach (var t in texts)
         {
-            text.Extra.Add(t);
-            t.Parent = text;
+            text.Siblings.Add(t);
         }
         return text;
     }
     
-    public static T SetBold<T>(this T text, bool val) where T : IMutableText
+    public static T AddWith<T>(this T text, params IComponent[] texts) where T : IComponent
     {
-        text.Bold = val;
+        var content = text.Content;
+        if (content is not TranslateContent t) return text;
+        
+        foreach (var w in texts)
+        {
+            t.AddWith(w);
+        }
         return text;
     }
     
-    public static T SetItalic<T>(this T text, bool val) where T : IMutableText
-    {
-        text.Italic = val;
-        return text;
-    }
-    
-    public static T SetUnderline<T>(this T text, bool val) where T : IMutableText
-    {
-        text.Underline = val;
-        return text;
-    }
-    
-    public static T SetObfuscated<T>(this T text, bool val) where T : IMutableText
-    {
-        text.Obfuscated = val;
-        return text;
-    }
-    
-    public static T SetStrikethrough<T>(this T text, bool val) where T : IMutableText
-    {
-        text.Strikethrough = val;
-        return text;
-    }
-    
-    public static T SetReset<T>(this T text, bool val) where T : IMutableText
-    {
-        text.Reset = val;
-        return text;
-    }
-    
-    public static JsonObject ToJson(this IText text)
+    public static JsonObject ToJson(this IComponent text)
     {
         var obj = new JsonObject();
         var extras = new JsonArray();
-        foreach (var e in text.Extra)
+        foreach (var e in text.Siblings)
         {
             extras.Add(e.ToJson());
         }
 
-        obj["extra"] = extras;
-
-        if (text.Color != null)
-        {
-            obj["color"] = "#" + text.Color.Color.RGB.ToString("x6");
-        }
-
-        switch (text)
-        {
-            case LiteralText literal:
-                obj["text"] = literal.Text;
-                break;
-            case TranslateText translate:
-            {
-                var withs = new JsonArray();
-                foreach (var w in translate.With)
-                {
-                    withs.Add(w.ToJson());
-                }
-
-                obj["translate"] = translate.Translate;
-                obj["with"] = withs;
-                break;
-            }
-        }
-
+        text.Content.InsertPayload(obj);
+        text.Style.SerializeInto(obj);
+        if (extras.Any()) obj["extra"] = extras;
         return obj;
     }
 }

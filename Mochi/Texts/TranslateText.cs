@@ -1,104 +1,112 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
 namespace Mochi.Texts;
 
-public class TranslateText : Text<TranslateText>
+public class TranslateContent : IContent<TranslateContent>
 {
+    public IContentType<TranslateContent> Type => TextContentTypes.Translate;
     public string Translate { get; set; }
-    public ICollection<IText> With { get; set; } = new List<IText>();
+    public ICollection<IComponent> With { get; set; } = new List<IComponent>();
 
-    public TranslateText(string translate, params IText[] texts)
+    public TranslateContent(string translate, params IComponent[] texts)
     {
         Translate = translate;
-        foreach (IText t in texts)
+        foreach (var t in texts)
         {
             With.Add(t);
-            t.Parent = this;
         }
     }
 
-    public TranslateText AddWith(params IText[] texts)
+    public TranslateContent AddWith(IComponent text)
     {
-        foreach (IText text in texts)
-        {
-            With.Add(text);
-            text.Parent = this;
-        }
-
+        With.Add(text);
         return this;
     }
+    
+    public TranslateContent Clone() => new(Translate, With.Select(t => (IComponent) t.Clone()).ToArray());
 
-    public static TranslateText Of(string format, params IText[] texts)
-    {
-        return new TranslateText(format, texts);
-    }
+    private List<IComponent>? _decomposed;
 
-    protected override TranslateText ResolveThis()
+    private List<IComponent> Decompose(IStyle style)
     {
-        return this;
-    }
-
-    public override TranslateText Clone()
-    {
-        var result = Of(Translate, With.ToArray());
-        return CloneToTarget(result);
-    }
-
-    private string Format(string fmt, params object[] obj)
-    {
-        var offset = -1;
+        var offset = 0;
         var counter = 0;
+        var fmt = Translate;
         var matches = new Regex("%(?:(?:(\\d*?)\\$)?)s").Matches(fmt);
+        var parameters = With.ToList();
+        
+        var result = new List<IComponent>();
         foreach (Match m in matches)
         {
             var c = m.Groups[1].Value;
-            if (c.Length == 0)
-            {
-                c = counter++ + "";
-            }
+            var ci = c.Length == 0 ? counter++ : int.Parse(c) - 1;
 
-            offset += c.Length + 2 - m.Value.Length;
-            // fmt = fmt[..(m.Index + offset)] + "{" + c + "}" + fmt[(m.Index + offset + m.Value.Length)..];
-            // Need to use legacy syntax to support older versions of .NET
-            fmt = fmt.Substring(0, m.Index + offset) + $"{{{c}}}" +
-                  fmt.Substring(m.Index + offset + m.Value.Length);
+            var front = fmt[offset..m.Index];
+            if (front.Length > 0) 
+                result.Add(new GenericMutableComponent(new LiteralContent(front), style.Clear()));
+
+            result.Add(ci >= parameters.Count && ci < 0
+                ? new GenericMutableComponent(new LiteralContent(m.Value), style.Clear())
+                : parameters[ci].Clone());
+
+            offset = m.Index + m.Length;
         }
-
-        var o = obj.ToList();
-        for (var i = 0; i < counter; i++) o.Add("");
-        return string.Format(fmt, o.ToArray());
+        
+        result.Add(new GenericMutableComponent(new LiteralContent(fmt[offset..]), style.Clear()));
+        return result;
     }
 
-    public override string ToAnsi()
+    public void Visit(IContentVisitor visitor, IStyle style)
     {
-        var extra = base.ToAnsi();
-        var color = (Color ?? ParentColor).GetAnsiCode();
-        var withAscii = With.Select(text => text.ToAnsi() + color).ToArray();
-        return color + Format(Translate, withAscii) + extra;
-    }
-
-    public override string ToPlainText()
-    {
-        string extra = base.ToPlainText();
-
-        string result = "";
-        for (int i = 0; i < Translate.Length; i++)
+        _decomposed ??= Decompose(style);
+        foreach (var component in _decomposed)
         {
-            string b = Translate;
-            if (b[i] == TextColor.ColorChar && TextColor.McCodes().ToList().IndexOf(b[i + 1]) > -1)
-            {
-                i += 2;
-            }
-            else
-            {
-                result += b[i];
-            }
+            component.Visit(visitor, style);
+        }
+    }
+    
+    public void VisitLiteral(IContentVisitor visitor, IStyle style)
+    {
+        _decomposed ??= Decompose(style);
+        foreach (var component in _decomposed)
+        {
+            component.VisitLiteral(visitor, style);
+        }
+    }
+}
+
+public class TranslateContentType : IContentType<TranslateContent>
+{
+    public TranslateContent CreateContent(JsonObject payload)
+    {
+        var key = payload["translate"]!.GetValue<string>();
+        var with = payload.TryGetPropertyValue("with", out var withNode) ? withNode!.AsArray() : new JsonArray();
+        return new TranslateContent(key, with.Select(Component.FromJson).ToArray());
+    }
+
+    public void InsertPayload(JsonObject target, TranslateContent content)
+    {
+        target["translate"] = content.Translate;
+        if (!content.With.Any()) return;
+        
+        var arr = new JsonArray();
+        foreach (var text in content.With.Select(t => t.ToJson()))
+        {
+            arr.Add(text);
         }
 
-        string[] withAscii = With.Select(text => { return text.ToPlainText(); }).ToArray();
+        target["with"] = arr;
+    }
+}
 
-        return Format(result, withAscii) + extra;
+public static class TranslateText
+{
+    public static MutableComponent Of(string format, params IComponent[] texts)
+    {
+        var content = new TranslateContent(format, texts);
+        return new MutableComponent(content);
     }
 }

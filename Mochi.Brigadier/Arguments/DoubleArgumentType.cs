@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Mochi.Brigadier.Context;
 using Mochi.Brigadier.Exceptions;
 
 namespace Mochi.Brigadier.Arguments;
 
-public class DoubleArgumentType : IArgumentType<double>, IArgumentTypeWithExamples
+public class DoubleArgumentType : IArgumentType<double>
 {
     private static readonly IEnumerable<string> _examples = new List<string>
         { "0", "1.2", ".5", "-1", "-.5", "-1234.56" };
@@ -58,10 +59,10 @@ public class DoubleArgumentType : IArgumentType<double>, IArgumentTypeWithExampl
         return result;
     }
 
-    public override bool Equals(object o)
+    public override bool Equals(object? o)
     {
         if (this == o) return true;
-        if (!(o is DoubleArgumentType that)) return false;
+        if (o is not DoubleArgumentType that) return false;
         // ReSharper disable CompareOfFloatsByEqualityOperator
         return _maximum == that._maximum && _minimum == that._minimum;
     }
@@ -83,8 +84,5 @@ public class DoubleArgumentType : IArgumentType<double>, IArgumentTypeWithExampl
         return "double(" + _minimum + ", " + _maximum + ")";
     }
 
-    public IEnumerable<string> GetExamples()
-    {
-        return _examples;
-    }
+    public ICollection<string> Examples => _examples.ToList();
 }

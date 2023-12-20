@@ -3,4 +3,4 @@ using Mochi.Brigadier.Context;
 
 namespace Mochi.Brigadier;
 
-public delegate IEnumerable<TS> RedirectModifier<TS>(CommandContext<TS> context);
+public delegate IEnumerable<T> RedirectModifier<T>(CommandContext<T> context);

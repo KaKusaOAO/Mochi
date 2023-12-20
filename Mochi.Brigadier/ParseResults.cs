@@ -11,10 +11,10 @@ public class ParseResults<TS>
 
     public IMutableStringReader Reader { get; }
 
-    public Dictionary<CommandNode<TS>, CommandSyntaxException> Exceptions { get; }
+    public Dictionary<ICommandNode<TS>, CommandSyntaxException> Exceptions { get; }
     
     public ParseResults(CommandContextBuilder<TS> context, IMutableStringReader reader,
-        Dictionary<CommandNode<TS>, CommandSyntaxException> exceptions)
+        Dictionary<ICommandNode<TS>, CommandSyntaxException> exceptions)
     {
         Context = context;
         Reader = reader;
@@ -22,7 +22,7 @@ public class ParseResults<TS>
     }
 
     public ParseResults(CommandContextBuilder<TS> context) : this(context, new StringReader(""),
-        new Dictionary<CommandNode<TS>, CommandSyntaxException>())
+        new Dictionary<ICommandNode<TS>, CommandSyntaxException>())
     {
     }
 }

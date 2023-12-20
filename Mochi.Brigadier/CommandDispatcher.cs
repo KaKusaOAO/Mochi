@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,20 +14,22 @@ namespace Mochi.Brigadier;
 /// <summary>
 /// The core command dispatcher, for registering, parsing, and executing commands.
 /// </summary>
-/// <typeparam name="TS">a custom "source" type, such as a user or originator of a command</typeparam>
-[SuppressMessage("ReSharper", "PossibleUnintendedReferenceComparison")]
-public class CommandDispatcher<TS>
+/// <typeparam name="T">a custom "source" type, such as a user or originator of a command</typeparam>
+// ReSharper disable PossibleUnintendedReferenceComparison
+public class CommandDispatcher<T>
 {
     /// <summary>
     /// The string required to separate individual arguments in an input string
     /// </summary>
     /// <seealso cref="ArgumentSeparatorChar"/>
+    // ReSharper disable once MemberCanBePrivate.Global
     public const string ArgumentSeparator = " ";
 
     /// <summary>
     /// The char required to separate individual arguments in an input string
     /// </summary>
     /// <seealso cref="ArgumentSeparator"/>
+    // ReSharper disable once MemberCanBePrivate.Global
     public const char ArgumentSeparatorChar = ' ';
 
     private const string UsageOptionalOpen = "[";
@@ -39,16 +38,16 @@ public class CommandDispatcher<TS>
     private const string UsageRequiredClose = ")";
     private const string UsageOr = "|";
 
-    private readonly RootCommandNode<TS> _root;
+    private readonly RootCommandNode<T> _root;
 
     // private static readonly Predicate<CommandNode<TS>?> HasCommand = input => input != null && (input.GetCommand() != null || input.Children.Any(x => HasCommand(x)));
-    private ResultConsumer<TS> _consumer = (a, b, c) => { };
+    private ResultConsumer<T> _consumer = (_, _, _) => { };
 
     /// <summary>
     /// Create a new <see cref="CommandDispatcher{TS}"/> with the specified root node.
     /// </summary>
     /// <param name="root">the existing <see cref="RootCommandNode{TS}"/> to use as the basis for this tree</param>
-    public CommandDispatcher(RootCommandNode<TS> root)
+    public CommandDispatcher(RootCommandNode<T> root)
     {
         _root = root;
     }
@@ -56,7 +55,7 @@ public class CommandDispatcher<TS>
     /// <summary>
     /// Create a new <see cref="CommandDispatcher{TS}"/> with an empty command tree.
     /// </summary>
-    public CommandDispatcher() : this(new RootCommandNode<TS>())
+    public CommandDispatcher() : this(new RootCommandNode<T>())
     {
     }
 
@@ -66,9 +65,9 @@ public class CommandDispatcher<TS>
     /// </summary>
     /// <param name="command">a literal argument builder to add to this command tree</param>
     /// <returns>the node added to this tree</returns>
-    public LiteralCommandNode<TS> Register(LiteralArgumentBuilder<TS> command)
+    public LiteralCommandNode<T> Register(LiteralArgumentBuilder<T> command)
     {
-        var build = (LiteralCommandNode<TS>)command.Build();
+        var build = (LiteralCommandNode<T>)command.Build();
         _root.AddChild(build);
         return build;
     }
@@ -77,14 +76,14 @@ public class CommandDispatcher<TS>
     /// Sets a callback to be informed of the result of every command.
     /// </summary>
     /// <param name="consumer">the new result consumer to be called</param>
-    public void SetConsumer(ResultConsumer<TS> consumer)
+    public void SetConsumer(ResultConsumer<T> consumer)
     {
         _consumer = consumer;
     }
 
     /// <summary>
     /// Parses and executes a given command.
-    /// <para>This is a shortcut to first <see cref="Parse(StringReader,TS)"/> and then <see cref="Execute(ParseResults{TS})"/></para>
+    /// <para>This is a shortcut to first <see cref="Parse(StringReader,T)"/> and then <see cref="Execute(ParseResults{T})"/></para>
     /// <para>It is recommended to parse and execute as separate steps, as parsing is often the most expensive step, and easiest to cache.</para>
     /// <para>If this command returns a value, then it successfully executed something. If it could not parse the command, or the execution was a failure,
     /// then an exception will be thrown. Most exceptions will be of type <see cref="CommandSyntaxException"/>, but it is possible that a <see cref="Exception"/>
@@ -102,18 +101,18 @@ public class CommandDispatcher<TS>
     /// <returns>a numeric result from a "command" that was performed</returns>
     /// <exception cref="CommandSyntaxException">if the command failed to parse or execute</exception>
     /// <exception cref="Exception">if the command failed to execute and was not handled gracefully</exception>
-    /// <seealso cref="Parse(string,TS)"/>
-    /// <seealso cref="Parse(StringReader,TS)"/>
-    /// <seealso cref="Execute(ParseResults{TS})"/>
-    /// <seealso cref="Execute(StringReader,TS)"/>
-    public int Execute(string input, TS source)
+    /// <seealso cref="Parse(string,T)"/>
+    /// <seealso cref="Parse(StringReader,T)"/>
+    /// <seealso cref="Execute(ParseResults{T})"/>
+    /// <seealso cref="Execute(StringReader,T)"/>
+    public int Execute(string input, T source)
     {
         return Execute(new StringReader(input), source);
     }
 
     /// <summary>
     /// Parses and executes a given command asynchronously.
-    /// <para>This is a shortcut to first <see cref="Parse(StringReader,TS)"/> and then <see cref="Execute(ParseResults{TS})"/></para>
+    /// <para>This is a shortcut to first <see cref="Parse(StringReader,T)"/> and then <see cref="Execute(ParseResults{T})"/></para>
     /// <para>It is recommended to parse and execute as separate steps, as parsing is often the most expensive step, and easiest to cache.</para>
     /// <para>If this command returns a value, then it successfully executed something. If it could not parse the command, or the execution was a failure,
     /// then an exception will be thrown. Most exceptions will be of type <see cref="CommandSyntaxException"/>, but it is possible that a <see cref="Exception"/>
@@ -131,18 +130,18 @@ public class CommandDispatcher<TS>
     /// <returns>a numeric result from a "command" that was performed</returns>
     /// <exception cref="CommandSyntaxException">if the command failed to parse or execute</exception>
     /// <exception cref="Exception">if the command failed to execute and was not handled gracefully</exception>
-    /// <seealso cref="Parse(string,TS)"/>
-    /// <seealso cref="Parse(StringReader,TS)"/>
-    /// <seealso cref="Execute(ParseResults{TS})"/>
-    /// <seealso cref="Execute(StringReader,TS)"/>
-    public Task<int> ExecuteAsync(string input, TS source)
+    /// <seealso cref="Parse(string,T)"/>
+    /// <seealso cref="Parse(StringReader,T)"/>
+    /// <seealso cref="Execute(ParseResults{T})"/>
+    /// <seealso cref="Execute(StringReader,T)"/>
+    public Task<int> ExecuteAsync(string input, T source)
     {
         return ExecuteAsync(new StringReader(input), source);
     }
 
     /// <summary>
     /// Parses and executes a given command.
-    /// <para>This is a shortcut to first <see cref="Parse(StringReader,TS)"/> and then <see cref="Execute(ParseResults{TS})"/></para>
+    /// <para>This is a shortcut to first <see cref="Parse(StringReader,T)"/> and then <see cref="Execute(ParseResults{T})"/></para>
     /// <para>It is recommended to parse and execute as separate steps, as parsing is often the most expensive step, and easiest to cache.</para>
     /// <para>If this command returns a value, then it successfully executed something. If it could not parse the command, or the execution was a failure,
     /// then an exception will be thrown. Most exceptions will be of type <see cref="CommandSyntaxException"/>, but it is possible that a <see cref="Exception"/>
@@ -160,11 +159,11 @@ public class CommandDispatcher<TS>
     /// <returns>a numeric result from a "command" that was performed</returns>
     /// <exception cref="CommandSyntaxException">if the command failed to parse or execute</exception>
     /// <exception cref="Exception">if the command failed to execute and was not handled gracefully</exception>
-    /// <seealso cref="Parse(string,TS)"/>
-    /// <seealso cref="Parse(StringReader,TS)"/>
-    /// <seealso cref="Execute(ParseResults{TS})"/>
-    /// <seealso cref="Execute(StringReader,TS)"/>
-    public int Execute(StringReader input, TS source)
+    /// <seealso cref="Parse(string,T)"/>
+    /// <seealso cref="Parse(StringReader,T)"/>
+    /// <seealso cref="Execute(ParseResults{T})"/>
+    /// <seealso cref="Execute(StringReader,T)"/>
+    public int Execute(StringReader input, T source)
     {
         var parse = Parse(input, source);
         return Execute(parse);
@@ -172,7 +171,7 @@ public class CommandDispatcher<TS>
 
     /// <summary>
     /// Parses and executes a given command asynchronously.
-    /// <para>This is a shortcut to first <see cref="Parse(StringReader,TS)"/> and then <see cref="Execute(ParseResults{TS})"/></para>
+    /// <para>This is a shortcut to first <see cref="Parse(StringReader,T)"/> and then <see cref="Execute(ParseResults{T})"/></para>
     /// <para>It is recommended to parse and execute as separate steps, as parsing is often the most expensive step, and easiest to cache.</para>
     /// <para>If this command returns a value, then it successfully executed something. If it could not parse the command, or the execution was a failure,
     /// then an exception will be thrown. Most exceptions will be of type <see cref="CommandSyntaxException"/>, but it is possible that a <see cref="Exception"/>
@@ -190,11 +189,11 @@ public class CommandDispatcher<TS>
     /// <returns>a numeric result from a "command" that was performed</returns>
     /// <exception cref="CommandSyntaxException">if the command failed to parse or execute</exception>
     /// <exception cref="Exception">if the command failed to execute and was not handled gracefully</exception>
-    /// <seealso cref="Parse(string,TS)"/>
-    /// <seealso cref="Parse(StringReader,TS)"/>
-    /// <seealso cref="Execute(ParseResults{TS})"/>
-    /// <seealso cref="Execute(StringReader,TS)"/>
-    public Task<int> ExecuteAsync(StringReader input, TS source)
+    /// <seealso cref="Parse(string,T)"/>
+    /// <seealso cref="Parse(StringReader,T)"/>
+    /// <seealso cref="Execute(ParseResults{T})"/>
+    /// <seealso cref="Execute(StringReader,T)"/>
+    public Task<int> ExecuteAsync(StringReader input, T source)
     {
         var parse = Parse(input, source);
         return ExecuteAsync(parse);
@@ -213,15 +212,15 @@ public class CommandDispatcher<TS>
     /// will be notified of the result and success of the command. You can use that method to gather more meaningful
     /// results than this method will return, especially when a command forks.</para>
     /// </summary>
-    /// <param name="parse">the result of a successful <see cref="Parse(StringReader,TS)"/>></param>
+    /// <param name="parse">the result of a successful <see cref="Parse(StringReader,T)"/>></param>
     /// <returns>a numeric result from a "command" that was performed</returns>
     /// <exception cref="CommandSyntaxException">if the command failed to parse or execute</exception>
     /// <exception cref="Exception">if the command failed to execute and was not handled gracefully</exception>
-    /// <seealso cref="Parse(string,TS)"/>
-    /// <seealso cref="Parse(StringReader,TS)"/>
-    /// <seealso cref="Execute(ParseResults{TS})"/>
-    /// <seealso cref="Execute(StringReader,TS)"/>
-    public int Execute(ParseResults<TS> parse) => ExecuteAsync(parse).GetAwaiter().GetResult();
+    /// <seealso cref="Parse(string,T)"/>
+    /// <seealso cref="Parse(StringReader,T)"/>
+    /// <seealso cref="Execute(ParseResults{T})"/>
+    /// <seealso cref="Execute(StringReader,T)"/>
+    public int Execute(ParseResults<T> parse) => ExecuteAsync(parse).GetAwaiter().GetResult();
 
     /// <summary>
     /// Executes a given pre-parsed command asynchronously.
@@ -236,15 +235,15 @@ public class CommandDispatcher<TS>
     /// will be notified of the result and success of the command. You can use that method to gather more meaningful
     /// results than this method will return, especially when a command forks.</para>
     /// </summary>
-    /// <param name="parse">the result of a successful <see cref="Parse(StringReader,TS)"/>></param>
+    /// <param name="parse">the result of a successful <see cref="Parse(StringReader,T)"/>></param>
     /// <returns>a numeric result from a "command" that was performed</returns>
     /// <exception cref="CommandSyntaxException">if the command failed to parse or execute</exception>
     /// <exception cref="Exception">if the command failed to execute and was not handled gracefully</exception>
-    /// <seealso cref="Parse(string,TS)"/>
-    /// <seealso cref="Parse(StringReader,TS)"/>
-    /// <seealso cref="Execute(ParseResults{TS})"/>
-    /// <seealso cref="Execute(StringReader,TS)"/>
-    public async Task<int> ExecuteAsync(ParseResults<TS> parse)
+    /// <seealso cref="Parse(string,T)"/>
+    /// <seealso cref="Parse(StringReader,T)"/>
+    /// <seealso cref="Execute(ParseResults{T})"/>
+    /// <seealso cref="Execute(StringReader,T)"/>
+    public async Task<int> ExecuteAsync(ParseResults<T> parse)
     {
         if (parse.Reader.CanRead())
         {
@@ -269,8 +268,8 @@ public class CommandDispatcher<TS>
         var foundCommand = false;
         var command = parse.Reader.GetString();
         var original = parse.Context.Build(command);
-        var contexts = new List<CommandContext<TS>> { original };
-        List<CommandContext<TS>> next = null;
+        var contexts = new List<CommandContext<T>> { original };
+        List<CommandContext<T>>? next = null;
 
         while (contexts != null)
         {
@@ -282,7 +281,7 @@ public class CommandDispatcher<TS>
                 if (child != null)
                 {
                     forked |= context.IsForked;
-                    if (child.HasNodes())
+                    if (child.HasNodes)
                     {
                         foundCommand = true;
                         var modifier = context.RedirectModifier;
@@ -290,7 +289,7 @@ public class CommandDispatcher<TS>
                         {
                             if (next == null)
                             {
-                                next = new List<CommandContext<TS>>(1);
+                                next = new List<CommandContext<T>>(1);
                             }
 
                             next.Add(child.CopyFor(context.Source));
@@ -302,7 +301,7 @@ public class CommandDispatcher<TS>
                                 var results = modifier(context).ToList();
                                 if (results.Any())
                                 {
-                                    next ??= new List<CommandContext<TS>>();
+                                    next ??= new List<CommandContext<T>>();
                                     next.AddRange(results.Select(source => child.CopyFor(source)));
                                 }
                             }
@@ -369,10 +368,10 @@ public class CommandDispatcher<TS>
     /// <param name="command">a command string to parse</param>
     /// <param name="source">a custom "source" object, usually representing the originator of this command</param>
     /// <returns>the result of parsing this command</returns>
-    /// <seealso cref="Parse(StringReader,TS)"/>
-    /// <seealso cref="Execute(ParseResults{TS})"/>
-    /// <seealso cref="Execute(string,TS)"/>
-    public ParseResults<TS> Parse(string command, TS source) => Parse(new StringReader(command), source);
+    /// <seealso cref="Parse(StringReader,T)"/>
+    /// <seealso cref="Execute(ParseResults{T})"/>
+    /// <seealso cref="Execute(string,T)"/>
+    public ParseResults<T> Parse(string command, T source) => Parse(new StringReader(command), source);
 
     /// <summary>
     /// Parses a given command.
@@ -387,27 +386,27 @@ public class CommandDispatcher<TS>
     /// You may inspect <see cref="ParseResults{TS}.Exceptions"/> if you know the parse failed, as it will explain why it could
     /// not find any valid commands. It may contain multiple exceptions, one for each "potential node" that it could have visited,
     /// explaining why it did not go down that node.</para>
-    /// <para>When you eventually call <see cref="Execute(ParseResults{TS})"/> with the result of this method, the above error checking
+    /// <para>When you eventually call <see cref="Execute(ParseResults{T})"/> with the result of this method, the above error checking
     /// will occur. You only need to inspect it yourself if you wish to handle that yourself.</para>
     /// </summary>
     /// <param name="command">a command string to parse</param>
     /// <param name="source">a custom "source" object, usually representing the originator of this command</param>
     /// <returns>the result of parsing this command</returns>
-    /// <seealso cref="Parse(string,TS)"/>
-    /// <seealso cref="Execute(ParseResults{TS})"/>
-    /// <seealso cref="Execute(string,TS)"/>
-    public ParseResults<TS> Parse(StringReader command, TS source)
+    /// <seealso cref="Parse(string,T)"/>
+    /// <seealso cref="Execute(ParseResults{T})"/>
+    /// <seealso cref="Execute(string,T)"/>
+    public ParseResults<T> Parse(StringReader command, T source)
     {
-        var context = new CommandContextBuilder<TS>(this, source, _root, command.Cursor);
+        var context = new CommandContextBuilder<T>(this, source, _root, command.Cursor);
         return ParseNodes(_root, command, context);
     }
 
-    private ParseResults<TS> ParseNodes(CommandNode<TS> node, StringReader originalReader,
-        CommandContextBuilder<TS> contextSoFar)
+    private ParseResults<T> ParseNodes(ICommandNode<T> node, StringReader originalReader,
+        CommandContextBuilder<T> contextSoFar)
     {
         var source = contextSoFar.Source;
-        var errors = new Dictionary<CommandNode<TS>, CommandSyntaxException>();
-        var potentials = new List<ParseResults<TS>>();
+        var errors = new Dictionary<ICommandNode<T>, CommandSyntaxException>();
+        var potentials = new List<ParseResults<T>>();
         var cursor = originalReader.Cursor;
 
         foreach (var child in node.GetRelevantNodes(originalReader))
@@ -450,10 +449,10 @@ public class CommandDispatcher<TS>
                 reader.Skip();
                 if (child.Redirect != null)
                 {
-                    var childContext = new CommandContextBuilder<TS>(this, source, child.Redirect, reader.Cursor);
+                    var childContext = new CommandContextBuilder<T>(this, source, child.Redirect, reader.Cursor);
                     var parse = ParseNodes(child.Redirect, reader, childContext);
                     context.WithChild(parse.Context);
-                    return new ParseResults<TS>(context, parse.Reader, parse.Exceptions);
+                    return new ParseResults<T>(context, parse.Reader, parse.Exceptions);
                 }
                 else
                 {
@@ -463,12 +462,12 @@ public class CommandDispatcher<TS>
             }
             else
             {
-                potentials.Add(new ParseResults<TS>(context, reader,
-                    new Dictionary<CommandNode<TS>, CommandSyntaxException>()));
+                potentials.Add(new ParseResults<T>(context, reader,
+                    new Dictionary<ICommandNode<T>, CommandSyntaxException>()));
             }
         }
 
-        if (!potentials.Any()) return new ParseResults<TS>(contextSoFar, originalReader, errors);
+        if (!potentials.Any()) return new ParseResults<T>(contextSoFar, originalReader, errors);
         
         if (potentials.Count > 1)
         {
@@ -489,7 +488,7 @@ public class CommandDispatcher<TS>
     /// <summary>
     /// Gets all possible executable commands following the given node.
     ///
-    /// <para>You may use <see cref="GetRoot"/> as a target to get all usage data for the entire command tree.</para>
+    /// <para>You may use <see cref="Root"/> as a target to get all usage data for the entire command tree.</para>
     ///
     /// <para>The returned syntax will be in "simple" form: <c>&lt;param&gt;</c> and <c>literal</c>. "Optional" nodes will be
     /// listed as multiple entries: the parent node, and the child nodes.
@@ -505,7 +504,7 @@ public class CommandDispatcher<TS>
     /// <param name="source">a custom "source" object, usually representing the originator of this command</param>
     /// <param name="restricted">if true, commands that the <paramref name="source"/> cannot access will not be mentioned</param>
     /// <returns>array of full usage strings under the target node</returns>
-    public string[] GetAllUsage(CommandNode<TS> node, TS source, bool restricted)
+    public string[] GetAllUsage(CommandNode<T> node, T source, bool restricted)
     {
         var result = new List<string>();
         GetAllUsage(node, source, result, "", restricted);
@@ -513,7 +512,7 @@ public class CommandDispatcher<TS>
     }
 
 #pragma warning disable CS8602
-    private void GetAllUsage(CommandNode<TS> node, TS source, List<string> result, string prefix, bool restricted)
+    private void GetAllUsage(CommandNode<T> node, T source, List<string> result, string prefix, bool restricted)
     {
         if (restricted && !node.CanUse(source))
         {
@@ -547,7 +546,7 @@ public class CommandDispatcher<TS>
 
     /// <summary>
     /// Gets the possible executable commands from a specified node.
-    /// <para>You may use <see cref="GetRoot"/> as a target to get all usage data for the entire command tree.</para>
+    /// <para>You may use <see cref="Root"/> as a target to get all usage data for the entire command tree.</para>
     /// <para>The returned syntax will be in "smart" form: <c>&lt;param&gt;</c>, <c>literal</c>, <c>[optional]</c> and <c>(either|or)</c>.
     /// These forms may be mixed and matched to provide as much information about the child nodes as it can, without being too verbose.
     /// For example, a required literal "foo" followed by an optional param "int" can be compressed into one string:</para>
@@ -560,9 +559,9 @@ public class CommandDispatcher<TS>
     /// <param name="node">target node to get child usage strings for</param>
     /// <param name="source">a custom "source" object, usually representing the originator of this command</param>
     /// <returns>array of full usage strings under the target node</returns>
-    public Dictionary<CommandNode<TS>, string> GetSmartUsage(CommandNode<TS> node, TS source)
+    public Dictionary<CommandNode<T>, string> GetSmartUsage(CommandNode<T> node, T source)
     {
-        var result = new Dictionary<CommandNode<TS>, string>();
+        var result = new Dictionary<CommandNode<T>, string>();
 
         var optional = node.Command != null;
         foreach (var child in node.Children)
@@ -577,8 +576,7 @@ public class CommandDispatcher<TS>
         return result;
     }
 
-#pragma warning disable CS8602
-    private string GetSmartUsage(CommandNode<TS> node, TS source, bool optional, bool deep)
+    private string? GetSmartUsage(CommandNode<T> node, T source, bool optional, bool deep)
     {
         if (!node.CanUse(source))
         {
@@ -652,7 +650,6 @@ public class CommandDispatcher<TS>
 
         return self;
     }
-#pragma warning restore CS8602
 
     /// <summary>
     /// Gets suggestions for a parsed input string on what comes next.
@@ -664,12 +661,12 @@ public class CommandDispatcher<TS>
     /// <c>foobar</c> but an argument preferred it to be <c>minecraft:foobar</c>, it will suggest a replacement for that
     /// whole segment of the input.</para>
     /// </summary>
-    /// <param name="parse">the result of a <see cref="Parse(StringReader,TS)"/></param>
+    /// <param name="parse">the result of a <see cref="Parse(StringReader,T)"/></param>
     /// <returns>a future that will eventually resolve into a <see cref="Suggestions"/> object</returns>
-    public Task<Suggestions> GetCompletionSuggestions(ParseResults<TS> parse) => 
+    public Task<Suggestions> GetCompletionSuggestions(ParseResults<T> parse) => 
         GetCompletionSuggestions(parse, parse.Reader.TotalLength);
 
-    public Task<Suggestions> GetCompletionSuggestions(ParseResults<TS> parse, int cursor)
+    public Task<Suggestions> GetCompletionSuggestions(ParseResults<T> parse, int cursor)
     {
         var context = parse.Context;
 
@@ -678,7 +675,7 @@ public class CommandDispatcher<TS>
         var start = Math.Min(nodeBeforeCursor.StartPos, cursor);
 
         var fullInput = parse.Reader.GetString();
-        var truncatedInput = fullInput.Substring(0, cursor);
+        var truncatedInput = fullInput[..cursor];
         var truncatedInputLowerCase = truncatedInput.ToLowerInvariant();
         var tasks = new Task<Suggestions>[parent.Children.Count()];
         var i = 0;
@@ -697,32 +694,23 @@ public class CommandDispatcher<TS>
             tasks[i++] = future;
         }
 
-        var completed = false;
-        Suggestions val = null;
-        var result = Task.Run(async () =>
+        var source = new TaskCompletionSource<Suggestions>();
+        Task.WhenAll(tasks).ContinueWith(done =>
         {
-            // ReSharper disable once LoopVariableIsNeverChangedInsideLoop
-            while (!completed) await Task.Yield();
-            return val;
+            var suggestions = done.Result.ToList();
+            source.SetResult(Suggestions.Merge(fullInput, suggestions));
         });
 
-        Task.WhenAll(tasks).ContinueWith(_ =>
-        {
-            var suggestions = tasks.Select(task => task.Result).ToList();
-            val = Suggestions.Merge(fullInput, suggestions);
-            completed = true;
-        });
-
-        return result;
+        return source.Task;
     }
 
     /// <summary>
     /// The root node of this command tree.
-    /// <para>This is often useful as a target of a <see cref="ArgumentBuilder{TS, T}.Redirect(CommandNode{TS})"/>,
+    /// <para>This is often useful as a target of a <see cref="ArgumentBuilder{TSource,T}.RedirectTarget"/>,
     /// <see cref="GetAllUsage"/> or <see cref="GetSmartUsage"/>.
     /// You may also use it to clone the command tree via <see cref="CommandDispatcher{TS}(RootCommandNode{TS})"/>.</para>
     /// </summary>
-    public RootCommandNode<TS> Root => _root;
+    public RootCommandNode<T> Root => _root;
 
     /// <summary>
     /// Finds a valid path to a given node on the command tree.
@@ -735,11 +723,11 @@ public class CommandDispatcher<TS>
     /// </summary>
     /// <param name="target">the target node you are finding a path for</param>
     /// <returns>a path to the resulting node, or an empty list if it was not found</returns>
-    public IEnumerable<string> GetPath(CommandNode<TS> target)
+    public IEnumerable<string> GetPath(CommandNode<T> target)
     {
-        var nodes = new List<List<CommandNode<TS>>>();
-        AddPaths(_root, nodes, new List<CommandNode<TS>>());
-        foreach (var list in nodes.Where(list => list[list.Count - 1] == target))
+        var nodes = new List<List<CommandNode<T>>>();
+        AddPaths(_root, nodes, new List<CommandNode<T>>());
+        foreach (var list in nodes.Where(list => list[^1] == target))
             return (from node in list where node != _root select node.Name).ToList();
         return Array.Empty<string>();
     }
@@ -752,9 +740,9 @@ public class CommandDispatcher<TS>
     /// </summary>
     /// <param name="path">a generated path to a node</param>
     /// <returns>the node at the given path, or null if not found</returns>
-    public CommandNode<TS> FindNode(Collection<string> path)
+    public CommandNode<T>? FindNode(ICollection<string> path)
     {
-        CommandNode<TS> node = _root;
+        CommandNode<T>? node = _root;
         foreach (var name in path)
         {
             node = node.GetChild(name);
@@ -769,19 +757,19 @@ public class CommandDispatcher<TS>
 
     /// <summary>
     /// Scans the command tree for potential ambiguous commands.
-    /// <para>This is a shortcut for <see cref="CommandNode{TS}.FindAmbiguities"/> on <see cref="GetRoot"/>.</para>
+    /// <para>This is a shortcut for <see cref="CommandNode{TS}.FindAmbiguities"/> on <see cref="Root"/>.</para>
     /// <para>Ambiguities are detected by testing every <see cref="CommandNode{TS}.GetExamples"/> on one node verses every sibling
     /// node. This is not fool proof, and relies a lot on the providers of the used argument types to give good examples.</para>
     /// </summary>
     /// <param name="consumer">a callback to be notified of potential ambiguities</param>
-    public void FindAmbiguities(AmbiguityConsumer<TS> consumer)
+    public void FindAmbiguities(AmbiguityConsumer<T> consumer)
     {
         _root.FindAmbiguities(consumer);
     }
 
-    private void AddPaths(CommandNode<TS> node, List<List<CommandNode<TS>>> result, List<CommandNode<TS>> parents)
+    private void AddPaths(CommandNode<T> node, List<List<CommandNode<T>>> result, List<CommandNode<T>> parents)
     {
-        var current = new List<CommandNode<TS>>(parents) { node };
+        var current = new List<CommandNode<T>>(parents) { node };
         result.Add(current);
 
         foreach (var child in node.Children)

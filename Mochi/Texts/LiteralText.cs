@@ -2,127 +2,49 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Nodes;
 
 namespace Mochi.Texts;
 
-public class LiteralText : Text<LiteralText>
+public class LiteralContent : IContent<LiteralContent>
 {
+    public IContentType<LiteralContent> Type => TextContentTypes.Literal;
+    
     public string Text { get; set; }
-
-    protected override LiteralText ResolveThis() => this;
-
-    public static LiteralText Of(string? text)
+    
+    public LiteralContent Clone()
     {
-        return new LiteralText
-        {
-            Text = text ?? ""
-        };
+        return new LiteralContent(Text);
     }
 
-    public static IText FromLegacyText(string message)
+    public void Visit(IContentVisitor visitor, IStyle style) => 
+        visitor.Accept(this, style);
+
+    public void VisitLiteral(IContentVisitor visitor, IStyle style) => 
+        visitor.Accept(this, style);
+
+    public LiteralContent(string? text = null)
     {
-        List<LiteralText> texts = new();
-        StringBuilder sb = new();
-        LiteralText t = new();
+        Text = text ?? "";
+    }
+}
 
-        for (var i = 0; i < message.Length; i++)
-        {
-            var c = message[i];
-            if (c == '\u00a7')
-            {
-                if (++i >= message.Length) break;
-                c = message[i];
-
-                // lower case
-                if (c >= 'A' && c <= 'Z') c += (char)32;
-
-                TextColor color;
-                if (c == 'x' && i + 12 < message.Length)
-                {
-                    StringBuilder hex = new("#");
-                    for (var j = 0; j < 6; j++)
-                    {
-                        hex.Append(message[i + 2 + j * 2]);
-                    }
-
-                    try
-                    {
-                        color = TextColor.Of(hex.ToString());
-                    }
-                    catch (ArgumentException)
-                    {
-                        color = null;
-                    }
-                }
-                else
-                {
-                    color = TextColor.Of(c);
-                }
-                if (color == null) continue;
-                    
-                // push old text to the list
-                if (sb.Length > 0)
-                {
-                    var old = t;
-                    t = old.Clone();
-                    old.Text = sb.ToString();
-                    sb.Clear();
-                    texts.Add(old);
-                }
-
-                t = new LiteralText
-                {
-                    Color = color
-                };
-                continue;
-            }
-
-            sb.Append(c);
-        }
-
-        t.Text = sb.ToString();
-        texts.Add(t);
-
-        var result = new LiteralText();
-        foreach (var text in texts)
-        {
-            result.AddExtra(text);
-        }
-
-        return result;
+public class LiteralContentType : IContentType<LiteralContent>
+{
+    public LiteralContent CreateContent(JsonObject payload)
+    {
+        var text = payload["text"]!.GetValue<string>();
+        return new LiteralContent(text);
     }
 
-    public override LiteralText Clone()
+    public void InsertPayload(JsonObject target, LiteralContent content)
     {
-        var result = Of(Text);
-        return CloneToTarget(result);
+        target["text"] = content.Text;
     }
+}
 
-    public override string ToAnsi()
-    {
-        var extra = base.ToAnsi();
-        var color = (Color ?? ParentColor).GetAnsiCode();
-        return color + Text + extra;
-    }
-
-    public override string ToPlainText()
-    {
-        var extra = base.ToPlainText();
-
-        var result = "";
-        for (var i = 0; i < Text.Length; i++)
-        {
-            var b = Text;
-            if (b[i] == TextColor.ColorChar && TextColor.McCodes().ToList().IndexOf(b[i + 1]) > -1)
-            {
-                i += 2;
-            }
-            else
-            {
-                result += b[i];
-            }
-        }
-
-        return result + extra;
-    }
+public static class LiteralText
+{
+    [Obsolete("Use Component.Literal()", true)]
+    public static IMutableComponent Of(string? text) => Component.Literal(text);
 }

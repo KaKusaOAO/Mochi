@@ -4,51 +4,52 @@ using Mochi.Brigadier.Tree;
 
 namespace Mochi.Brigadier.Context;
 
-public class CommandContext<TS>
+public class CommandContext<T>
 {
-    private readonly TS _source;
-    private readonly string _input;
-    private readonly ICommand<TS> _command;
-    private readonly Dictionary<string, ParsedArgument<TS>> _arguments;
-    private readonly CommandNode<TS> _rootNode;
-    private readonly List<ParsedCommandNode<TS>> _nodes;
-    private readonly StringRange _range;
-    private readonly CommandContext<TS> _child;
-    private readonly RedirectModifier<TS> _modifier;
-    private readonly bool _forks;
+    private readonly Dictionary<string, IParsedArgument<T>> _arguments;
 
-    public CommandContext(TS source, string input,
-        Dictionary<string, ParsedArgument<TS>> arguments,
-        ICommand<TS> command, CommandNode<TS> rootNode,
-        List<ParsedCommandNode<TS>> nodes, StringRange range,
-        CommandContext<TS> child, RedirectModifier<TS> modifier, bool forks)
+    public CommandContext<T>? Child { get; }
+    public CommandContext<T> LastChild => InternalGetLastChild();
+    public ICommand<T>? Command { get; }
+    public T Source { get; }
+    public RedirectModifier<T>? RedirectModifier { get; }
+    public StringRange Range { get; }
+    public string Input { get; }
+    public CommandNode<T> RootNode { get; }
+    public List<ParsedCommandNode<T>> Nodes { get; }
+
+    public CommandContext(T source, string input,
+        Dictionary<string, IParsedArgument<T>> arguments,
+        ICommand<T>? command, CommandNode<T> rootNode,
+        List<ParsedCommandNode<T>> nodes, StringRange range,
+        CommandContext<T>? child, RedirectModifier<T>? modifier, bool forks)
     {
-        _source = source;
-        _input = input;
         _arguments = arguments;
-        _command = command;
-        _rootNode = rootNode;
-        _nodes = nodes;
-        _range = range;
-        _child = child;
-        _modifier = modifier;
-        _forks = forks;
+        
+        Source = source;
+        Input = input;
+        Command = command;
+        RootNode = rootNode;
+        Nodes = nodes;
+        Range = range;
+        Child = child;
+        RedirectModifier = modifier;
+        IsForked = forks;
     }
 
-    public CommandContext<TS> CopyFor(TS source)
+    public CommandContext<T> CopyFor(T source)
     {
-        if (_source?.Equals(source) ?? false)
+        if (Source?.Equals(source) ?? false)
         {
             return this;
         }
 
-        return new CommandContext<TS>(source, _input, _arguments, _command, _rootNode, _nodes, _range, _child,
-            _modifier, _forks);
+        return new CommandContext<T>(source, Input, _arguments, Command, RootNode, Nodes, Range, Child,
+            RedirectModifier, IsForked);
     }
 
-    public CommandContext<TS> Child => _child;
 
-    private CommandContext<TS> InternalGetLastChild()
+    private CommandContext<T> InternalGetLastChild()
     {
         var result = this;
         while (result.Child != null)
@@ -59,13 +60,7 @@ public class CommandContext<TS>
         return result;
     }
 
-    public CommandContext<TS> LastChild => InternalGetLastChild();
-
-    public ICommand<TS> Command => _command;
-
-    public TS Source => _source;
-
-    public TV GetArgument<TV>(string name)
+    public TValue GetArgument<TValue>(string name)
     {
         var argument = _arguments[name];
 
@@ -75,42 +70,29 @@ public class CommandContext<TS>
         }
 
         var result = argument.Result;
-        if (result is TV v) return v;
+        if (result is TValue v) return v;
 
         throw new ArgumentException(
-            $"Argument '{name}' is defined as {result.GetType().Name}, not {typeof(TV).Name}");
+            $"Argument '{name}' is defined as {result.GetType().Name}, not {typeof(TValue).Name}");
     }
 
-    public override bool Equals(object o)
+    public override bool Equals(object? o)
     {
         if (this == o) return true;
-        if (o is not CommandContext<TS> that) return false;
+        if (o is not CommandContext<T> that) return false;
 
         if (!_arguments.Equals(that._arguments)) return false;
-        if (!_rootNode.Equals(that._rootNode)) return false;
-        if (_nodes.Count != that._nodes.Count || !_nodes.Equals(that._nodes)) return false;
-        if (!_command.Equals(that._command)) return false;
-        if (!_source.Equals(that._source)) return false;
-        return _child.Equals(that._child);
+        if (!RootNode.Equals(that.RootNode)) return false;
+        if (Nodes.Count != that.Nodes.Count || !Nodes.Equals(that.Nodes)) return false;
+        if (!Equals(Command, that.Command)) return false;
+        if (!Equals(Source, that.Source)) return false;
+        return Equals(Child, that.Child);
     }
 
     public override int GetHashCode() => 
-        HashCode.Combine(_source, _arguments, _command, _rootNode, _nodes, _child);
+        HashCode.Combine(Source, _arguments, Command, RootNode, Nodes, Child);
 
-    public RedirectModifier<TS> RedirectModifier => _modifier;
+    public bool HasNodes => Nodes.Count > 0;
 
-    public StringRange Range => _range;
-
-    public string Input => _input;
-
-    public CommandNode<TS> RootNode => _rootNode;
-
-    public List<ParsedCommandNode<TS>> Nodes => _nodes;
-
-    public bool HasNodes()
-    {
-        return _nodes.Count > 0;
-    }
-
-    public bool IsForked => _forks;
+    public bool IsForked { get; }
 }

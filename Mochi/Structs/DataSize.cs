@@ -10,8 +10,6 @@ public readonly struct DataSize :
 #endif
     IComparable<DataSize>
 {
-    private readonly BigInteger _bytes;
-
     private const ulong UnitScale = 1024;
     private const ulong KilobyteInBytes = UnitScale;
     private const ulong MegabyteInBytes = KilobyteInBytes * UnitScale;
@@ -19,9 +17,12 @@ public readonly struct DataSize :
     private const ulong TerabyteInBytes = GigabyteInBytes * UnitScale;
     private const ulong PetabyteInBytes = TerabyteInBytes * UnitScale;
     private const ulong ExabyteInBytes = PetabyteInBytes * UnitScale;
+    
     private static readonly BigInteger ZettabyteInBytes = new BigInteger(ExabyteInBytes) * UnitScale;
     private static readonly BigInteger YottabyteInBytes = ZettabyteInBytes * UnitScale;
 
+    private readonly BigInteger _bytes;
+    
     public static DataSize Zero { get; } = new();
     public static DataSize MaxValue { get; } = new(new BigInteger(decimal.MaxValue));
     public static DataSize MinValue => Zero;

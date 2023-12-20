@@ -2,37 +2,36 @@
 
 namespace Mochi.Brigadier.Context;
 
-public class ParsedArgument<TS>
+public interface IParsedArgument<T>
 {
-    private readonly StringRange _range;
-    private readonly object _result;
-
-    public ParsedArgument(int start, int end, object result)
-    {
-        _range = StringRange.Between(start, end);
-        _result = result;
-    }
-
-    public StringRange Range => _range;
-
-    public object Result => _result;
-
-    public override bool Equals(object o)
-    {
-        if (this == o) return true;
-        if (o is not ParsedArgument<TS> that) return false;
-        
-        return _result == that._result && _range == that._range;
-    }
-
-    public override int GetHashCode() => HashCode.Combine(_range, _result);
+    public object Result { get; }
+    public StringRange Range { get; }
 }
 
-public class ParsedArgument<TS, T> : ParsedArgument<TS>
+public interface IParsedArgument<TSource, out T> : IParsedArgument<TSource>
 {
-    public ParsedArgument(int start, int end, T result) : base(start, end, result)
+    public new T Result { get; }
+    object IParsedArgument<TSource>.Result => Result!;
+}
+
+public class ParsedArgument<TSource, T> : IParsedArgument<TSource, T>
+{
+    public StringRange Range { get; }
+
+    public T Result { get; }
+    
+    public ParsedArgument(int start, int end, T result)
     {
+        Range = StringRange.Between(start, end);
+        Result = result;
     }
 
-    public new T Result => (T) base.Result;
+    public override bool Equals(object? o)
+    {
+        if (this == o) return true;
+        if (o is not ParsedArgument<TSource, T> that) return false;
+        return Equals(Result, that.Result) && Range == that.Range;
+    }
+
+    public override int GetHashCode() => HashCode.Combine(Range, Result);
 }

@@ -2,4 +2,4 @@
 
 namespace Mochi.Brigadier;
 
-public delegate void ResultConsumer<TS>(CommandContext<TS> context, bool success, int result);
+public delegate void ResultConsumer<T>(CommandContext<T> context, bool success, int result);

@@ -1,138 +1,110 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using Mochi.Nbt.Serializations;
 
 namespace Mochi.Nbt;
 
 public class NbtCompound : NbtTag, IDictionary<string, NbtTag>
 {
-    public NbtTag this[string key]
+    private readonly Dictionary<string, NbtTag> _tags = new();
+
+    public override TagTypeInfo TypeInfo => TagTypeInfo.Compound;
+
+    public ICollection<string> Keys => _tags.Keys;
+
+    public ICollection<NbtTag> Values => _tags.Values;
+
+    public int Count => _tags.Count;
+
+    public override NbtTag? this[string key]
     {
-        get => children.Find(tag => tag.Name == key);
+#pragma warning disable CS8766
+        get => _tags.GetValueOrDefault(key);
+#pragma warning restore CS8766
         set
         {
-            // Should I respect C# standard, which throws error
-            // when old item is not found?
-
-            var old = this[key];
-            if (old != null) children.Remove(old);
-
-            value.Name = key;
-            children.Add(value);
+            if (value == null) Remove(key);
+            else _tags[key] = value;
         }
     }
 
-    public ICollection<string> Keys => children.ConvertAll(tag => tag.Name);
-
-    public ICollection<NbtTag> Values => children.ConvertAll(t => t);
-
-    public int Count => children.Count;
-
-    public bool IsReadOnly => false;
-
-    public void Add(string key, NbtTag value)
+    public NbtCompound(Dictionary<string, NbtTag> tags)
     {
-        this[key] = value;
-        value.Name = key;
-    }
-
-    public void AddBool(string key, bool val) => Add(key, new NbtByte(val ? (byte)1 : (byte)0));
-
-    public void AddInt(string key, int val) => Add(key, new NbtInt(val));
-
-    public void AddString(string key, string val) => Add(key, new NbtString(val));
-
-    public void AddDouble(string key, double val) => Add(key, new NbtDouble(val));
-
-    public void AddLong(string key, long val) => Add(key, new NbtLong(val));
-
-    public void Add(KeyValuePair<string, NbtTag> item) => Add(item.Key, item.Value);
-
-    public bool GetBool(string key) => this[key].As<NbtByte>().AsBool;
-
-    public int GetInt(string key) => this[key].As<NbtInt>().Value;
-
-    public string GetString(string key) => this[key].As<NbtString>().Value;
-
-    public double GetDouble(string key) => this[key].As<NbtDouble>().Value;
-
-    public float GetFloat(string key) => this[key].As<NbtFloat>().Value;
-
-    public short GetShort(string key) => this[key].As<NbtShort>().Value;
-
-    public long GetLong(string key) => this[key].As<NbtLong>().Value;
-
-    public void Clear()
-    {
-        children.Clear();
-    }
-
-    public bool Contains(KeyValuePair<string, NbtTag> item) => ContainsKey(item.Key);
-
-    public bool ContainsKey(string key) => this[key] != null;
-
-    public void CopyTo(KeyValuePair<string, NbtTag>[] array, int arrayIndex)
-    {
-        foreach (var pair in children.ConvertAll(t => new KeyValuePair<string, NbtTag>(t.Name, t)))
-            array[arrayIndex++] = pair;
-    }
-
-    public IEnumerator<KeyValuePair<string, NbtTag>> GetEnumerator()
-    {
-        return children.ConvertAll(t => new KeyValuePair<string, NbtTag>(t.Name, t)).GetEnumerator();
-    }
-
-    public bool Remove(string key) => children.Remove(this[key]);
-
-    public bool Remove(KeyValuePair<string, NbtTag> item) => Remove(item.Key);
-
-#if NETCOREAPP
-    public bool TryGetValue(string key, [MaybeNullWhen(false)] out NbtTag value)
-#else
-        public bool TryGetValue(string key, out NbtTag value)
-#endif
-    {
-        value = this[key];
-        return value != null;
-        ;
-    }
-
-    IEnumerator IEnumerable.GetEnumerator() => children.GetEnumerator();
-
-    private List<NbtTag> children = new List<NbtTag>();
-
-    public NbtCompound() : base(TagType.Compound)
-    {
-    }
-
-    public static NbtCompound Deserialize(byte[] buffer, ref int index, bool named = false)
-    {
-        var result = new NbtCompound();
-
-        InternalDeserializeReadTagName(buffer, ref index, named, TagType.Compound, result);
-
-        while (buffer[index] != 0)
+        foreach (var (key, value) in tags)
         {
-            var tag = NbtTag.Deserialize(buffer, ref index, true);
-            result.Add(tag.Name, tag);
+            _tags.Add(key, value);
         }
+    }
+    
+    public NbtCompound() {}
 
-        index++;
+    public override NbtCompound AsCompound() => this;
 
-        return result;
+    public override void WriteContentTo(NbtWriter writer)
+    {
+        foreach (var (key, value) in _tags)
+        {
+            writer.WriteTagType(value.Type);
+            writer.WriteUtf(key);
+            value.WriteContentTo(writer);
+        }
+        
+        writer.WriteTagType(TagType.End);
     }
 
-    public override string ToString()
+    public IEnumerator<KeyValuePair<string, NbtTag>> GetEnumerator() => _tags.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    void ICollection<KeyValuePair<string, NbtTag>>.Add(KeyValuePair<string, NbtTag> item) => 
+        _tags.Add(item.Key, item.Value);
+
+    public void Clear() => _tags.Clear();
+
+    bool ICollection<KeyValuePair<string, NbtTag>>.Contains(KeyValuePair<string, NbtTag> item) => 
+        ((ICollection<KeyValuePair<string, NbtTag>>) _tags).Contains(item);
+
+    void ICollection<KeyValuePair<string, NbtTag>>.CopyTo(KeyValuePair<string, NbtTag>[] array, int arrayIndex) => 
+        ((ICollection<KeyValuePair<string, NbtTag>>) _tags).CopyTo(array, arrayIndex);
+
+    bool ICollection<KeyValuePair<string, NbtTag>>.Remove(KeyValuePair<string, NbtTag> item) =>
+        ((ICollection<KeyValuePair<string, NbtTag>>) _tags).Remove(item);
+
+    bool ICollection<KeyValuePair<string, NbtTag>>.IsReadOnly => false;
+
+    public void Add(string key, NbtTag value) => _tags.Add(key, value);
+
+    public bool ContainsKey(string key) => _tags.ContainsKey(key);
+
+    public bool Remove(string key) => _tags.Remove(key);
+
+    public bool TryGetValue(string key, out NbtTag value) => _tags.TryGetValue(key, out value!);
+
+    public override void Accept(ITagVisitor visitor) => visitor.VisitCompound(this);
+
+    public sealed class CompoundTypeInfo : TagTypeInfo<NbtCompound>
     {
-        var name = Name == null ? "None" : $"'{Name}'";
-        var result = $"TAG_Compound({name}): {Count} entries\n{{";
+        internal static CompoundTypeInfo Instance { get; } = new();
+        
+        public override TagType Type => TagType.Compound;
 
-        foreach (var tag in Values)
+        public override string FriendlyName => "TAG_Compound";
+
+        private CompoundTypeInfo() {}
+
+        protected override NbtCompound LoadValue(NbtReader reader)
         {
-            var lines = tag.ToString().Split('\n');
-            foreach (var line in lines) result += "\n  " + line.ToString();
-        }
+            var dict = new Dictionary<string, NbtTag>();
+            
+            TagType type;
+            while ((type = reader.ReadTagType()) != TagType.End)
+            {
+                var key = reader.ReadUtf();
+                var value = GetTagType(type).Load(reader);
+                dict[key] = value;
+            }
 
-        return result + "\n}";
+            return new NbtCompound(dict);
+        }
     }
 }

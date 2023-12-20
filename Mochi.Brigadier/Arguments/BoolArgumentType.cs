@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Mochi.Brigadier.Context;
 using Mochi.Brigadier.Suggests;
 
 namespace Mochi.Brigadier.Arguments;
 
-public class BoolArgumentType : IArgumentType<bool>, ISuggestingArgumentType, IArgumentTypeWithExamples
+public class BoolArgumentType : IArgumentType<bool>
 {
     private static IEnumerable<string> _examples = new List<string> { "true", "false" };
 
@@ -19,7 +20,7 @@ public class BoolArgumentType : IArgumentType<bool>, ISuggestingArgumentType, IA
 
     public bool Parse(StringReader reader) => reader.ReadBoolean();
 
-    public Task<Suggestions> ListSuggestionsAsync<TS>(CommandContext<TS> context, SuggestionsBuilder builder)
+    public Task<Suggestions> ListSuggestionsAsync<T>(CommandContext<T> context, SuggestionsBuilder builder)
     {
         if ("true".StartsWith(builder.RemainingLowerCase))
         {
@@ -34,5 +35,5 @@ public class BoolArgumentType : IArgumentType<bool>, ISuggestingArgumentType, IA
         return builder.BuildAsync();
     }
 
-    public IEnumerable<string> GetExamples() => _examples;
+    public ICollection<string> Examples => _examples.ToList();
 }
