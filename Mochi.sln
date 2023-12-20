@@ -26,6 +26,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mochi.JS", "Mochi.JS\Mochi.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mochi.JS.Test", "Mochi.JS.Test\Mochi.JS.Test.csproj", "{D1579C82-B406-418A-9424-6BE94A93207A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mochi.ObjC", "Mochi.ObjC\Mochi.ObjC.csproj", "{D9A7C873-605A-439D-94E4-2A7FEDF048D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mochi.Metal", "Mochi.Metal\Mochi.Metal.csproj", "{B549AA33-9E40-4383-93E6-4EE3434D058C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mochi.MetalFX", "Mochi.MetalFX\Mochi.MetalFX.csproj", "{AFB91194-6B42-455F-AEE7-4783E94E9124}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -84,5 +90,17 @@ Global
 		{D1579C82-B406-418A-9424-6BE94A93207A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1579C82-B406-418A-9424-6BE94A93207A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D1579C82-B406-418A-9424-6BE94A93207A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9A7C873-605A-439D-94E4-2A7FEDF048D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9A7C873-605A-439D-94E4-2A7FEDF048D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9A7C873-605A-439D-94E4-2A7FEDF048D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9A7C873-605A-439D-94E4-2A7FEDF048D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B549AA33-9E40-4383-93E6-4EE3434D058C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B549AA33-9E40-4383-93E6-4EE3434D058C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B549AA33-9E40-4383-93E6-4EE3434D058C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B549AA33-9E40-4383-93E6-4EE3434D058C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFB91194-6B42-455F-AEE7-4783E94E9124}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFB91194-6B42-455F-AEE7-4783E94E9124}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFB91194-6B42-455F-AEE7-4783E94E9124}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFB91194-6B42-455F-AEE7-4783E94E9124}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
