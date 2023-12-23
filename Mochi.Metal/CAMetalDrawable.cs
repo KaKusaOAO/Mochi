@@ -19,12 +19,11 @@ public struct CAMetalDrawable : IObjCInterface<CAMetalDrawable>
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<GetTextureDelegate>()(Handle, _selTexture);
+            return ObjCRuntime.GetSendMessageFunction<GetTextureDelegate>()(Handle, "texture");
         }
     }
 
     public static ObjCClass RuntimeClass { get; } = nameof(CAMetalDrawable);
 
     private delegate MTLTexture GetTextureDelegate(IntPtr handle, Selector sel);
-    private static readonly Selector _selTexture = "texture";
 }

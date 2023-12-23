@@ -9,10 +9,14 @@ public struct MTLCommandQueue : INativeHandle<MTLCommandQueue>, IMTLResourceLike
 
     public MTLCommandQueue(IntPtr handle) => Handle = handle;
     
-    public NSString Label 
+    public NSString Label
     {
         get => this.AsMTLResource().Label;
-        set => this.AsMTLResource().Label = value;
+        set
+        {
+            var r = this.AsMTLResource();
+            r.Label = value;
+        }
     }
 
     public MTLDevice Device => this.AsMTLResource().Device;

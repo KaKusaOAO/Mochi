@@ -17,12 +17,14 @@ public struct MTLTextureDescriptor : IObjCInterface<MTLTextureDescriptor>
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetTextureTypeDelegate>()(Handle, _selGetTextureType);
+            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetTextureTypeDelegate>()(Handle, 
+                _propTextureType.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetTextureTypeDelegate>()(Handle, _selSetTextureType, value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetTextureTypeDelegate>()(Handle, 
+                _propTextureType.Setter, value);
         }
     }
     
@@ -31,12 +33,14 @@ public struct MTLTextureDescriptor : IObjCInterface<MTLTextureDescriptor>
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetPixelFormatDelegate>()(Handle, _selGetPixelFormat);
+            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetPixelFormatDelegate>()(Handle, 
+                _propPixelFormat.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetPixelFormatDelegate>()(Handle, _selSetPixelFormat, value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetPixelFormatDelegate>()(Handle, 
+                _propPixelFormat.Setter, value);
         }
     }
     
@@ -45,12 +49,14 @@ public struct MTLTextureDescriptor : IObjCInterface<MTLTextureDescriptor>
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetUInt32Delegate>()(Handle, _selGetWidth);
+            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetNSUIntDelegate>()(Handle, 
+                _propWidth.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetUInt32Delegate>()(Handle, _selSetWidth, value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetNSUIntDelegate>()(Handle, 
+                _propWidth.Setter, value);
         }
     }
     
@@ -59,12 +65,14 @@ public struct MTLTextureDescriptor : IObjCInterface<MTLTextureDescriptor>
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetUInt32Delegate>()(Handle, _selGetHeight);
+            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetNSUIntDelegate>()(Handle, 
+                _propHeight.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetUInt32Delegate>()(Handle, _selSetHeight, value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetNSUIntDelegate>()(Handle, 
+                _propHeight.Setter, value);
         }
     }
     
@@ -73,12 +81,14 @@ public struct MTLTextureDescriptor : IObjCInterface<MTLTextureDescriptor>
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetUInt32Delegate>()(Handle, _selGetDepth);
+            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetNSUIntDelegate>()(Handle, 
+                _propDepth.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetUInt32Delegate>()(Handle, _selSetDepth, value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetNSUIntDelegate>()(Handle, 
+                _propDepth.Setter, value);
         }
     }
     
@@ -87,12 +97,14 @@ public struct MTLTextureDescriptor : IObjCInterface<MTLTextureDescriptor>
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetUInt32Delegate>()(Handle, _selGetMipmapLevelCount);
+            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetNSUIntDelegate>()(Handle,
+                _propMipmapLevelCount.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetUInt32Delegate>()(Handle, _selSetMipmapLevelCount, value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetNSUIntDelegate>()(Handle, 
+                _propMipmapLevelCount.Setter, value);
         }
     }
     
@@ -101,12 +113,14 @@ public struct MTLTextureDescriptor : IObjCInterface<MTLTextureDescriptor>
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetUInt32Delegate>()(Handle, _selGetSampleCount);
+            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetNSUIntDelegate>()(Handle, 
+                _propSampleCount.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetUInt32Delegate>()(Handle, _selSetSampleCount, value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetNSUIntDelegate>()(Handle, 
+                _propSampleCount.Setter, value);
         }
     }
     
@@ -115,12 +129,14 @@ public struct MTLTextureDescriptor : IObjCInterface<MTLTextureDescriptor>
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetUInt32Delegate>()(Handle, _selGetArrayLength);
+            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetNSUIntDelegate>()(Handle, 
+                _propArrayLength.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetUInt32Delegate>()(Handle, _selSetArrayLength, value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetNSUIntDelegate>()(Handle, 
+                _propArrayLength.Setter, value);
         }
     }
 
@@ -128,14 +144,16 @@ public struct MTLTextureDescriptor : IObjCInterface<MTLTextureDescriptor>
     {
         RuntimeClass.EnsureInstanceNotNull();
         return ObjCRuntime.GetSendMessageFunction<Texture2DDescriptorWithPixelFormatDelegate>()(
-            RuntimeClass.Handle, _selTexture2DDescriptorWithPixelFormat, format, width, height, mipmap);
+            RuntimeClass.Handle, "texture2DDescriptorWithPixelFormat:width:height:mipmapped:", 
+            format, width, height, mipmap);
     }
     
     public static MTLTextureDescriptor CreateTextureCube(MTLPixelFormat format, uint size, bool mipmap)
     {
         RuntimeClass.EnsureInstanceNotNull();
         return ObjCRuntime.GetSendMessageFunction<TextureCubeDescriptorWithPixelFormatDelegate>()(
-            RuntimeClass.Handle, _selTexture2DDescriptorWithPixelFormat, format, size, mipmap);
+            RuntimeClass.Handle, "textureCubeDescriptorWithPixelFormat:size:mipmapped:", 
+            format, size, mipmap);
     }
     
     [SupportedOSPlatform("macos10.14")]
@@ -145,7 +163,8 @@ public struct MTLTextureDescriptor : IObjCInterface<MTLTextureDescriptor>
     {
         RuntimeClass.EnsureInstanceNotNull();
         return ObjCRuntime.GetSendMessageFunction<TextureBufferDescriptorWithPixelFormatDelegate>()(
-            RuntimeClass.Handle, _selTexture2DDescriptorWithPixelFormat, format, width, options, usage);
+            RuntimeClass.Handle, "textureBufferDescriptorWithPixelFormat:width:resourceOptions:usage:", 
+            format, width, options, usage);
     }
 
     private delegate MTLTextureDescriptor Texture2DDescriptorWithPixelFormatDelegate(
@@ -160,30 +179,13 @@ public struct MTLTextureDescriptor : IObjCInterface<MTLTextureDescriptor>
     static MTLTextureDescriptor INativeHandle<MTLTextureDescriptor>.CreateWithHandle(IntPtr handle) => new(handle);
 
     public static ObjCClass RuntimeClass { get; } = nameof(MTLTextureDescriptor);
-
-    private static readonly Selector _selTexture2DDescriptorWithPixelFormat =
-        "texture2DDescriptorWithPixelFormat:width:height:mipmapped:";
-
-    private static readonly Selector _selTextureCubeDescriptorWithPixelFormat = 
-        "textureCubeDescriptorWithPixelFormat:size:mipmapped:";
-
-    private static readonly Selector _selTextureBufferDescriptorWithPixelFormat =
-        "textureBufferDescriptorWithPixelFormat:width:resourceOptions:usage:";
     
-    private static readonly Selector _selGetTextureType = "textureType";
-    private static readonly Selector _selSetTextureType = "setTextureType:";
-    private static readonly Selector _selGetPixelFormat = "pixelFormat";
-    private static readonly Selector _selSetPixelFormat = "setPixelFormat:";
-    private static readonly Selector _selGetWidth = "width";
-    private static readonly Selector _selSetWidth = "setWidth:";
-    private static readonly Selector _selGetHeight = "height";
-    private static readonly Selector _selSetHeight = "setHeight:";
-    private static readonly Selector _selGetDepth = "depth";
-    private static readonly Selector _selSetDepth = "setDepth:";
-    private static readonly Selector _selGetMipmapLevelCount = "mipmapLevelCount";
-    private static readonly Selector _selSetMipmapLevelCount = "setMipmapLevelCount:";
-    private static readonly Selector _selGetSampleCount = "sampleCount";
-    private static readonly Selector _selSetSampleCount = "setSampleCount:";
-    private static readonly Selector _selGetArrayLength = "arrayLength";
-    private static readonly Selector _selSetArrayLength = "setArrayLength:";
+    private static readonly Property _propTextureType = Property.Create("textureType");
+    private static readonly Property _propPixelFormat = Property.Create("pixelFormat");
+    private static readonly Property _propWidth = Property.Create("width");
+    private static readonly Property _propHeight = Property.Create("height");
+    private static readonly Property _propDepth = Property.Create("depth");
+    private static readonly Property _propMipmapLevelCount = Property.Create("mipmapLevelCount");
+    private static readonly Property _propSampleCount = Property.Create("sampleCount");
+    private static readonly Property _propArrayLength = Property.Create("arrayLength");
 }

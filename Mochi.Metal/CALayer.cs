@@ -13,11 +13,10 @@ public struct CALayer : IObjCInterface<CALayer>
     public void AddSublayer(IntPtr handle)
     {
         this.EnsureInstanceNotNull();
-        ObjCRuntime.GetSendMessageFunction<AddSublayerDelegate>()(Handle, _selAddSublayer, handle);
+        ObjCRuntime.GetSendMessageFunction<AddSublayerDelegate>()(Handle, "addSublayer:", handle);
     }
 
     public static ObjCClass RuntimeClass { get; } = nameof(CALayer);
 
     private delegate void AddSublayerDelegate(IntPtr handle, Selector sel, IntPtr layer);
-    private static Selector _selAddSublayer = "addSublayer:";
 }

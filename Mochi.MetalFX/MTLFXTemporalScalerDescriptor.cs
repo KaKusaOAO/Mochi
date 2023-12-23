@@ -25,13 +25,13 @@ public struct MTLFXTemporalScalerDescriptor : IObjCInterface<MTLFXTemporalScaler
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetPixelFormatDelegate>()(Handle,
-                _selGetColorTextureFormat);
+                _propColorTextureFormat.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetPixelFormatDelegate>()(Handle,
-                _selSetColorTextureFormat, value);
+                _propColorTextureFormat.Setter, value);
         }
     }
 
@@ -41,13 +41,13 @@ public struct MTLFXTemporalScalerDescriptor : IObjCInterface<MTLFXTemporalScaler
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetPixelFormatDelegate>()(Handle,
-                _selGetDepthTextureFormat);
+                _propDepthTextureFormat.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetPixelFormatDelegate>()(Handle,
-                _selSetDepthTextureFormat, value);
+                _propDepthTextureFormat.Setter, value);
         }
     }
 
@@ -57,13 +57,13 @@ public struct MTLFXTemporalScalerDescriptor : IObjCInterface<MTLFXTemporalScaler
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetPixelFormatDelegate>()(Handle,
-                _selGetMotionTextureFormat);
+                _propMotionTextureFormat.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetPixelFormatDelegate>()(Handle,
-                _selSetMotionTextureFormat, value);
+                _propMotionTextureFormat.Setter, value);
         }
     }
 
@@ -73,13 +73,13 @@ public struct MTLFXTemporalScalerDescriptor : IObjCInterface<MTLFXTemporalScaler
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetPixelFormatDelegate>()(Handle,
-                _selGetOutputTextureFormat);
+                _propOutputTextureFormat.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetPixelFormatDelegate>()(Handle,
-                _selSetOutputTextureFormat, value);
+                _propOutputTextureFormat.Setter, value);
         }
     }
 
@@ -88,12 +88,14 @@ public struct MTLFXTemporalScalerDescriptor : IObjCInterface<MTLFXTemporalScaler
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetUInt32Delegate>()(Handle, _selGetInputWidth);
+            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetNSUIntDelegate>()(Handle,
+                _propInputWidth.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetUInt32Delegate>()(Handle, _selSetInputWidth, value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetNSUIntDelegate>()(Handle,
+                _propInputWidth.Setter, value);
         }
     }
 
@@ -102,14 +104,14 @@ public struct MTLFXTemporalScalerDescriptor : IObjCInterface<MTLFXTemporalScaler
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetUInt32Delegate>()(Handle,
-                _selGetInputHeight);
+            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetNSUIntDelegate>()(Handle,
+                _propInputHeight.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetUInt32Delegate>()(Handle, _selSetInputHeight,
-                value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetNSUIntDelegate>()(Handle, 
+                _propInputHeight.Setter, value);
         }
     }
 
@@ -118,14 +120,14 @@ public struct MTLFXTemporalScalerDescriptor : IObjCInterface<MTLFXTemporalScaler
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetUInt32Delegate>()(Handle,
-                _selGetOutputWidth);
+            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetNSUIntDelegate>()(Handle,
+                _propOutputWidth.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetUInt32Delegate>()(Handle, _selSetOutputWidth,
-                value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetNSUIntDelegate>()(Handle, 
+                _propOutputWidth.Setter, value);
         }
     }
 
@@ -134,14 +136,14 @@ public struct MTLFXTemporalScalerDescriptor : IObjCInterface<MTLFXTemporalScaler
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetUInt32Delegate>()(Handle,
-                _selGetOutputHeight);
+            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetNSUIntDelegate>()(Handle,
+                _propOutputHeight.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetUInt32Delegate>()(Handle, _selSetOutputHeight,
-                value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetNSUIntDelegate>()(Handle, 
+                _propOutputHeight.Setter, value);
         }
     }
 
@@ -205,23 +207,15 @@ public struct MTLFXTemporalScalerDescriptor : IObjCInterface<MTLFXTemporalScaler
     static MTLFXTemporalScalerDescriptor INativeHandle<MTLFXTemporalScalerDescriptor>.CreateWithHandle(IntPtr handle) =>
         new(handle);
 
-    private static readonly Selector _selGetColorTextureFormat = "colorTextureFormat";
-    private static readonly Selector _selSetColorTextureFormat = "setColorTextureFormat:";
-    private static readonly Selector _selGetDepthTextureFormat = "depthTextureFormat";
-    private static readonly Selector _selSetDepthTextureFormat = "setDepthTextureFormat:";
-    private static readonly Selector _selGetMotionTextureFormat = "motionTextureFormat";
-    private static readonly Selector _selSetMotionTextureFormat = "setMotionTextureFormat:";
-    private static readonly Selector _selGetOutputTextureFormat = "outputTextureFormat";
-    private static readonly Selector _selSetOutputTextureFormat = "setOutputTextureFormat:";
+    private static readonly Property _propColorTextureFormat = Property.Create("colorTextureFormat");
+    private static readonly Property _propDepthTextureFormat = Property.Create("depthTextureFormat");
+    private static readonly Property _propMotionTextureFormat = Property.Create("motionTextureFormat");
+    private static readonly Property _propOutputTextureFormat = Property.Create("outputTextureFormat");
 
-    private static readonly Selector _selGetInputWidth = "inputWidth";
-    private static readonly Selector _selSetInputWidth = "setInputWidth:";
-    private static readonly Selector _selGetInputHeight = "inputHeight";
-    private static readonly Selector _selSetInputHeight = "setInputHeight:";
-    private static readonly Selector _selGetOutputWidth = "outputWidth";
-    private static readonly Selector _selSetOutputWidth = "setOutputWidth:";
-    private static readonly Selector _selGetOutputHeight = "outputHeight";
-    private static readonly Selector _selSetOutputHeight = "setOutputHeight:";
+    private static readonly Property _propInputWidth = Property.Create("inputWidth");
+    private static readonly Property _propInputHeight = Property.Create("inputHeight");
+    private static readonly Property _propOutputWidth = Property.Create("outputWidth");
+    private static readonly Property _propOutputHeight = Property.Create("outputHeight");
     
     private static readonly Selector _selNewTemporalScalerWithDevice = "newTemporalScalerWithDevice:";
     private static readonly Selector _selSupportedInputContentMinScaleForDevice = "supportedInputContentMinScaleForDevice:";

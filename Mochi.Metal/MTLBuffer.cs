@@ -14,7 +14,11 @@ public unsafe struct MTLBuffer : INativeHandle<MTLBuffer>, IMTLResource
     public NSString Label
     {
         get => this.AsMTLResource().Label;
-        set => this.AsMTLResource().Label = value;
+        set
+        {
+            var r = this.AsMTLResource();
+            r.Label = value;
+        }
     }
 
     public MTLDevice Device => this.AsMTLResource().Device;
@@ -24,7 +28,7 @@ public unsafe struct MTLBuffer : INativeHandle<MTLBuffer>, IMTLResource
         get 
         { 
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<GetLengthDelegate>()(Handle, _selLength); 
+            return ObjCRuntime.GetSendMessageFunction<GetLengthDelegate>()(Handle, "length"); 
         }
     }
 
@@ -33,26 +37,26 @@ public unsafe struct MTLBuffer : INativeHandle<MTLBuffer>, IMTLResource
         get
         {
             this.EnsureInstanceNotNull();
-            return (IntPtr)ObjCRuntime.GetSendMessageFunction<GetContentsDelegate>()(Handle, _selContents);
+            return (IntPtr)ObjCRuntime.GetSendMessageFunction<GetContentsDelegate>()(Handle, "contents");
         }
     }
 
     public void DidModifyRange(NSRange range)
     {
         this.EnsureInstanceNotNull();
-        ObjCRuntime.GetSendMessageFunction<DidModifyRangeDelegate>()(Handle, _selDidModifyRange, range);
+        ObjCRuntime.GetSendMessageFunction<DidModifyRangeDelegate>()(Handle, "didModifyRange:", range);
     }
 
     public void AddDebugMarker(NSString marker, NSRange range)
     {
         this.EnsureInstanceNotNull();
-        ObjCRuntime.GetSendMessageFunction<AddDebugMarkerDelegate>()(Handle, _selAddDebugMarker, marker, range);
+        ObjCRuntime.GetSendMessageFunction<AddDebugMarkerDelegate>()(Handle, "addDebugMarker:range:", marker, range);
     }
 
     public void RemoveAllDebugMarkers()
     {
         this.EnsureInstanceNotNull();
-        ObjCRuntime.GetSendMessageFunction<RemoveAllDebugMarkersDelegate>()(Handle, _selRemoveAllDebugMarkers);
+        ObjCRuntime.GetSendMessageFunction<RemoveAllDebugMarkersDelegate>()(Handle, "removeAllDebugMarkers");
     }
 
     static MTLBuffer INativeHandle<MTLBuffer>.CreateWithHandle(IntPtr handle) => new(handle);
@@ -62,10 +66,4 @@ public unsafe struct MTLBuffer : INativeHandle<MTLBuffer>, IMTLResource
     private delegate void DidModifyRangeDelegate(IntPtr handle, Selector sel, NSRange range);
     private delegate void AddDebugMarkerDelegate(IntPtr handle, Selector sel, NSString marker, NSRange range);
     private delegate void RemoveAllDebugMarkersDelegate(IntPtr handle, Selector sel);
-    
-    private static readonly Selector _selLength = "length";
-    private static readonly Selector _selContents = "contents";
-    private static readonly Selector _selDidModifyRange = "didModifyRange:";
-    private static readonly Selector _selAddDebugMarker = "addDebugMarker:range:";
-    private static readonly Selector _selRemoveAllDebugMarkers = "removeAllDebugMarkers";
 }

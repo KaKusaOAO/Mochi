@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Mochi.ObjC;
 
-public interface IObjCInterface<out T> : INativeHandle<T>
+public interface IObjCInterface<out T> : IObjCNativeHandle<T>
 {
     public static abstract ObjCClass RuntimeClass { get; }
     
@@ -10,7 +10,7 @@ public interface IObjCInterface<out T> : INativeHandle<T>
     {
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
         if (!TryCast(out TOut result))
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning restore CS8600
             throw new Exception("Cannot cast to " + typeof(T).Name);
 
         return result;

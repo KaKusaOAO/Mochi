@@ -12,7 +12,11 @@ public struct MTLDynamicLibrary : INativeHandle<MTLDynamicLibrary>, IMTLResource
     public NSString Label
     {
         get => this.AsMTLResource().Label;
-        set => this.AsMTLResource().Label = value;
+        set
+        {
+            var r = this.AsMTLResource();
+            r.Label = value;
+        }
     }
 
     public MTLDevice Device => this.AsMTLResource().Device;

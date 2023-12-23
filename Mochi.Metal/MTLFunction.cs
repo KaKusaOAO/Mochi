@@ -20,7 +20,11 @@ public struct MTLFunction : IObjCInterface<MTLFunction>, IMTLResourceLike
     public NSString Label
     {
         get => this.AsMTLResource().Label;
-        set => this.AsMTLResource().Label = value;
+        set
+        {
+            var r = this.AsMTLResource();
+            r.Label = value;
+        }
     }
 
     /// <summary>

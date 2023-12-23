@@ -18,13 +18,13 @@ public struct MTLCompileOptions : IObjCInterface<MTLCompileOptions>
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetBoolDelegate>()(Handle,
-                _selGetFastMathEnabled);
+                _propFastMathEnabled.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetBoolDelegate>()(Handle, _selSetFastMathEnabled,
-                value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetBoolDelegate>()(Handle, 
+                _propFastMathEnabled.Setter, value);
         }
     }
 
@@ -36,13 +36,13 @@ public struct MTLCompileOptions : IObjCInterface<MTLCompileOptions>
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetLanguageVersionDelegate>()(Handle,
-                _selGetLanguageVersion);
+                _propLanguageVersion.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetLanguageVersionDelegate>()(Handle,
-                _selSetLanguageVersion, value);
+                _propLanguageVersion.Setter, value);
         }
     }
 
@@ -54,13 +54,13 @@ public struct MTLCompileOptions : IObjCInterface<MTLCompileOptions>
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetLibraryTypeDelegate>()(Handle,
-                _selGetLibraryType);
+                _propLibraryType.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetLibraryTypeDelegate>()(Handle, _selSetLibraryType,
-                value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetLibraryTypeDelegate>()(Handle, 
+                _propLibraryType.Setter, value);
         }
     }
 
@@ -72,13 +72,13 @@ public struct MTLCompileOptions : IObjCInterface<MTLCompileOptions>
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetNSStringDelegate>()(Handle,
-                _selGetInstallName);
+                _propInstallName.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetNSStringDelegate>()(Handle, _selSetInstallName,
-                value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetNSStringDelegate>()(Handle, 
+                _propInstallName.Setter, value);
         }
     }
 
@@ -89,13 +89,15 @@ public struct MTLCompileOptions : IObjCInterface<MTLCompileOptions>
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetNSArrayDelegate>()(Handle, _selGetLibraries)
+            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetNSArrayDelegate>()(Handle,
+                    _propLibraries.Getter)
                 .AsTyped<MTLDynamicLibrary>();
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetNSArrayDelegate>()(Handle, _selSetLibraries, value.AsUntyped());
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetNSArrayDelegate>()(Handle, 
+                _propLibraries.Setter, value.AsUntyped());
         }
     }
 
@@ -108,13 +110,13 @@ public struct MTLCompileOptions : IObjCInterface<MTLCompileOptions>
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetBoolDelegate>()(Handle,
-                _selGetPreserveInvariance);
+                _propPreserveInvariance.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetBoolDelegate>()(Handle, _selSetPreserveInvariance,
-                value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetBoolDelegate>()(Handle, 
+                _propPreserveInvariance.Setter, value);
         }
     }
 
@@ -126,13 +128,13 @@ public struct MTLCompileOptions : IObjCInterface<MTLCompileOptions>
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetOptimizationLevelDelegate>()(Handle,
-                _selGetOptimizationLevel);
+                _propOptimizationLevel.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetOptimizationLevelDelegate>()(Handle,
-                _selSetOptimizationLevel, value);
+                _propOptimizationLevel.Setter, value);
         }
     }
 
@@ -144,13 +146,13 @@ public struct MTLCompileOptions : IObjCInterface<MTLCompileOptions>
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetCompileSymbolVisibilityDelegate>()(Handle,
-                _selGetCompileSymbolVisibility);
+                _propCompileSymbolVisibility.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetCompileSymbolVisibilityDelegate>()(Handle,
-                _selSetCompileSymbolVisibility, value);
+                _propCompileSymbolVisibility.Setter, value);
         }
     }
 
@@ -162,13 +164,13 @@ public struct MTLCompileOptions : IObjCInterface<MTLCompileOptions>
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetBoolDelegate>()(Handle,
-                _selGetAllowReferencingUndefinedSymbols);
+                _propAllowReferencingUndefinedSymbols.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetBoolDelegate>()(Handle,
-                _selSetAllowReferencingUndefinedSymbols, value);
+                _propAllowReferencingUndefinedSymbols.Setter, value);
         }
     }
 
@@ -179,38 +181,28 @@ public struct MTLCompileOptions : IObjCInterface<MTLCompileOptions>
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetUInt32Delegate>()(Handle,
-                _selGetMaxTotalThreadsPerThreadGroup);
+            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetNSUIntDelegate>()(Handle,
+                _propMaxTotalThreadsPerThreadGroup.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
-            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetUInt32Delegate>()(Handle,
-                _selSetMaxTotalThreadsPerThreadGroup, value);
+            ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetNSUIntDelegate>()(Handle,
+                _propMaxTotalThreadsPerThreadGroup.Setter, value);
         }
     }
 
     public static ObjCClass RuntimeClass { get; } = nameof(MTLCompileOptions);
     static MTLCompileOptions INativeHandle<MTLCompileOptions>.CreateWithHandle(IntPtr handle) => new(handle);
 
-    private static readonly Selector _selGetFastMathEnabled = "fastMathEnabled";
-    private static readonly Selector _selSetFastMathEnabled = "setFastMathEnabled:";
-    private static readonly Selector _selGetLanguageVersion = "languageVersion";
-    private static readonly Selector _selSetLanguageVersion = "setLanguageVersion:";
-    private static readonly Selector _selGetLibraryType = "libraryType";
-    private static readonly Selector _selSetLibraryType = "setLibraryType:";
-    private static readonly Selector _selGetInstallName = "installName";
-    private static readonly Selector _selSetInstallName = "setInstallName:";
-    private static readonly Selector _selGetLibraries = "libraries";
-    private static readonly Selector _selSetLibraries = "setLibraries:";
-    private static readonly Selector _selGetPreserveInvariance = "preserveInvariance";
-    private static readonly Selector _selSetPreserveInvariance = "setPreserveInvariance:";
-    private static readonly Selector _selGetOptimizationLevel = "optimizationLevel";
-    private static readonly Selector _selSetOptimizationLevel = "setOptimizationLevel:";
-    private static readonly Selector _selGetCompileSymbolVisibility = "compileSymbolVisibility";
-    private static readonly Selector _selSetCompileSymbolVisibility = "setCompileSymbolVisibility:";
-    private static readonly Selector _selGetAllowReferencingUndefinedSymbols = "allowReferencingUndefinedSymbols";
-    private static readonly Selector _selSetAllowReferencingUndefinedSymbols = "setAllowReferencingUndefinedSymbols:";
-    private static readonly Selector _selGetMaxTotalThreadsPerThreadGroup = "maxTotalThreadsPerThreadgroup";
-    private static readonly Selector _selSetMaxTotalThreadsPerThreadGroup = "setMaxTotalThreadsPerThreadgroup:";
+    private static readonly Property _propFastMathEnabled = Property.Create("fastMathEnabled");
+    private static readonly Property _propLanguageVersion = Property.Create("languageVersion");
+    private static readonly Property _propLibraryType = Property.Create("libraryType");
+    private static readonly Property _propInstallName = Property.Create("installName");
+    private static readonly Property _propLibraries = Property.Create("libraries");
+    private static readonly Property _propPreserveInvariance = Property.Create("preserveInvariance");
+    private static readonly Property _propOptimizationLevel = Property.Create("optimizationLevel");
+    private static readonly Property _propCompileSymbolVisibility = Property.Create("compileSymbolVisibility");
+    private static readonly Property _propAllowReferencingUndefinedSymbols = Property.Create("allowReferencingUndefinedSymbols");
+    private static readonly Property _propMaxTotalThreadsPerThreadGroup = Property.Create("maxTotalThreadsPerThreadgroup");
 }

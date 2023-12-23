@@ -7,8 +7,8 @@ public static class PropertyDelegates
     public delegate NativeTypes.Bool8 GetBoolDelegate(IntPtr handle, Selector sel);
     public delegate void SetBoolDelegate(IntPtr handle, Selector sel, NativeTypes.Bool8 val);
     
-    public delegate uint GetUInt32Delegate(IntPtr handle, Selector sel);
-    public delegate void SetUInt32Delegate(IntPtr handle, Selector sel, uint val);
+    public delegate NSUInteger GetNSUIntDelegate(IntPtr handle, Selector sel);
+    public delegate void SetNSUIntDelegate(IntPtr handle, Selector sel, NSUInteger val);
     
     public delegate NSString GetNSStringDelegate(IntPtr handle, Selector sel);
     public delegate void SetNSStringDelegate(IntPtr handle, Selector sel, NSString value);
@@ -51,4 +51,7 @@ public static class PropertyDelegates
     
     public delegate MTLTextureType GetTextureTypeDelegate(IntPtr handle, Selector sel);
     public delegate void SetTextureTypeDelegate(IntPtr handle, Selector sel, MTLTextureType type);
+    
+    public delegate MTLDataType GetDataTypeDelegate(IntPtr handle, Selector sel);
+    public delegate void SetDataTypeDelegate(IntPtr handle, Selector sel, MTLDataType type);
 }

@@ -2,8 +2,6 @@ using System.Runtime.Versioning;
 
 namespace Mochi.Metal;
 
-[SupportedOSPlatform("macos10.11")]
-[SupportedOSPlatform("ios8.0")]
 public enum MTLPixelFormat : uint
 {
     Invalid,
@@ -382,6 +380,9 @@ public enum MTLPixelFormat : uint
     [SupportedOSPlatform("maccatalyst14.0")]
     [SupportedOSPlatform("ios13.0")] 
     ASTC_4x4_HDR = 222,  
+    [SupportedOSPlatform("macos11.0")]
+    [SupportedOSPlatform("maccatalyst14.0")]
+    [SupportedOSPlatform("ios13.0")] 
     ASTC_5x4_HDR,  
     [SupportedOSPlatform("macos11.0")]
     [SupportedOSPlatform("maccatalyst14.0")]

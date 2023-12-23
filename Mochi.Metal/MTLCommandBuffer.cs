@@ -14,7 +14,11 @@ public struct MTLCommandBuffer : INativeHandle<MTLCommandBuffer>, IMTLResourceLi
     public NSString Label
     {
         get => this.AsMTLResource().Label;
-        set => this.AsMTLResource().Label = value;
+        set
+        {
+            var r = this.AsMTLResource();
+            r.Label = value;
+        }
     }
 
     static MTLCommandBuffer INativeHandle<MTLCommandBuffer>.CreateWithHandle(IntPtr handle) => new(handle);

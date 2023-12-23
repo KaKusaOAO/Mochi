@@ -19,13 +19,13 @@ public struct MTLRenderPipelineColorAttachmentDescriptor : IObjCInterface<MTLRen
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetPixelFormatDelegate>()(Handle,
-                _selGetPixelFormat);
+                _propPixelFormat.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetPixelFormatDelegate>()(Handle,
-                _selSetPixelFormat, value);
+                _propPixelFormat.Setter, value);
         }
     }
 
@@ -35,13 +35,13 @@ public struct MTLRenderPipelineColorAttachmentDescriptor : IObjCInterface<MTLRen
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetWriteMaskDelegate>()(Handle,
-                _selGetWriteMask);
+                _propWriteMask.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetWriteMaskDelegate>()(Handle,
-                _selSetWriteMask, value);
+                _propWriteMask.Setter, value);
         }
     }
 
@@ -51,13 +51,13 @@ public struct MTLRenderPipelineColorAttachmentDescriptor : IObjCInterface<MTLRen
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetBoolDelegate>()(Handle,
-                _selGetBlendingEnabled);
+                _propBlendingEnabled.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetBoolDelegate>()(Handle,
-                _selSetBlendingEnabled, value);
+                _propBlendingEnabled.Setter, value);
         }
     }
 
@@ -67,13 +67,13 @@ public struct MTLRenderPipelineColorAttachmentDescriptor : IObjCInterface<MTLRen
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetBlendOperationDelegate>()(Handle,
-                _selGetAlphaBlendOperation);
+                _propAlphaBlendOperation.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetBlendOperationDelegate>()(Handle,
-                _selSetAlphaBlendOperation, value);
+                _propAlphaBlendOperation.Setter, value);
         }
     }
 
@@ -83,13 +83,13 @@ public struct MTLRenderPipelineColorAttachmentDescriptor : IObjCInterface<MTLRen
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetBlendOperationDelegate>()(Handle,
-                _selGetRGBBlendOperation);
+                _propRgbBlendOperation.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetBlendOperationDelegate>()(Handle,
-                _selSetRGBBlendOperation, value);
+                _propRgbBlendOperation.Setter, value);
         }
     }
 
@@ -99,29 +99,29 @@ public struct MTLRenderPipelineColorAttachmentDescriptor : IObjCInterface<MTLRen
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetBlendFactorDelegate>()(Handle,
-                _selGetDestinationAlphaBlendFactor);
+                _propDestinationAlphaBlendFactor.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetBlendFactorDelegate>()(Handle,
-                _selSetDestinationAlphaBlendFactor, value);
+                _propDestinationAlphaBlendFactor.Setter, value);
         }
     }
-
+    
     public MTLBlendFactor DestinationRgbBlendFactor
     {
         get
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetBlendFactorDelegate>()(Handle,
-                _selGetDestinationRGBBlendFactor);
+                _propDestinationRGBBlendFactor.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetBlendFactorDelegate>()(Handle,
-                _selSetDestinationRGBBlendFactor, value);
+                _propDestinationRGBBlendFactor.Setter, value);
         }
     }
 
@@ -131,13 +131,13 @@ public struct MTLRenderPipelineColorAttachmentDescriptor : IObjCInterface<MTLRen
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetBlendFactorDelegate>()(Handle,
-                _selGetSourceAlphaBlendFactor);
+                _propSourceAlphaBlendFactor.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetBlendFactorDelegate>()(Handle,
-                _selSetSourceAlphaBlendFactor, value);
+                _propSourceAlphaBlendFactor.Setter, value);
         }
     }
 
@@ -147,13 +147,13 @@ public struct MTLRenderPipelineColorAttachmentDescriptor : IObjCInterface<MTLRen
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetBlendFactorDelegate>()(Handle,
-                _selGetSourceRGBBlendFactor);
+                _propSourceRGBBlendFactor.Getter);
         }
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetBlendFactorDelegate>()(Handle,
-                _selSetSourceRGBBlendFactor, value);
+                _propSourceRGBBlendFactor.Setter, value);
         }
     }
 
@@ -162,22 +162,14 @@ public struct MTLRenderPipelineColorAttachmentDescriptor : IObjCInterface<MTLRen
     static MTLRenderPipelineColorAttachmentDescriptor INativeHandle<MTLRenderPipelineColorAttachmentDescriptor>.
         CreateWithHandle(IntPtr handle) => new(handle);
 
-    private static readonly Selector _selGetPixelFormat = "pixelFormat";
-    private static readonly Selector _selSetPixelFormat = "setPixelFormat:";
-    private static readonly Selector _selGetWriteMask = "writeMask";
-    private static readonly Selector _selSetWriteMask = "setWriteMask:";
-    private static readonly Selector _selGetBlendingEnabled = "isBlendingEnabled";
-    private static readonly Selector _selSetBlendingEnabled = "setBlendingEnabled:";
-    private static readonly Selector _selGetAlphaBlendOperation = "alphaBlendOperation";
-    private static readonly Selector _selSetAlphaBlendOperation = "setAlphaBlendOperation:";
-    private static readonly Selector _selGetRGBBlendOperation = "rgbBlendOperation";
-    private static readonly Selector _selSetRGBBlendOperation = "setRGBBlendOperation:";
-    private static readonly Selector _selGetDestinationAlphaBlendFactor = "destinationAlphaBlendFactor";
-    private static readonly Selector _selSetDestinationAlphaBlendFactor = "setDestinationAlphaBlendFactor:";
-    private static readonly Selector _selGetDestinationRGBBlendFactor = "destinationRGBBlendFactor";
-    private static readonly Selector _selSetDestinationRGBBlendFactor = "setDestinationRGBBlendFactor:";
-    private static readonly Selector _selGetSourceAlphaBlendFactor = "sourceAlphaBlendFactor";
-    private static readonly Selector _selSetSourceAlphaBlendFactor = "setSourceAlphaBlendFactor:";
-    private static readonly Selector _selGetSourceRGBBlendFactor = "sourceRGBBlendFactor";
-    private static readonly Selector _selSetSourceRGBBlendFactor = "setSourceRGBBlendFactor:";
+    private static readonly Property _propPixelFormat = Property.Create("pixelFormat");
+    private static readonly Property _propWriteMask = Property.Create("writeMask");
+    private static readonly Property _propBlendingEnabled =
+        Property.CreateWithGetter("blendingEnabled", "isBlendingEnabled");
+    private static readonly Property _propAlphaBlendOperation = Property.Create("alphaBlendOperation");
+    private static readonly Property _propRgbBlendOperation = Property.Create("rgbBlendOperation");
+    private static readonly Property _propDestinationAlphaBlendFactor = Property.Create("destinationAlphaBlendFactor");
+    private static readonly Property _propDestinationRGBBlendFactor = Property.Create("destinationRGBBlendFactor");
+    private static readonly Property _propSourceAlphaBlendFactor = Property.Create("sourceAlphaBlendFactor");
+    private static readonly Property _propSourceRGBBlendFactor = Property.Create("sourceRGBBlendFactor");
 }

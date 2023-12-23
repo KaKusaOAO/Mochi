@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Mochi.ObjC;
@@ -7,6 +8,22 @@ namespace Mochi.ObjC;
 public unsafe struct Selector
 {
     public readonly IntPtr Handle;
+
+    public string Name
+    {
+        get
+        {
+            var bytes = Native.sel_getName(Handle);
+            var chars = 0;
+
+            while (bytes[chars] != 0)
+            {
+                chars++;
+            }
+
+            return Encoding.UTF8.GetString(bytes, chars);
+        }
+    }
 
     public Selector(IntPtr handle)
     {
@@ -22,19 +39,13 @@ public unsafe struct Selector
         }
     }
 
-    public override string ToString()
+    public override string ToString() => $"0x{Handle:x} @selector({Name})";
+
+    public static implicit operator Selector(string s) => SelectorCache.Get(s);
+
+    static Selector()
     {
-        var bytes = Native.sel_getName(Handle);
-        var chars = 0;
-
-        while (bytes[chars] != 0)
-        {
-            chars++;
-        }
-
-        var name = Encoding.UTF8.GetString(bytes, chars);
-        return $"0x{Handle:x} @selector({name})";
+        if (sizeof(Selector) != sizeof(IntPtr))
+            throw new Exception("Size of Selector must match IntPtr.");
     }
-
-    public static implicit operator Selector(string s) => new(s);
 }

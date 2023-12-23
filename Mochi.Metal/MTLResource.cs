@@ -1,11 +1,13 @@
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Mochi.ObjC;
 
 namespace Mochi.Metal;
 
+[StructLayout(LayoutKind.Sequential)]
 public struct MTLResource : INativeHandle<MTLResource>, IMTLResource
 {
-    private readonly IntPtr Handle;
+    public readonly IntPtr Handle;
     IntPtr INativeHandle<MTLResource>.Handle => Handle;
     public MTLResource(IntPtr handle) => Handle = handle;
 
@@ -30,20 +32,16 @@ public struct MTLResource : INativeHandle<MTLResource>, IMTLResource
         get
         {
             this.EnsureInstanceNotNull();
-            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetDeviceDelegate>()(Handle, _selGetDevice);
+            return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetDeviceDelegate>()(Handle, "device");
         }
     }
     
     static MTLResource INativeHandle<MTLResource>.CreateWithHandle(IntPtr handle) => new(handle);
-
-    private static readonly Selector _selGetDevice = "device";
 }
 
 public static class MTLResourceExtension 
 {
-    public static unsafe ref MTLResource AsMTLResource<T>(this ref T resource) where T : struct, INativeHandle<T>, IMTLResourceLike
-    {
-        var ptr = Unsafe.AsPointer(ref resource);
-        return ref Unsafe.AsRef<MTLResource>(ptr);
-    }
+    public static MTLResource AsMTLResource<T>(this ref T resource)
+        where T : struct, INativeHandle<T>, IMTLResourceLike =>
+        resource.UnsafeCast<T, MTLResource>();
 }

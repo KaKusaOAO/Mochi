@@ -21,14 +21,14 @@ public struct MTLSamplerDescriptor : IObjCInterface<MTLSamplerDescriptor>
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetBoolDelegate>()(Handle,
-                _selGetLodAverage);
+                _propLodAverage.Getter);
         }
 
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetBoolDelegate>()(Handle,
-                _selSetLodAverage, value);
+                _propLodAverage.Setter, value);
         }
     }
     
@@ -40,14 +40,14 @@ public struct MTLSamplerDescriptor : IObjCInterface<MTLSamplerDescriptor>
         {
             this.EnsureInstanceNotNull();
             return ObjCRuntime.GetSendMessageFunction<PropertyDelegates.GetBoolDelegate>()(Handle,
-                _selGetSupportArgumentBuffers);
+                _propSupportArgumentBuffers.Getter);
         }
 
         set
         {
             this.EnsureInstanceNotNull();
             ObjCRuntime.GetSendMessageFunction<PropertyDelegates.SetBoolDelegate>()(Handle,
-                _selSetSupportArgumentBuffers, value);
+                _propSupportArgumentBuffers.Setter, value);
         }
     }
     
@@ -72,8 +72,6 @@ public struct MTLSamplerDescriptor : IObjCInterface<MTLSamplerDescriptor>
 
     public static ObjCClass RuntimeClass { get; } = nameof(MTLSamplerDescriptor);
 
-    private static readonly Selector _selGetSupportArgumentBuffers = "supportArgumentBuffers";
-    private static readonly Selector _selSetSupportArgumentBuffers = "setSupportArgumentBuffers:";
-    private static readonly Selector _selGetLodAverage = "lodAverage";
-    private static readonly Selector _selSetLodAverage = "setLodAverage:";
+    private static readonly Property _propSupportArgumentBuffers = Property.Create("supportArgumentBuffers");
+    private static readonly Property _propLodAverage = Property.Create("lodAverage");
 }

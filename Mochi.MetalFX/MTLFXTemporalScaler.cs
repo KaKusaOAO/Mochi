@@ -4,7 +4,7 @@ using Mochi.ObjC;
 
 namespace Mochi.MetalFX;
 
-public struct MTLFXTemporalScaler : INativeHandle<MTLFXTemporalScaler>
+public struct MTLFXTemporalScaler : IObjCNativeHandle<MTLFXTemporalScaler>
 {
     private readonly IntPtr Handle;
     IntPtr INativeHandle<MTLFXTemporalScaler>.Handle => Handle;
@@ -14,12 +14,10 @@ public struct MTLFXTemporalScaler : INativeHandle<MTLFXTemporalScaler>
     public void EncodeToCommandBuffer(MTLCommandBuffer cb)
     {
         this.EnsureInstanceNotNull();
-        ObjCRuntime.GetSendMessageFunction<EncodeToCommandBufferDelegate>()(Handle, _selEncodeToCommandBuffer, cb);
+        ObjCRuntime.GetSendMessageFunction<EncodeToCommandBufferDelegate>()(Handle, "encodeToCommandBuffer:", cb);
     }
 
     private delegate void EncodeToCommandBufferDelegate(IntPtr handle, Selector sel, MTLCommandBuffer cb);
 
     static MTLFXTemporalScaler INativeHandle<MTLFXTemporalScaler>.CreateWithHandle(IntPtr handle) => new(handle);
-
-    private static readonly Selector _selEncodeToCommandBuffer = "encodeToCommandBuffer:";
 }
